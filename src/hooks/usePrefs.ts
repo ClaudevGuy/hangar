@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
+import { notifyDataChanged } from "./useGistSync";
 import type { Accent, CardStyle, Density, Prefs, Theme } from "../types";
 
 const storageKey = () => workspaceKey("hangar-prefs");
@@ -43,6 +44,7 @@ export function usePrefs() {
     dataset.accent = prefs.accent;
     dataset.density = prefs.density;
     dataset.cardstyle = prefs.cardStyle;
+    notifyDataChanged();
   }, [prefs]);
 
   const setPref = useCallback(<K extends keyof Prefs>(key: K, value: Prefs[K]) => {

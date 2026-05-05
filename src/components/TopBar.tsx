@@ -24,6 +24,12 @@ interface Props {
   onChangePassphrase: (current: string, next: string) => Promise<void>;
   onRemovePassphrase: (current: string) => Promise<void>;
   onLock: () => void;
+  sync: { status: "off" | "idle" | "syncing" | "error"; lastSyncedAt: number | null; error: string | null };
+  hasGitHubToken: boolean;
+  onSyncSetUp: () => void;
+  onSyncPushNow: () => void;
+  onSyncPullNow: () => void;
+  onSyncDisconnect: () => void;
 }
 
 export function TopBar({
@@ -34,6 +40,7 @@ export function TopBar({
   vaultState,
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
+  sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -120,6 +127,12 @@ export function TopBar({
           onChangePassphrase={onChangePassphrase}
           onRemovePassphrase={onRemovePassphrase}
           onLock={onLock}
+          sync={sync}
+          hasGitHubToken={hasGitHubToken}
+          onSyncSetUp={onSyncSetUp}
+          onSyncPushNow={onSyncPushNow}
+          onSyncPullNow={onSyncPullNow}
+          onSyncDisconnect={onSyncDisconnect}
         />
         <div className="avatar">JD</div>
       </div>

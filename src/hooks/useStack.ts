@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
+import { notifyDataChanged } from "./useGistSync";
 
 // New users start with an empty stack — they pin what they actually use.
 const DEFAULT_SEED: string[] = [];
@@ -21,6 +22,7 @@ export function useStack() {
 
   useEffect(() => {
     localStorage.setItem(workspaceKey("hangar-stack"), JSON.stringify(stack));
+    notifyDataChanged();
   }, [stack]);
 
   return [stack, setStack] as const;

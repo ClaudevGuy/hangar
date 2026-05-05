@@ -20,6 +20,7 @@ import { StarterStacksModal } from "./StarterStacksModal";
 import { CommandPalette } from "./CommandPalette";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
+import { useGistSync } from "../hooks/useGistSync";
 
 const COMPARE_MAX = 3;
 
@@ -44,6 +45,10 @@ export function HangarApp() {
   const { secrets, upsertKey, removeKey, state: vaultState } = vault;
   const { customTools, addTool, updateTool, removeTool } = useCustomTools();
   const { frecency, record: recordLaunch } = useFrecency();
+  const sync = useGistSync();
+
+  // Resolve a stored GitHub token (if any) for use with gist sync.
+  const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
   const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
   const [showCatalog, setShowCatalog] = useState(() => stack.length === 0);
   const totalKeys = useMemo(
@@ -175,6 +180,12 @@ export function HangarApp() {
         onChangePassphrase={vault.changePassphrase}
         onRemovePassphrase={vault.removePassphrase}
         onLock={vault.lock}
+        sync={{ status: sync.status, lastSyncedAt: sync.lastSyncedAt, error: sync.error }}
+        hasGitHubToken={!!githubToken}
+        onSyncSetUp={() => githubToken && sync.setUp(githubToken)}
+        onSyncPushNow={() => githubToken && sync.pushNow(githubToken)}
+        onSyncPullNow={() => githubToken && sync.pullNow(githubToken)}
+        onSyncDisconnect={sync.disconnect}
       />
 
       <div className="layout">

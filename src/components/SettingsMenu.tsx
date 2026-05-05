@@ -23,6 +23,12 @@ const CARD_STYLE_OPTIONS: { value: CardStyle; label: string }[] = [
   { value: "glow", label: "Glow" },
 ];
 
+interface SyncStateForUI {
+  status: "off" | "idle" | "syncing" | "error";
+  lastSyncedAt: number | null;
+  error: string | null;
+}
+
 interface Props {
   prefs: Prefs;
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
@@ -31,10 +37,18 @@ interface Props {
   onChangePassphrase: (current: string, next: string) => Promise<void>;
   onRemovePassphrase: (current: string) => Promise<void>;
   onLock: () => void;
+  // Sync — passing the relevant subset so SettingsMenu doesn't depend on the full hook.
+  sync: SyncStateForUI;
+  hasGitHubToken: boolean;
+  onSyncSetUp: () => void;
+  onSyncPushNow: () => void;
+  onSyncPullNow: () => void;
+  onSyncDisconnect: () => void;
 }
 
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
+  sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
 }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -152,6 +166,18 @@ export function SettingsMenu({
           </div>
 
           <div className="settings-section">
+            <div className="settings-label">Sync</div>
+            <SyncControls
+              sync={sync}
+              hasGitHubToken={hasGitHubToken}
+              onSetUp={onSyncSetUp}
+              onPushNow={onSyncPushNow}
+              onPullNow={onSyncPullNow}
+              onDisconnect={onSyncDisconnect}
+            />
+          </div>
+
+          <div className="settings-section">
             <div className="settings-label">Backup</div>
             <div className="settings-row">
               <button
@@ -187,6 +213,85 @@ export function SettingsMenu({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface SyncControlsProps {
+  sync: SyncStateForUI;
+  hasGitHubToken: boolean;
+  onSetUp: () => void;
+  onPushNow: () => void;
+  onPullNow: () => void;
+  onDisconnect: () => void;
+}
+
+function SyncControls({
+  sync, hasGitHubToken, onSetUp, onPushNow, onPullNow, onDisconnect,
+}: SyncControlsProps) {
+  const fmt = (ts: number) => {
+    const m = Math.floor((Date.now() - ts) / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  };
+
+  if (sync.status === "off") {
+    return (
+      <div className="settings-row settings-row-vert">
+        <div className="muted settings-blurb">
+          Sync your stack, prefs, custom tools, and (encrypted) vault to a private GitHub gist.
+          Pick up on another machine without losing anything. Needs a GitHub PAT with
+          {" "}<code>gist</code> scope in your vault.
+        </div>
+        <button
+          type="button"
+          className="primary-btn small"
+          onClick={onSetUp}
+          disabled={!hasGitHubToken}
+          title={hasGitHubToken ? "" : "Add a GitHub PAT to your vault first"}
+        >
+          {hasGitHubToken ? "Set up sync" : "Add GitHub PAT first"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-row settings-row-vert">
+      <div className="muted settings-blurb">
+        {sync.status === "syncing"
+          ? "Syncing…"
+          : sync.status === "error"
+            ? `Last sync failed: ${sync.error}`
+            : sync.lastSyncedAt
+              ? `Synced ${fmt(sync.lastSyncedAt)} · auto-push on changes`
+              : "Idle"}
+      </div>
+      <div className="settings-row">
+        <button
+          type="button"
+          className="ghost-btn small"
+          onClick={onPushNow}
+          disabled={sync.status === "syncing"}
+        >
+          Push now
+        </button>
+        <button
+          type="button"
+          className="ghost-btn small"
+          onClick={onPullNow}
+          disabled={sync.status === "syncing"}
+        >
+          Pull
+        </button>
+        <button type="button" className="ghost-btn small" onClick={onDisconnect}>
+          Disconnect
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
+import { notifyDataChanged } from "./useGistSync";
 import type { Tool } from "../types";
 
 const storageKey = () => workspaceKey("hangar-custom-tools");
@@ -27,6 +28,7 @@ export function useCustomTools() {
 
   useEffect(() => {
     localStorage.setItem(storageKey(), JSON.stringify(tools));
+    notifyDataChanged();
   }, [tools]);
 
   const addTool = useCallback((tool: Tool) => {

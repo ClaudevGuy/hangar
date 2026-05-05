@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { decryptJson, encryptJson, isEncryptedBlob, type EncryptedBlob } from "../lib/crypto";
 import { workspaceKey } from "../lib/workspaces";
 import type { SecretEntry, SecretsMap } from "../types";
+import { notifyDataChanged } from "./useGistSync";
 
 export type VaultState = "open" | "locked" | "unlocked";
 
@@ -78,9 +79,11 @@ export function useVault(): UseVaultReturn {
       // Only write if we're still the latest call.
       if (myToken === writeTokenRef.current) {
         localStorage.setItem(storageKey(), JSON.stringify(blob));
+        notifyDataChanged();
       }
     } else {
       localStorage.setItem(storageKey(), JSON.stringify(next));
+      notifyDataChanged();
     }
   }, []);
 
