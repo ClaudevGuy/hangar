@@ -463,21 +463,21 @@ input { font-family: inherit; }
 
 .deck {
   position: relative;
-  padding: 24px 40px 24px;
+  padding: 20px 40px 22px;
   border-bottom: 1px solid var(--line);
 }
 
 /* ----------------------------------------------------------- */
 /* Stack launcher — quick-open tiles for pinned tools          */
 /* ----------------------------------------------------------- */
-.stack-launcher { margin-bottom: 18px; }
+.stack-launcher { margin-bottom: 14px; max-width: 920px; }
 .stack-launcher-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px;
 }
 .stack-launcher-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 8px;
   max-width: 920px;
 }
@@ -623,7 +623,7 @@ input { font-family: inherit; }
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
-  max-width: 760px;
+  max-width: 920px;
 }
 .stat {
   position: relative;
@@ -684,7 +684,7 @@ input { font-family: inherit; }
 }
 .stat-foot .muted { color: var(--text-4); opacity: 0.5; padding: 0 2px; }
 
-.deck-strip { margin-top: 18px; }
+.deck-strip { margin-top: 14px; max-width: 920px; }
 .strip-label {
   display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-mono); font-size: 10px;
