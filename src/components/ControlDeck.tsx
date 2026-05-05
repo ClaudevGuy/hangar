@@ -4,6 +4,7 @@ import { useDragScroll } from "../hooks/useDragScroll";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
+import { TodayPanel } from "./TodayPanel";
 
 const POPULAR_IDS = [
   "neon", "vercel", "resend", "inngest", "clerk", "stripe",
@@ -17,11 +18,12 @@ interface Props {
   onPick: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenStack: () => void;
+  onOpenTool: (tool: Tool) => void;
   onReorderStack: (fromId: string, toId: string) => void;
 }
 
 export function ControlDeck({
-  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onReorderStack,
+  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onOpenTool, onReorderStack,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -82,7 +84,16 @@ export function ControlDeck({
               >
                 <ToolLogo tool={t} size={32} />
                 <div className="launcher-tile-meta">
-                  <div className="launcher-tile-name">{t.name}</div>
+                  <div className="launcher-tile-name">
+                    {t.name}
+                    {(secrets[t.id]?.length ?? 0) > 0 && (
+                      <span
+                        className="launcher-status-dot"
+                        title="Connected — key in vault"
+                        aria-label="Connected"
+                      />
+                    )}
+                  </div>
                   <div className="launcher-tile-cat">{t.category}</div>
                 </div>
                 <Icon.arrow />
@@ -133,6 +144,8 @@ export function ControlDeck({
           </div>
         </div>
       </div>
+
+      <TodayPanel secrets={secrets} onOpenTool={onOpenTool} />
 
       <div className="deck-strip">
         <div className="strip-label">{stackTools.length === 0 ? "Start with a popular pick" : "Discover more"}</div>

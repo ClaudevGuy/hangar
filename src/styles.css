@@ -453,6 +453,81 @@ input { font-family: inherit; }
   border-color: var(--accent);
   box-shadow: -3px 0 0 0 var(--accent);
 }
+.launcher-tile-name {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.launcher-status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 25%, transparent);
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------------------------- */
+/* Today panel                                                 */
+/* ----------------------------------------------------------- */
+.today-panel {
+  margin-top: 24px;
+}
+.today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.today-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.today-card:hover {
+  border-color: var(--accent-line);
+  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--panel) 80%, var(--accent-bg));
+}
+.today-card-head {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px;
+}
+.today-card-name { font-weight: 600; color: var(--text); flex: 1; }
+.today-card-arrow { color: var(--text-3); }
+.today-card:hover .today-card-arrow { color: var(--accent); }
+
+.today-card-body { display: flex; flex-direction: column; gap: 6px; min-height: 38px; }
+.today-row {
+  display: flex; align-items: baseline; gap: 6px;
+  font-size: 12.5px; color: var(--text-2);
+  flex-wrap: wrap;
+}
+.today-row-soft {
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+.today-num {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: 22px; color: var(--text);
+  letter-spacing: -0.02em;
+}
+.today-lbl {
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+.today-mono {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 220px;
+}
+.today-card-error {
+  font-size: 11px; color: var(--danger);
+  font-family: var(--font-mono);
+}
 
 .deck-stats {
   display: grid;
