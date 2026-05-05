@@ -463,20 +463,20 @@ input { font-family: inherit; }
 
 .deck {
   position: relative;
-  padding: 24px 40px 28px;
+  padding: 24px 40px 24px;
   border-bottom: 1px solid var(--line);
 }
 
 /* ----------------------------------------------------------- */
 /* Stack launcher — quick-open tiles for pinned tools          */
 /* ----------------------------------------------------------- */
-.stack-launcher { margin-bottom: 24px; }
+.stack-launcher { margin-bottom: 18px; }
 .stack-launcher-head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .stack-launcher-row {
-  display: flex; gap: 8px;
+  display: flex; gap: 6px;
   overflow-x: auto;
   padding: 2px 24px 6px;
   margin: -2px -24px 0;
@@ -490,10 +490,11 @@ input { font-family: inherit; }
 .stack-launcher-row.is-dragging .launcher-tile { pointer-events: none; }
 
 .launcher-tile {
-  display: inline-flex; align-items: center; gap: 12px;
+  display: inline-flex; align-items: center; gap: 11px;
   flex-shrink: 0;
-  min-width: 220px;
-  padding: 10px 14px 10px 12px;
+  min-width: 200px;
+  max-width: 280px;
+  padding: 9px 12px 9px 10px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -541,17 +542,22 @@ input { font-family: inherit; }
 /* Today panel                                                 */
 /* ----------------------------------------------------------- */
 .today-panel {
-  margin-top: 24px;
+  margin-top: 18px;
+  max-width: 760px;
 }
 .today-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
+}
+.today-panel:has(.today-card:only-child) .today-grid {
+  /* When there's a single card, don't stretch it across the full deck width. */
+  grid-template-columns: minmax(240px, 380px);
 }
 .today-card {
   display: flex; flex-direction: column; gap: 8px;
-  padding: 12px 14px;
+  padding: 11px 13px 11px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -565,37 +571,40 @@ input { font-family: inherit; }
 }
 .today-card-head {
   display: flex; align-items: center; gap: 10px;
-  font-size: 13px;
+  font-size: 12.5px;
 }
-.today-card-name { font-weight: 600; color: var(--text); flex: 1; }
-.today-card-arrow { color: var(--text-3); }
+.today-card-name { font-weight: 600; color: var(--text); flex: 1; letter-spacing: -0.005em; }
+.today-card-arrow { color: var(--text-3); display: inline-flex; }
 .today-card:hover .today-card-arrow { color: var(--accent); }
 
-.today-card-body { display: flex; flex-direction: column; gap: 6px; min-height: 38px; }
+.today-card-body { display: flex; flex-direction: column; gap: 5px; min-height: 38px; }
 .today-row {
   display: flex; align-items: baseline; gap: 6px;
-  font-size: 12.5px; color: var(--text-2);
+  font-size: 12px; color: var(--text-2);
   flex-wrap: wrap;
+  min-width: 0;
 }
 .today-row-soft {
   color: var(--text-3);
-  font-size: 11.5px;
+  font-size: 11px;
 }
 .today-num {
   font-family: var(--font-display); font-weight: 400;
-  font-size: 22px; color: var(--text);
+  font-size: 20px; color: var(--text);
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 .today-lbl {
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: 9.5px;
   text-transform: uppercase; letter-spacing: 0.14em;
   color: var(--text-3);
 }
 .today-mono {
-  font-family: var(--font-mono); font-size: 11px;
+  font-family: var(--font-mono); font-size: 10.5px;
   color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 220px;
+  max-width: 200px;
+  min-width: 0; flex: 0 1 auto;
 }
 .today-card-error {
   font-size: 11px; color: var(--danger);
@@ -614,13 +623,14 @@ input { font-family: inherit; }
 }
 .stat {
   position: relative;
-  padding: 18px 22px 18px;
-  display: flex; flex-direction: column; gap: 8px;
+  padding: 13px 16px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+  min-width: 0;
   transition: background .2s ease;
 }
 .stat + .stat::before {
   content: ""; position: absolute;
-  top: 18px; bottom: 18px; left: 0;
+  top: 14px; bottom: 14px; left: 0;
   width: 1px;
   background: color-mix(in oklab, var(--line) 60%, transparent);
 }
@@ -628,32 +638,32 @@ input { font-family: inherit; }
 
 .stat-lbl {
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: 9.5px;
   text-transform: uppercase; letter-spacing: 0.16em;
   color: var(--text-3);
 }
 .stat-lbl .status-dot {
-  width: 6px; height: 6px;
+  width: 5px; height: 5px;
 }
 
 .stat-num {
   font-family: var(--font-display);
-  font-size: 34px; font-weight: 400;
-  letter-spacing: -0.035em;
+  font-size: 26px; font-weight: 400;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   font-variation-settings: 'opsz' 96;
   color: var(--text);
-  display: inline-flex; align-items: baseline; gap: 4px;
-  line-height: 1;
+  display: inline-flex; align-items: baseline; gap: 3px;
+  line-height: 1.05;
 }
 .stat-currency {
   color: var(--text-3);
-  font-size: 24px;
+  font-size: 18px;
   margin-right: 1px;
 }
 .stat-unit {
   font-family: var(--font-mono);
-  font-size: 11px; font-weight: 400;
+  font-size: 10px; font-weight: 400;
   color: var(--text-4);
   letter-spacing: 0.04em;
   margin-left: 2px;
@@ -661,13 +671,16 @@ input { font-family: inherit; }
 
 .stat-foot {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-4);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .stat-foot .muted { color: var(--text-4); opacity: 0.5; padding: 0 2px; }
 
-.deck-strip { margin-top: 24px; }
+.deck-strip { margin-top: 18px; }
 .strip-label {
   display: inline-flex; align-items: center; gap: 10px;
   font-family: var(--font-mono); font-size: 10px;
@@ -695,11 +708,11 @@ input { font-family: inherit; }
 .strip-rail.is-dragging .strip-tool { pointer-events: none; }
 .strip-tool {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 5px 14px 5px 5px;
+  padding: 4px 12px 4px 4px;
   background: var(--panel); border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--text);
-  font-size: 13px; font-weight: 500;
+  font-size: 12.5px; font-weight: 500;
   white-space: nowrap;
   transition: border-color .15s, transform .15s, background .15s, box-shadow .15s;
 }
@@ -939,35 +952,39 @@ input { font-family: inherit; }
 
 /* Catalog toggle divider */
 .catalog-divider {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 40px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 40px;
   border-bottom: 1px solid var(--line);
-  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
 }
 .catalog-toggle {
   display: inline-flex; align-items: center; gap: 8px;
   flex: 1;
-  padding: 6px 10px;
+  padding: 4px 8px;
+  margin-left: -8px;
   background: transparent; border: none;
-  font-family: var(--font-mono); font-size: 11px;
-  text-transform: uppercase; letter-spacing: 0.14em;
-  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--text-3);
   text-align: left;
   border-radius: var(--r-sm);
   transition: color .12s, background .12s;
+  cursor: pointer;
 }
 .catalog-toggle:hover { color: var(--text); background: var(--panel); }
 .catalog-toggle-arrow {
-  display: inline-block;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 12px;
   transition: transform .15s ease;
   color: var(--text-3);
-  font-size: 14px; line-height: 1;
+  font-size: 13px; line-height: 1;
 }
 .catalog-toggle-arrow[data-open="true"] { transform: rotate(90deg); }
 .catalog-toggle-count {
   margin-left: auto;
   font-family: var(--font-mono); font-size: 10px;
   text-transform: none; letter-spacing: 0;
+  color: var(--text-4);
 }
 .catalog-add { flex-shrink: 0; }
 

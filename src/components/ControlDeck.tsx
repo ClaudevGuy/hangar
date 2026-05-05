@@ -124,7 +124,7 @@ export function ControlDeck({
               ? "pin a tool to start"
               : connectedCount === 0
                 ? "no keys stored"
-                : `of ${stackTools.length} pinned · key in vault`}
+                : `of ${stackTools.length} pinned`}
           </div>
         </div>
         <div className="stat">
