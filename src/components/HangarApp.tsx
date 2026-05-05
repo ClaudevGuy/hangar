@@ -128,7 +128,14 @@ export function HangarApp() {
         />
 
         <main className="main">
-          <ControlDeck stackTools={stackTools} totalTools={TOOLS.length} onPick={setOpenTool} />
+          <ControlDeck
+            stackTools={stackTools}
+            totalTools={TOOLS.length}
+            secrets={secrets}
+            onPick={setOpenTool}
+            onLaunch={launch}
+            onOpenStack={() => setShowStack(true)}
+          />
 
           <CategoryStrip active={activeCat} setActive={setActiveCat} counts={counts} />
 
