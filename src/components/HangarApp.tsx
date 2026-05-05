@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { TOOLS } from "../data/tools";
 import { useStack } from "../hooks/useStack";
 import { usePrefs } from "../hooks/usePrefs";
-import { useSecrets } from "../hooks/useSecrets";
+import { useVault } from "../hooks/useVault";
 import type { CategoryId, Tool } from "../types";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
@@ -40,7 +40,8 @@ export function HangarApp() {
   const [showPalette, setShowPalette] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
-  const { secrets, upsertKey, removeKey } = useSecrets();
+  const vault = useVault();
+  const { secrets, upsertKey, removeKey, state: vaultState } = vault;
   const { customTools, addTool, updateTool, removeTool } = useCustomTools();
   const { frecency, record: recordLaunch } = useFrecency();
   const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
@@ -166,9 +167,14 @@ export function HangarApp() {
         stackCount={stack.length}
         compareCount={compare.length}
         keysCount={totalKeys}
+        vaultState={vaultState}
         onOpenStack={() => setShowStack(true)}
         onOpenCompare={handleOpenCompare}
         onOpenKeys={() => setShowKeys(true)}
+        onSetPassphrase={vault.setPassphrase}
+        onChangePassphrase={vault.changePassphrase}
+        onRemovePassphrase={vault.removePassphrase}
+        onLock={vault.lock}
       />
 
       <div className="layout">
@@ -326,6 +332,8 @@ export function HangarApp() {
           upsertKey={upsertKey}
           removeKey={removeKey}
           focusToolId={keysFocusToolId ?? undefined}
+          vaultState={vaultState}
+          onUnlock={vault.unlock}
           onClose={() => {
             setShowKeys(false);
             setKeysFocusToolId(null);

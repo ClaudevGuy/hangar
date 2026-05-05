@@ -4,6 +4,8 @@ import type { Prefs } from "../types";
 import { SettingsMenu } from "./SettingsMenu";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
+import type { VaultState } from "../hooks/useVault";
+
 interface Props {
   query: string;
   setQuery: (q: string) => void;
@@ -14,9 +16,14 @@ interface Props {
   stackCount: number;
   compareCount: number;
   keysCount: number;
+  vaultState: VaultState;
   onOpenStack: () => void;
   onOpenCompare: () => void;
   onOpenKeys: () => void;
+  onSetPassphrase: (p: string) => Promise<void>;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
+  onRemovePassphrase: (current: string) => Promise<void>;
+  onLock: () => void;
 }
 
 export function TopBar({
@@ -24,7 +31,9 @@ export function TopBar({
   view, setView,
   prefs, setPref,
   stackCount, compareCount, keysCount,
+  vaultState,
   onOpenStack, onOpenCompare, onOpenKeys,
+  onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -73,9 +82,14 @@ export function TopBar({
         <button type="button" className="ghost-btn" onClick={onOpenStack}>
           <Icon.pin filled /> <span>My stack</span> <span className="pill">{stackCount}</span>
         </button>
-        <button type="button" className="ghost-btn" onClick={onOpenKeys} title="API keys vault">
-          <Icon.key /> <span>Keys</span>
-          {keysCount > 0 && <span className="pill">{keysCount}</span>}
+        <button
+          type="button"
+          className={`ghost-btn ${vaultState === "locked" ? "is-locked" : ""}`}
+          onClick={onOpenKeys}
+          title={vaultState === "locked" ? "Vault locked — click to unlock" : "API keys vault"}
+        >
+          <Icon.key /> <span>{vaultState === "locked" ? "Locked" : "Keys"}</span>
+          {keysCount > 0 && vaultState !== "locked" && <span className="pill">{keysCount}</span>}
         </button>
         <div className="seg">
           <button
@@ -98,7 +112,15 @@ export function TopBar({
         <button type="button" className="icon-btn" onClick={toggleTheme} title="Toggle theme">
           {prefs.theme === "dark" ? <Icon.sun /> : <Icon.moon />}
         </button>
-        <SettingsMenu prefs={prefs} setPref={setPref} />
+        <SettingsMenu
+          prefs={prefs}
+          setPref={setPref}
+          vaultState={vaultState}
+          onSetPassphrase={onSetPassphrase}
+          onChangePassphrase={onChangePassphrase}
+          onRemovePassphrase={onRemovePassphrase}
+          onLock={onLock}
+        />
         <div className="avatar">JD</div>
       </div>
     </header>

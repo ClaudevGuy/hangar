@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../lib/icons";
 import { downloadConfig, importConfigFromFile } from "../lib/config";
+import type { VaultState } from "../hooks/useVault";
 import type { Accent, CardStyle, Density, Prefs } from "../types";
 
 const ACCENT_OPTIONS: { value: Accent; label: string; swatch: string }[] = [
@@ -25,9 +26,16 @@ const CARD_STYLE_OPTIONS: { value: CardStyle; label: string }[] = [
 interface Props {
   prefs: Prefs;
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+  vaultState: VaultState;
+  onSetPassphrase: (passphrase: string) => Promise<void>;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
+  onRemovePassphrase: (current: string) => Promise<void>;
+  onLock: () => void;
 }
 
-export function SettingsMenu({ prefs, setPref }: Props) {
+export function SettingsMenu({
+  prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
+}: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -133,6 +141,17 @@ export function SettingsMenu({ prefs, setPref }: Props) {
           </div>
 
           <div className="settings-section">
+            <div className="settings-label">Security</div>
+            <SecurityControls
+              vaultState={vaultState}
+              onSetPassphrase={onSetPassphrase}
+              onChangePassphrase={onChangePassphrase}
+              onRemovePassphrase={onRemovePassphrase}
+              onLock={onLock}
+            />
+          </div>
+
+          <div className="settings-section">
             <div className="settings-label">Backup</div>
             <div className="settings-row">
               <button
@@ -168,6 +187,147 @@ export function SettingsMenu({ prefs, setPref }: Props) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface SecurityProps {
+  vaultState: VaultState;
+  onSetPassphrase: (passphrase: string) => Promise<void>;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
+  onRemovePassphrase: (current: string) => Promise<void>;
+  onLock: () => void;
+}
+
+type SecMode = "idle" | "set" | "change" | "remove";
+
+function SecurityControls({
+  vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
+}: SecurityProps) {
+  const [mode, setMode] = useState<SecMode>("idle");
+  const [pass1, setPass1] = useState("");
+  const [pass2, setPass2] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const reset = () => {
+    setMode("idle");
+    setPass1("");
+    setPass2("");
+    setError(null);
+    setBusy(false);
+  };
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      if (mode === "set") {
+        if (pass1.length < 6) throw new Error("Use at least 6 characters.");
+        if (pass1 !== pass2) throw new Error("Passphrases don't match.");
+        await onSetPassphrase(pass1);
+        reset();
+      } else if (mode === "change") {
+        if (pass2.length < 6) throw new Error("New passphrase: at least 6 characters.");
+        await onChangePassphrase(pass1, pass2);
+        reset();
+      } else if (mode === "remove") {
+        await onRemovePassphrase(pass1);
+        reset();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setBusy(false);
+    }
+  };
+
+  if (mode === "idle") {
+    if (vaultState === "open") {
+      return (
+        <div className="settings-row settings-row-vert">
+          <div className="muted settings-blurb">
+            Your API keys live in <code>localStorage</code> as plaintext. Set a master passphrase to encrypt them at rest.
+          </div>
+          <button type="button" className="ghost-btn small" onClick={() => setMode("set")}>
+            Set master passphrase
+          </button>
+        </div>
+      );
+    }
+    // unlocked or locked
+    return (
+      <div className="settings-row settings-row-vert">
+        <div className="muted settings-blurb">
+          Vault is encrypted. {vaultState === "unlocked" ? "Currently unlocked." : "Currently locked."}
+        </div>
+        <div className="settings-row">
+          {vaultState === "unlocked" && (
+            <button type="button" className="ghost-btn small" onClick={onLock}>
+              Lock now
+            </button>
+          )}
+          <button type="button" className="ghost-btn small" onClick={() => setMode("change")}>
+            Change
+          </button>
+          <button type="button" className="ghost-btn small" onClick={() => setMode("remove")}>
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-row settings-row-vert">
+      {(mode === "change" || mode === "remove") && (
+        <input
+          type="password"
+          className="keys-input"
+          placeholder="Current passphrase"
+          value={pass1}
+          onChange={(e) => setPass1(e.target.value)}
+          autoComplete="current-password"
+        />
+      )}
+      {mode === "set" && (
+        <>
+          <input
+            type="password"
+            className="keys-input"
+            placeholder="New passphrase (6+ chars)"
+            value={pass1}
+            onChange={(e) => setPass1(e.target.value)}
+            autoComplete="new-password"
+          />
+          <input
+            type="password"
+            className="keys-input"
+            placeholder="Confirm passphrase"
+            value={pass2}
+            onChange={(e) => setPass2(e.target.value)}
+            autoComplete="new-password"
+          />
+        </>
+      )}
+      {mode === "change" && (
+        <input
+          type="password"
+          className="keys-input"
+          placeholder="New passphrase (6+ chars)"
+          value={pass2}
+          onChange={(e) => setPass2(e.target.value)}
+          autoComplete="new-password"
+        />
+      )}
+      {error && <div className="settings-import-msg err">{error}</div>}
+      <div className="settings-row">
+        <button type="button" className="ghost-btn small" onClick={reset} disabled={busy}>
+          Cancel
+        </button>
+        <button type="button" className="primary-btn small" onClick={submit} disabled={busy}>
+          {busy ? "…" : mode === "remove" ? "Remove" : "Save"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../lib/icons";
+import type { VaultState } from "../hooks/useVault";
 import type { SecretEntry, SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
 
@@ -16,10 +17,14 @@ interface Props {
   // the add-key form for that tool. Used by the "+ Add key" button in the
   // tool drawer.
   focusToolId?: string;
+  // Vault state — when locked we render an unlock prompt instead.
+  vaultState: VaultState;
+  onUnlock: (passphrase: string) => Promise<void>;
 }
 
 export function KeysModal({
   tools, secrets, stack, upsertKey, removeKey, onClose, focusToolId,
+  vaultState, onUnlock,
 }: Props) {
   const [filter, setFilter] = useState<Filter>(focusToolId ? "all" : "with-keys");
   const [query, setQuery] = useState("");
@@ -67,6 +72,24 @@ export function KeysModal({
     () => Object.values(secrets).reduce((sum, list) => sum + list.length, 0),
     [secrets],
   );
+
+  if (vaultState === "locked") {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="keys-modal" onClick={(e) => e.stopPropagation()}>
+          <header className="compare-head">
+            <h2>
+              <Icon.key /> Vault locked
+            </h2>
+            <button type="button" className="drawer-x" onClick={onClose}>
+              <Icon.close />
+            </button>
+          </header>
+          <UnlockForm onUnlock={onUnlock} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -321,6 +344,65 @@ function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
       </button>
       <button type="button" className="ghost-btn small" onClick={onCancel}>
         Cancel
+      </button>
+    </div>
+  );
+}
+
+interface UnlockFormProps {
+  onUnlock: (passphrase: string) => Promise<void>;
+}
+
+function UnlockForm({ onUnlock }: UnlockFormProps) {
+  const [passphrase, setPassphrase] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const submit = async () => {
+    if (!passphrase) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await onUnlock(passphrase);
+    } catch {
+      setError("Wrong passphrase. Try again.");
+      setPassphrase("");
+      setBusy(false);
+      inputRef.current?.focus();
+    }
+  };
+
+  return (
+    <div className="unlock-form">
+      <p className="muted unlock-blurb">
+        Your API keys are encrypted with a master passphrase. Enter it to view or edit them.
+      </p>
+      <input
+        ref={inputRef}
+        type="password"
+        className="keys-input"
+        placeholder="Master passphrase"
+        value={passphrase}
+        onChange={(e) => setPassphrase(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !busy) submit();
+        }}
+        disabled={busy}
+        autoComplete="current-password"
+      />
+      {error && <div className="unlock-error">{error}</div>}
+      <button
+        type="button"
+        className="primary-btn"
+        onClick={submit}
+        disabled={busy || !passphrase}
+      >
+        {busy ? "Unlocking…" : "Unlock vault"}
       </button>
     </div>
   );
