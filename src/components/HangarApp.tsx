@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TOOLS } from "../data/tools";
 import { useStack } from "../hooks/useStack";
 import { usePrefs } from "../hooks/usePrefs";
@@ -17,7 +17,9 @@ import { KeysModal } from "./KeysModal";
 import { StackModal } from "./StackModal";
 import { AddToolModal } from "./AddToolModal";
 import { StarterStacksModal } from "./StarterStacksModal";
+import { CommandPalette } from "./CommandPalette";
 import { useCustomTools } from "../hooks/useCustomTools";
+import { useFrecency } from "../hooks/useFrecency";
 
 const COMPARE_MAX = 3;
 
@@ -35,10 +37,12 @@ export function HangarApp() {
   const [showStack, setShowStack] = useState(false);
   const [showAddTool, setShowAddTool] = useState(false);
   const [showStarters, setShowStarters] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const { secrets, upsertKey, removeKey } = useSecrets();
   const { customTools, addTool, updateTool, removeTool } = useCustomTools();
+  const { frecency, record: recordLaunch } = useFrecency();
   const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
   const [showCatalog, setShowCatalog] = useState(() => stack.length === 0);
   const totalKeys = useMemo(
@@ -90,6 +94,18 @@ export function HangarApp() {
     [removeTool, setStack],
   );
 
+  // ⌘K / Ctrl+K opens the command palette from anywhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setShowPalette((s) => !s);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const reorderStack = useCallback(
     (fromId: string, toId: string) => {
       setStack((s) => {
@@ -118,9 +134,13 @@ export function HangarApp() {
     [setStack],
   );
 
-  const launch = useCallback((tool: Tool) => {
-    window.open(tool.accountUrl, "_blank", "noopener,noreferrer");
-  }, []);
+  const launch = useCallback(
+    (tool: Tool) => {
+      window.open(tool.accountUrl, "_blank", "noopener,noreferrer");
+      recordLaunch(tool.id);
+    },
+    [recordLaunch],
+  );
 
   const handleOpenCompare = () => {
     if (compare.length >= 2) setShowCompare(true);
@@ -342,6 +362,22 @@ export function HangarApp() {
           onAdd={() => { /* unused in edit mode */ }}
           onUpdate={(tool) => updateTool(tool)}
           onClose={() => setEditingTool(null)}
+        />
+      )}
+
+      {showPalette && (
+        <CommandPalette
+          tools={allTools}
+          stack={stack}
+          frecency={frecency}
+          onLaunchTool={launch}
+          onOpenTool={setOpenTool}
+          onPinTool={togglePin}
+          onClose={() => setShowPalette(false)}
+          onOpenStarters={() => setShowStarters(true)}
+          onOpenAddTool={() => setShowAddTool(true)}
+          onOpenKeys={() => setShowKeys(true)}
+          onOpenStack={() => setShowStack(true)}
         />
       )}
 

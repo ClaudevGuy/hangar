@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { ACTIVITY, TOOLS } from "../data/tools";
+import { QUICK_ACTIONS } from "../data/quickActions";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
@@ -159,6 +160,27 @@ export function ToolDrawer({
         {tool.id === "vercel" && (
           <div className="drawer-section">
             <VercelInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
+          </div>
+        )}
+
+        {QUICK_ACTIONS[tool.id] && QUICK_ACTIONS[tool.id]!.length > 0 && (
+          <div className="drawer-section">
+            <div className="drawer-section-title">Quick actions</div>
+            <ul className="quick-actions">
+              {QUICK_ACTIONS[tool.id]!.map((action) => (
+                <li key={action.url}>
+                  <a
+                    href={action.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={action.description}
+                  >
+                    <span className="quick-action-label">{action.label}</span>
+                    <Icon.arrow />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
