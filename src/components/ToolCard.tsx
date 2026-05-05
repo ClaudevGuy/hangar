@@ -10,9 +10,12 @@ interface Props {
   onCompare: (tool: Tool) => void;
   onOpen: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
+  onRemoveCustom?: () => void;
 }
 
-export function ToolCard({ tool, pinned, compared, onPin, onCompare, onOpen, onLaunch }: Props) {
+export function ToolCard({
+  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onRemoveCustom,
+}: Props) {
   return (
     <article
       className={`card ${pinned ? "is-pinned" : ""} ${compared ? "is-compared" : ""}`}
@@ -59,6 +62,20 @@ export function ToolCard({ tool, pinned, compared, onPin, onCompare, onOpen, onL
       </div>
 
       {pinned && <div className="card-ribbon">Pinned</div>}
+      {tool.custom && onRemoveCustom && (
+        <button
+          type="button"
+          className="card-custom-x"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveCustom();
+          }}
+          title="Remove this custom tool"
+          aria-label="Remove custom tool"
+        >
+          <Icon.close />
+        </button>
+      )}
     </article>
   );
 }

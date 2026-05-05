@@ -15,6 +15,8 @@ import { ToolDrawer } from "./ToolDrawer";
 import { CompareModal } from "./CompareModal";
 import { KeysModal } from "./KeysModal";
 import { StackModal } from "./StackModal";
+import { AddToolModal } from "./AddToolModal";
+import { useCustomTools } from "../hooks/useCustomTools";
 
 const COMPARE_MAX = 3;
 
@@ -30,24 +32,28 @@ export function HangarApp() {
   const [showCompare, setShowCompare] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
   const [showStack, setShowStack] = useState(false);
+  const [showAddTool, setShowAddTool] = useState(false);
   const { secrets, upsertKey, removeKey } = useSecrets();
+  const { customTools, addTool, removeTool } = useCustomTools();
+  const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
+  const [showCatalog, setShowCatalog] = useState(() => stack.length === 0);
   const totalKeys = useMemo(
     () => Object.values(secrets).reduce((sum, list) => sum + list.length, 0),
     [secrets],
   );
 
   const stackTools = useMemo(
-    () => stack.map((id) => TOOLS.find((t) => t.id === id)).filter((t): t is Tool => Boolean(t)),
-    [stack],
+    () => stack.map((id) => allTools.find((t) => t.id === id)).filter((t): t is Tool => Boolean(t)),
+    [stack, allTools],
   );
   const compareTools = useMemo(
-    () => compare.map((id) => TOOLS.find((t) => t.id === id)).filter((t): t is Tool => Boolean(t)),
-    [compare],
+    () => compare.map((id) => allTools.find((t) => t.id === id)).filter((t): t is Tool => Boolean(t)),
+    [compare, allTools],
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return TOOLS.filter((t) => {
+    return allTools.filter((t) => {
       if (activeCat !== "all" && t.category !== activeCat) return false;
       if (!q) return true;
       return (
@@ -56,19 +62,28 @@ export function HangarApp() {
         t.category.toLowerCase().includes(q)
       );
     });
-  }, [query, activeCat]);
+  }, [query, activeCat, allTools]);
 
   const counts = useMemo<Partial<Record<CategoryId, number>>>(() => {
-    const c: Partial<Record<CategoryId, number>> = { all: TOOLS.length };
-    for (const t of TOOLS) c[t.category] = (c[t.category] ?? 0) + 1;
+    const c: Partial<Record<CategoryId, number>> = { all: allTools.length };
+    for (const t of allTools) c[t.category] = (c[t.category] ?? 0) + 1;
     return c;
-  }, []);
+  }, [allTools]);
 
   const togglePin = useCallback(
     (tool: Tool) => {
       setStack((s) => (s.includes(tool.id) ? s.filter((x) => x !== tool.id) : [...s, tool.id]));
     },
     [setStack],
+  );
+
+  const handleRemoveCustomTool = useCallback(
+    (id: string) => {
+      removeTool(id);
+      setStack((s) => s.filter((x) => x !== id));
+      setCompare((c) => c.filter((x) => x !== id));
+    },
+    [removeTool, setStack],
   );
 
   const toggleCompare = useCallback((tool: Tool) => {
@@ -130,73 +145,102 @@ export function HangarApp() {
         <main className="main">
           <ControlDeck
             stackTools={stackTools}
-            totalTools={TOOLS.length}
+            totalTools={allTools.length}
             secrets={secrets}
             onPick={setOpenTool}
             onLaunch={launch}
             onOpenStack={() => setShowStack(true)}
           />
 
-          <CategoryStrip active={activeCat} setActive={setActiveCat} counts={counts} />
+          <div className="catalog-divider">
+            <button
+              type="button"
+              className="catalog-toggle"
+              onClick={() => setShowCatalog((s) => !s)}
+              aria-expanded={showCatalog}
+            >
+              <span className="catalog-toggle-arrow" data-open={showCatalog}>
+                ›
+              </span>
+              Browse catalog
+              <span className="muted catalog-toggle-count">{allTools.length} tools</span>
+            </button>
+            <button
+              type="button"
+              className="ghost-btn small catalog-add"
+              onClick={() => setShowAddTool(true)}
+            >
+              + Add tool
+            </button>
+          </div>
 
-          <ResultBar
-            filteredCount={filtered.length}
-            query={query}
-            activeCat={activeCat}
-            compareTools={compareTools}
-            onUncompare={toggleCompare}
-            onOpenCompare={() => setShowCompare(true)}
-          />
+          {showCatalog && (
+            <>
+              <CategoryStrip active={activeCat} setActive={setActiveCat} counts={counts} />
 
-          {view === "grid" ? (
-            <div className="grid">
-              {filtered.map((t) => (
-                <ToolCard
-                  key={t.id}
-                  tool={t}
-                  pinned={stack.includes(t.id)}
-                  compared={compare.includes(t.id)}
-                  onPin={togglePin}
-                  onCompare={toggleCompare}
-                  onOpen={setOpenTool}
-                  onLaunch={launch}
-                />
-              ))}
-              {filtered.length === 0 && (
-                <div className="empty">
-                  <div className="empty-big">No tools match.</div>
-                  <div className="muted">Try clearing the search or category.</div>
+              <ResultBar
+                filteredCount={filtered.length}
+                query={query}
+                activeCat={activeCat}
+                compareTools={compareTools}
+                onUncompare={toggleCompare}
+                onOpenCompare={() => setShowCompare(true)}
+              />
+
+              {view === "grid" ? (
+                <div className="grid">
+                  {filtered.map((t) => (
+                    <ToolCard
+                      key={t.id}
+                      tool={t}
+                      pinned={stack.includes(t.id)}
+                      compared={compare.includes(t.id)}
+                      onPin={togglePin}
+                      onCompare={toggleCompare}
+                      onOpen={setOpenTool}
+                      onLaunch={launch}
+                      onRemoveCustom={t.custom ? () => handleRemoveCustomTool(t.id) : undefined}
+                    />
+                  ))}
+                  {filtered.length === 0 && (
+                    <div className="empty">
+                      <div className="empty-big">No tools match.</div>
+                      <div className="muted">Try clearing the search or category.</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="list">
+                  <div className="list-head">
+                    <div />
+                    <div>Tool</div>
+                    <div>Category</div>
+                    <div>Pricing</div>
+                    <div />
+                  </div>
+                  {filtered.map((t) => (
+                    <ToolRow
+                      key={t.id}
+                      tool={t}
+                      pinned={stack.includes(t.id)}
+                      compared={compare.includes(t.id)}
+                      onPin={togglePin}
+                      onCompare={toggleCompare}
+                      onOpen={setOpenTool}
+                      onLaunch={launch}
+                      onRemoveCustom={t.custom ? () => handleRemoveCustomTool(t.id) : undefined}
+                    />
+                  ))}
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="list">
-              <div className="list-head">
-                <div />
-                <div>Tool</div>
-                <div>Category</div>
-                <div>Pricing</div>
-                <div>Status</div>
-                <div />
-              </div>
-              {filtered.map((t) => (
-                <ToolRow
-                  key={t.id}
-                  tool={t}
-                  pinned={stack.includes(t.id)}
-                  compared={compare.includes(t.id)}
-                  onPin={togglePin}
-                  onCompare={toggleCompare}
-                  onOpen={setOpenTool}
-                  onLaunch={launch}
-                />
-              ))}
-            </div>
+            </>
           )}
 
           <footer className="foot">
             <div>Hangar · the dev's control tower · v0.4 (preview)</div>
-            <div className="muted">{TOOLS.length} tools indexed</div>
+            <div className="muted">
+              {allTools.length} tools indexed{customTools.length > 0 && ` · ${customTools.length} custom`}
+            </div>
           </footer>
         </main>
       </div>
@@ -238,6 +282,19 @@ export function HangarApp() {
           onUnpin={togglePin}
           onLaunch={launch}
           onOpenTool={setOpenTool}
+        />
+      )}
+
+      {showAddTool && (
+        <AddToolModal
+          onAdd={(tool) => {
+            addTool(tool);
+            // Auto-pin the new tool so it shows up in the launcher straight away.
+            setStack((s) => (s.includes(tool.id) ? s : [...s, tool.id]));
+            // Open catalog so the user sees their addition in context.
+            setShowCatalog(true);
+          }}
+          onClose={() => setShowAddTool(false)}
         />
       )}
     </div>

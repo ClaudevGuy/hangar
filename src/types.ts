@@ -30,6 +30,9 @@ export interface Tool {
   plan?: string;
   status?: "live";
   logo: string;
+  // Marks tools the user added themselves via "Add tool". Affects whether
+  // we let them delete it from the catalog.
+  custom?: boolean;
 }
 
 export interface Category {

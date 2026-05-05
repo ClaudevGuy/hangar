@@ -10,28 +10,35 @@ interface Props {
   onCompare: (tool: Tool) => void;
   onOpen: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
+  onRemoveCustom?: () => void;
 }
 
-export function ToolRow({ tool, pinned, compared, onPin, onCompare, onOpen, onLaunch }: Props) {
+export function ToolRow({
+  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onRemoveCustom,
+}: Props) {
   return (
     <div className={`row ${pinned ? "is-pinned" : ""}`} onClick={() => onOpen(tool)}>
       <ToolLogo tool={tool} size={32} />
       <div className="row-name">
-        <div>{tool.name}</div>
+        <div>
+          {tool.name}
+          {tool.custom && <span className="row-custom-tag">custom</span>}
+        </div>
         <div className="row-tag">{tool.tagline}</div>
       </div>
       <div className="row-cat">{tool.category}</div>
       <div className="row-pricing">{tool.pricing}</div>
-      <div className="row-status">
-        {tool.status === "live" ? (
-          <>
-            <span className="status-dot live" /> {tool.plan}
-          </>
-        ) : (
-          <span className="muted">—</span>
-        )}
-      </div>
       <div className="row-actions" onClick={(e) => e.stopPropagation()}>
+        {tool.custom && onRemoveCustom && (
+          <button
+            type="button"
+            className="chip-btn row-custom-x"
+            onClick={onRemoveCustom}
+            title="Remove this custom tool"
+          >
+            <Icon.close />
+          </button>
+        )}
         <button type="button" className={`chip-btn ${compared ? "on" : ""}`} onClick={() => onCompare(tool)}>
           <Icon.compare />
         </button>

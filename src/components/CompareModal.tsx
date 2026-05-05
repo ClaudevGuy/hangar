@@ -7,8 +7,6 @@ const FIELDS: { key: keyof Tool; label: string }[] = [
   { key: "category", label: "Category" },
   { key: "tagline", label: "What it does" },
   { key: "pricing", label: "Pricing" },
-  { key: "plan", label: "Your plan" },
-  { key: "status", label: "Status" },
 ];
 
 interface Props {
