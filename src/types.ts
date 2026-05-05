@@ -1,0 +1,62 @@
+export type Theme = "dark" | "light";
+export type Accent = "neon" | "ember" | "violet" | "ice" | "paper";
+export type Density = "comfortable" | "compact";
+export type CardStyle = "minimal" | "bordered" | "glow";
+
+export type ToolCategory =
+  | "Hosting"
+  | "Database"
+  | "Auth"
+  | "Code"
+  | "Jobs"
+  | "Monitoring"
+  | "Email"
+  | "Payments"
+  | "AI"
+  | "Design";
+
+export type CategoryId = "all" | ToolCategory;
+
+export interface Tool {
+  id: string;
+  name: string;
+  category: ToolCategory;
+  tagline: string;
+  color: string;
+  bg: string;
+  accountUrl: string;
+  docs: string;
+  pricing: string;
+  plan?: string;
+  status?: "live";
+  logo: string;
+}
+
+export interface Category {
+  id: CategoryId;
+  name: string;
+  icon: string;
+}
+
+export interface ActivityItem {
+  tool: string;
+  text: string;
+  repo: string | null;
+  time: string;
+}
+
+export interface Prefs {
+  theme: Theme;
+  accent: Accent;
+  density: Density;
+  cardStyle: CardStyle;
+}
+
+export interface SecretEntry {
+  id: string;
+  label: string;
+  value: string;
+}
+
+// Map of toolId → list of stored API keys / tokens for that tool.
+export type SecretsMap = Record<string, SecretEntry[]>;
