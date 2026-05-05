@@ -189,7 +189,7 @@ export function HangarApp() {
 
           <footer className="foot">
             <div>Hangar · the dev's control tower · v0.4 (preview)</div>
-            <div className="muted">{TOOLS.length} tools indexed · synced 2 min ago</div>
+            <div className="muted">{TOOLS.length} tools indexed</div>
           </footer>
         </main>
       </div>

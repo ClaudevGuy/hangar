@@ -50,18 +50,23 @@ export function ControlDeck({ stackTools, totalTools, onPick }: Props) {
           <div className="stat-lbl">Pinned</div>
           <div className="stat-num">{stackTools.length}</div>
           <div className="stat-foot">
-            of {totalTools} <span className="muted">·</span> {stackCategories}{" "}
-            {stackCategories === 1 ? "category" : "categories"}
+            {stackTools.length === 0
+              ? `none yet · ${totalTools} in catalog`
+              : `of ${totalTools} · ${stackCategories} ${stackCategories === 1 ? "category" : "categories"}`}
           </div>
         </div>
         <div className="stat">
           <div className="stat-lbl">
-            <span className="status-dot live" />
+            {live > 0 && <span className="status-dot live" />}
             Live now
           </div>
           <div className="stat-num">{live}</div>
           <div className="stat-foot">
-            {live === stackTools.length && stackTools.length > 0 ? "all healthy" : `of ${stackTools.length} pinned`}
+            {stackTools.length === 0
+              ? "pin a tool to start"
+              : live === stackTools.length
+                ? "all healthy"
+                : `of ${stackTools.length} pinned`}
           </div>
         </div>
         <div className="stat">
@@ -72,7 +77,7 @@ export function ControlDeck({ stackTools, totalTools, onPick }: Props) {
             <span className="stat-unit">/mo</span>
           </div>
           <div className="stat-foot">
-            {monthlyTools} {monthlyTools === 1 ? "plan" : "plans"}
+            {monthlyTools === 0 ? "—" : `${monthlyTools} ${monthlyTools === 1 ? "plan" : "plans"}`}
           </div>
         </div>
         <div className="stat">
@@ -85,7 +90,7 @@ export function ControlDeck({ stackTools, totalTools, onPick }: Props) {
       </div>
 
       <div className="deck-strip">
-        <div className="strip-label">Trending today</div>
+        <div className="strip-label">Popular picks</div>
         <div ref={railRef} className={`strip-rail ${dragging ? "is-dragging" : ""}`}>
           {TRENDING_IDS.map((id) => {
             const t = TOOLS.find((x) => x.id === id);

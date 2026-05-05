@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "hangar-stack";
-// Seed mirrors the prototype's first-run default so anyone migrating from the
-// design preview keeps the same pinned tools.
-const DEFAULT_SEED: string[] = [
-  "github", "vercel", "neon", "clerk", "resend",
-  "sentry", "stripe", "anthropic", "figma", "posthog",
-];
+// New users start with an empty stack — they pin what they actually use.
+const DEFAULT_SEED: string[] = [];
 
 function read(): string[] {
   try {

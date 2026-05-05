@@ -73,21 +73,30 @@ export function Sidebar({ active, setActive, counts, stackTools, onRemoveStack, 
 
       <div className="side-section side-foot">
         <div className="side-label">Activity</div>
-        <ul className="activity">
-          {ACTIVITY.slice(0, 5).map((a, i) => {
-            const tool = TOOLS.find((t) => t.id === a.tool);
-            return (
-              <li key={i}>
-                {tool && <ToolLogo tool={tool} size={18} />}
-                <div className="act-text">
-                  <span className="act-line">{a.text}</span>
-                  {a.repo && <span className="act-repo">{a.repo}</span>}
-                </div>
-                <span className="act-time">{a.time}</span>
-              </li>
-            );
-          })}
-        </ul>
+        {ACTIVITY.length === 0 ? (
+          <div className="empty-stack">
+            <span>
+              Activity surfaces here once you connect a tool. Start by adding a GitHub PAT in the
+              keys vault.
+            </span>
+          </div>
+        ) : (
+          <ul className="activity">
+            {ACTIVITY.slice(0, 5).map((a, i) => {
+              const tool = TOOLS.find((t) => t.id === a.tool);
+              return (
+                <li key={i}>
+                  {tool && <ToolLogo tool={tool} size={18} />}
+                  <div className="act-text">
+                    <span className="act-line">{a.text}</span>
+                    {a.repo && <span className="act-repo">{a.repo}</span>}
+                  </div>
+                  <span className="act-time">{a.time}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </aside>
   );
