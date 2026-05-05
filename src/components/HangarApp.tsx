@@ -52,7 +52,10 @@ export function HangarApp() {
   // Resolve a stored GitHub token (if any) for use with gist sync.
   const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
   const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
-  const [showCatalog, setShowCatalog] = useState(() => stack.length === 0);
+  // Default: catalog visible. The empty deck-only view below it was reading
+  // as "this app has nothing on it" for users with a small stack. People who
+  // want a tighter view can collapse with the toggle.
+  const [showCatalog, setShowCatalog] = useState(true);
   const totalKeys = useMemo(
     () => Object.values(secrets).reduce((sum, list) => sum + list.length, 0),
     [secrets],
