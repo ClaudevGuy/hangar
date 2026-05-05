@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Icon } from "../lib/icons";
 import type { Prefs } from "../types";
 import { SettingsMenu } from "./SettingsMenu";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 interface Props {
   query: string;
@@ -54,8 +55,8 @@ export function TopBar({
             <path d="M4 24 16 6l12 18M4 24h24M9 24v-6h14v6" />
           </svg>
           <span>Hangar</span>
-          <span className="logo-tag">control tower</span>
         </div>
+        <WorkspaceSwitcher />
       </div>
 
       <div className="topbar-center">

@@ -16,6 +16,7 @@ import { CompareModal } from "./CompareModal";
 import { KeysModal } from "./KeysModal";
 import { StackModal } from "./StackModal";
 import { AddToolModal } from "./AddToolModal";
+import { StarterStacksModal } from "./StarterStacksModal";
 import { useCustomTools } from "../hooks/useCustomTools";
 
 const COMPARE_MAX = 3;
@@ -33,6 +34,7 @@ export function HangarApp() {
   const [showKeys, setShowKeys] = useState(false);
   const [showStack, setShowStack] = useState(false);
   const [showAddTool, setShowAddTool] = useState(false);
+  const [showStarters, setShowStarters] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const { secrets, upsertKey, removeKey } = useSecrets();
@@ -157,6 +159,7 @@ export function HangarApp() {
           stackTools={stackTools}
           onRemoveStack={removeFromStack}
           onOpenTool={setOpenTool}
+          onOpenStarters={() => setShowStarters(true)}
         />
 
         <main className="main">
@@ -339,6 +342,23 @@ export function HangarApp() {
           onAdd={() => { /* unused in edit mode */ }}
           onUpdate={(tool) => updateTool(tool)}
           onClose={() => setEditingTool(null)}
+        />
+      )}
+
+      {showStarters && (
+        <StarterStacksModal
+          onAdopt={(ids) => {
+            // Merge into existing stack — don't blow away tools the user may already have pinned.
+            setStack((s) => {
+              const next = [...s];
+              for (const id of ids) {
+                if (!next.includes(id)) next.push(id);
+              }
+              return next;
+            });
+            setShowStarters(false);
+          }}
+          onClose={() => setShowStarters(false)}
         />
       )}
     </div>

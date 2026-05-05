@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { workspaceKey } from "../lib/workspaces";
 import type { SecretEntry, SecretsMap } from "../types";
 
-const STORAGE_KEY = "hangar-keys";
+const storageKey = () => workspaceKey("hangar-keys");
 
 function read(): SecretsMap {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
@@ -35,7 +36,7 @@ export function useSecrets() {
   const [secrets, setSecrets] = useState<SecretsMap>(read);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(secrets));
+    localStorage.setItem(storageKey(), JSON.stringify(secrets));
   }, [secrets]);
 
   const upsertKey = useCallback((toolId: string, entry: Omit<SecretEntry, "id"> & { id?: string }) => {

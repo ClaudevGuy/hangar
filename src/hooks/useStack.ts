@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
+import { workspaceKey } from "../lib/workspaces";
 
-const STORAGE_KEY = "hangar-stack";
 // New users start with an empty stack — they pin what they actually use.
 const DEFAULT_SEED: string[] = [];
 
 function read(): string[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(workspaceKey("hangar-stack"));
     if (!raw) return DEFAULT_SEED;
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return DEFAULT_SEED;
@@ -20,7 +20,7 @@ export function useStack() {
   const [stack, setStack] = useState<string[]>(read);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stack));
+    localStorage.setItem(workspaceKey("hangar-stack"), JSON.stringify(stack));
   }, [stack]);
 
   return [stack, setStack] as const;

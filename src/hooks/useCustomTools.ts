@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { workspaceKey } from "../lib/workspaces";
 import type { Tool } from "../types";
 
-const STORAGE_KEY = "hangar-custom-tools";
+const storageKey = () => workspaceKey("hangar-custom-tools");
 
 function read(): Tool[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -25,7 +26,7 @@ export function useCustomTools() {
   const [tools, setTools] = useState<Tool[]>(read);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
+    localStorage.setItem(storageKey(), JSON.stringify(tools));
   }, [tools]);
 
   const addTool = useCallback((tool: Tool) => {

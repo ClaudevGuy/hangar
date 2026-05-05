@@ -10,9 +10,12 @@ interface Props {
   stackTools: Tool[];
   onRemoveStack: (id: string) => void;
   onOpenTool: (tool: Tool) => void;
+  onOpenStarters: () => void;
 }
 
-export function Sidebar({ active, setActive, counts, stackTools, onRemoveStack, onOpenTool }: Props) {
+export function Sidebar({
+  active, setActive, counts, stackTools, onRemoveStack, onOpenTool, onOpenStarters,
+}: Props) {
   return (
     <aside className="sidebar">
       <div className="side-section">
@@ -38,9 +41,13 @@ export function Sidebar({ active, setActive, counts, stackTools, onRemoveStack, 
           My stack <span className="lbl-count">{stackTools.length}</span>
         </div>
         {stackTools.length === 0 ? (
-          <div className="empty-stack">
-            <Icon.pin />
-            <span>Pin tools you actually use to build your stack.</span>
+          <div className="empty-stack empty-stack-cta">
+            <span>
+              <Icon.pin /> Pin tools you actually use to build your stack — or jumpstart with a starter.
+            </span>
+            <button type="button" className="primary-btn small" onClick={onOpenStarters}>
+              Try a starter stack
+            </button>
           </div>
         ) : (
           <ul className="stack-list">

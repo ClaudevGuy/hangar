@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { workspaceKey } from "../lib/workspaces";
 import type { Accent, CardStyle, Density, Prefs, Theme } from "../types";
 
-const STORAGE_KEY = "hangar-prefs";
+const storageKey = () => workspaceKey("hangar-prefs");
 
 const DEFAULT_PREFS: Prefs = {
   theme: "dark",
@@ -17,7 +18,7 @@ const CARD_STYLES: readonly CardStyle[] = ["minimal", "bordered", "glow"];
 
 function read(): Prefs {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return DEFAULT_PREFS;
     const parsed = JSON.parse(raw) as Partial<Prefs>;
     return {
@@ -36,7 +37,7 @@ export function usePrefs() {
 
   // Persist + sync to body data-attrs (CSS reads these for theming).
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+    localStorage.setItem(storageKey(), JSON.stringify(prefs));
     const { dataset } = document.body;
     dataset.theme = prefs.theme;
     dataset.accent = prefs.accent;
