@@ -7,7 +7,10 @@ import { ToolLogo } from "./ToolLogo";
 
 interface Props {
   onAdd: (tool: Tool) => void;
+  onUpdate?: (tool: Tool) => void;
   onClose: () => void;
+  // When set, the modal opens in edit mode pre-filled with the tool's values.
+  existingTool?: Tool;
 }
 
 const PRESET_COLORS = [
@@ -15,14 +18,17 @@ const PRESET_COLORS = [
   "#fbbf24", "#f472b6", "#34d399", "#60a5fa", "#fca5a5",
 ];
 
-export function AddToolModal({ onAdd, onClose }: Props) {
+export function AddToolModal({ onAdd, onUpdate, onClose, existingTool }: Props) {
+  const isEdit = !!existingTool;
   const firstFieldRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState("");
-  const [accountUrl, setAccountUrl] = useState("");
-  const [tagline, setTagline] = useState("");
+  const [name, setName] = useState(existingTool?.name ?? "");
+  const [accountUrl, setAccountUrl] = useState(existingTool?.accountUrl ?? "");
+  const [tagline, setTagline] = useState(
+    existingTool && existingTool.tagline !== "Custom tool" ? existingTool.tagline : "",
+  );
   // Pre-select a real category (not "all") — Hosting is broad enough as a default.
-  const [category, setCategory] = useState<ToolCategory>("Hosting");
-  const [color, setColor] = useState(PRESET_COLORS[0]);
+  const [category, setCategory] = useState<ToolCategory>(existingTool?.category ?? "Hosting");
+  const [color, setColor] = useState(existingTool?.color ?? PRESET_COLORS[0]);
 
   useEffect(() => {
     firstFieldRef.current?.focus();
@@ -61,16 +67,32 @@ export function AddToolModal({ onAdd, onClose }: Props) {
 
   const submit = () => {
     if (!canSubmit) return;
-    onAdd(
-      buildCustomTool({
-        name,
-        accountUrl,
+    const finalTagline = tagline || `Custom tool · ${hostname || ""}`.trim().replace(/ ·\s*$/, "");
+    if (isEdit && existingTool && onUpdate) {
+      // Preserve id + custom flag; update the editable fields.
+      onUpdate({
+        ...existingTool,
+        name: name.trim(),
+        accountUrl: accountUrl.trim(),
+        docs: accountUrl.trim(),
         category,
-        tagline: tagline || `Custom tool · ${hostname || ""}`.trim().replace(/ ·\s*$/, ""),
+        tagline: finalTagline,
         color,
-        bg: "#1a1a1a",
-      }),
-    );
+        // Re-render the monogram in case the name changed.
+        logo: buildCustomTool({ name, accountUrl, category, tagline: finalTagline, color }).logo,
+      });
+    } else {
+      onAdd(
+        buildCustomTool({
+          name,
+          accountUrl,
+          category,
+          tagline: finalTagline,
+          color,
+          bg: "#1a1a1a",
+        }),
+      );
+    }
     onClose();
   };
 
@@ -81,7 +103,7 @@ export function AddToolModal({ onAdd, onClose }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="add-tool-modal" onClick={(e) => e.stopPropagation()}>
         <header className="compare-head">
-          <h2>Add a custom tool</h2>
+          <h2>{isEdit ? `Edit ${existingTool!.name}` : "Add a custom tool"}</h2>
           <button type="button" className="drawer-x" onClick={onClose}>
             <Icon.close />
           </button>
@@ -188,7 +210,7 @@ export function AddToolModal({ onAdd, onClose }: Props) {
             Cancel
           </button>
           <button type="button" className="primary-btn small" disabled={!canSubmit} onClick={submit}>
-            Add tool
+            {isEdit ? "Save changes" : "Add tool"}
           </button>
         </footer>
       </div>

@@ -3,6 +3,8 @@ import { ACTIVITY, TOOLS } from "../data/tools";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
+import { LinearInsights } from "./LinearInsights";
+import { VercelInsights } from "./VercelInsights";
 import { ToolLogo } from "./ToolLogo";
 
 interface Props {
@@ -13,9 +15,15 @@ interface Props {
   onPin: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenKeys: () => void;
+  onAddKeyForTool: (tool: Tool) => void;
+  onEditCustomTool: (tool: Tool) => void;
+  onRemoveCustomTool: (tool: Tool) => void;
 }
 
-export function ToolDrawer({ tool, pinned, secrets, onClose, onPin, onLaunch, onOpenKeys }: Props) {
+export function ToolDrawer({
+  tool, pinned, secrets, onClose, onPin, onLaunch, onOpenKeys, onAddKeyForTool,
+  onEditCustomTool, onRemoveCustomTool,
+}: Props) {
   if (!tool) return null;
 
   const recent = ACTIVITY.filter((a) => a.tool === tool.id);
@@ -62,6 +70,41 @@ export function ToolDrawer({ tool, pinned, secrets, onClose, onPin, onLaunch, on
               </>
             )}
           </button>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => onAddKeyForTool(tool)}
+            title={`Manage ${tool.name} API keys`}
+          >
+            <Icon.key />
+            {(secrets[tool.id]?.length ?? 0) > 0
+              ? `${secrets[tool.id]!.length} ${secrets[tool.id]!.length === 1 ? "key" : "keys"}`
+              : "Add key"}
+          </button>
+          {tool.custom && (
+            <>
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => onEditCustomTool(tool)}
+                title="Edit this custom tool"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                className="secondary-btn drawer-danger"
+                onClick={() => {
+                  if (window.confirm(`Remove "${tool.name}" from your custom tools?`)) {
+                    onRemoveCustomTool(tool);
+                  }
+                }}
+                title="Remove this custom tool"
+              >
+                <Icon.trash />
+              </button>
+            </>
+          )}
         </div>
 
         <dl className="drawer-meta">
@@ -104,6 +147,18 @@ export function ToolDrawer({ tool, pinned, secrets, onClose, onPin, onLaunch, on
         {tool.id === "github" && (
           <div className="drawer-section">
             <GitHubInsights secrets={secrets} onOpenKeys={onOpenKeys} />
+          </div>
+        )}
+
+        {tool.id === "linear" && (
+          <div className="drawer-section">
+            <LinearInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
+          </div>
+        )}
+
+        {tool.id === "vercel" && (
+          <div className="drawer-section">
+            <VercelInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
           </div>
         )}
 

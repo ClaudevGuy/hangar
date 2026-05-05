@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { TOOLS } from "../data/tools";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../lib/icons";
 import type { SecretEntry, SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
@@ -7,16 +6,24 @@ import { ToolLogo } from "./ToolLogo";
 type Filter = "with-keys" | "stack" | "all";
 
 interface Props {
+  tools: Tool[];
   secrets: SecretsMap;
   stack: string[];
   upsertKey: (toolId: string, entry: Omit<SecretEntry, "id"> & { id?: string }) => void;
   removeKey: (toolId: string, keyId: string) => void;
   onClose: () => void;
+  // When set, the modal opens with All-tools filter and scrolls + auto-opens
+  // the add-key form for that tool. Used by the "+ Add key" button in the
+  // tool drawer.
+  focusToolId?: string;
 }
 
-export function KeysModal({ secrets, stack, upsertKey, removeKey, onClose }: Props) {
-  const [filter, setFilter] = useState<Filter>("with-keys");
+export function KeysModal({
+  tools, secrets, stack, upsertKey, removeKey, onClose, focusToolId,
+}: Props) {
+  const [filter, setFilter] = useState<Filter>(focusToolId ? "all" : "with-keys");
   const [query, setQuery] = useState("");
+  const focusedRef = useRef<HTMLLIElement>(null);
 
   // Close on Escape.
   useEffect(() => {
@@ -27,16 +34,25 @@ export function KeysModal({ secrets, stack, upsertKey, removeKey, onClose }: Pro
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Scroll the focused tool's block into view after the next paint.
+  useEffect(() => {
+    if (!focusToolId) return;
+    const id = window.requestAnimationFrame(() => {
+      focusedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [focusToolId]);
+
   const visibleTools = useMemo(() => {
     let pool: Tool[];
     if (filter === "with-keys") {
-      pool = TOOLS.filter((t) => (secrets[t.id]?.length ?? 0) > 0);
+      pool = tools.filter((t) => (secrets[t.id]?.length ?? 0) > 0);
     } else if (filter === "stack") {
       pool = stack
-        .map((id) => TOOLS.find((t) => t.id === id))
+        .map((id) => tools.find((t) => t.id === id))
         .filter((t): t is Tool => Boolean(t));
     } else {
-      pool = TOOLS;
+      pool = tools;
     }
     const q = query.trim().toLowerCase();
     if (!q) return pool;
@@ -45,7 +61,7 @@ export function KeysModal({ secrets, stack, upsertKey, removeKey, onClose }: Pro
         t.name.toLowerCase().includes(q) ||
         (secrets[t.id] ?? []).some((k) => k.label.toLowerCase().includes(q)),
     );
-  }, [filter, query, secrets, stack]);
+  }, [filter, query, secrets, stack, tools]);
 
   const totalKeys = useMemo(
     () => Object.values(secrets).reduce((sum, list) => sum + list.length, 0),
@@ -117,6 +133,8 @@ export function KeysModal({ secrets, stack, upsertKey, removeKey, onClose }: Pro
                   entries={secrets[tool.id] ?? []}
                   upsertKey={upsertKey}
                   removeKey={removeKey}
+                  ref={tool.id === focusToolId ? focusedRef : undefined}
+                  startAdding={tool.id === focusToolId && (secrets[tool.id]?.length ?? 0) === 0}
                 />
               ))}
             </ul>
@@ -132,13 +150,17 @@ interface BlockProps {
   entries: SecretEntry[];
   upsertKey: Props["upsertKey"];
   removeKey: Props["removeKey"];
+  startAdding?: boolean;
 }
 
-function KeyToolBlock({ tool, entries, upsertKey, removeKey }: BlockProps) {
-  const [adding, setAdding] = useState(false);
+const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock(
+  { tool, entries, upsertKey, removeKey, startAdding },
+  ref,
+) {
+  const [adding, setAdding] = useState(startAdding ?? false);
 
   return (
-    <li className="keys-tool">
+    <li className="keys-tool" ref={ref}>
       <div className="keys-tool-head">
         <ToolLogo tool={tool} size={32} />
         <div className="keys-tool-meta">
@@ -178,7 +200,7 @@ function KeyToolBlock({ tool, entries, upsertKey, removeKey }: BlockProps) {
       )}
     </li>
   );
-}
+});
 
 interface EntryRowProps {
   entry: SecretEntry;

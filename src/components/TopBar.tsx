@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Icon } from "../lib/icons";
 import type { Prefs } from "../types";
 import { SettingsMenu } from "./SettingsMenu";
@@ -25,6 +26,25 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // ⌘K (Mac) or Ctrl+K (Windows/Linux) → focus the search box.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        const tag = (document.activeElement?.tagName || "").toLowerCase();
+        // Don't steal the shortcut from native browser-text fields the user
+        // has explicitly focused; but otherwise always grab it.
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+        // tag check is purely informative — we always want the shortcut to win.
+        void tag;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <header className="topbar">
@@ -42,6 +62,7 @@ export function TopBar({
         <div className="searchbox">
           <Icon.search />
           <input
+            ref={searchRef}
             type="text"
             placeholder="Search tools, accounts, docs…"
             value={query}

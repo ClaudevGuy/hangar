@@ -33,8 +33,10 @@ export function HangarApp() {
   const [showKeys, setShowKeys] = useState(false);
   const [showStack, setShowStack] = useState(false);
   const [showAddTool, setShowAddTool] = useState(false);
+  const [editingTool, setEditingTool] = useState<Tool | null>(null);
+  const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const { secrets, upsertKey, removeKey } = useSecrets();
-  const { customTools, addTool, removeTool } = useCustomTools();
+  const { customTools, addTool, updateTool, removeTool } = useCustomTools();
   const allTools = useMemo(() => [...TOOLS, ...customTools], [customTools]);
   const [showCatalog, setShowCatalog] = useState(() => stack.length === 0);
   const totalKeys = useMemo(
@@ -84,6 +86,21 @@ export function HangarApp() {
       setCompare((c) => c.filter((x) => x !== id));
     },
     [removeTool, setStack],
+  );
+
+  const reorderStack = useCallback(
+    (fromId: string, toId: string) => {
+      setStack((s) => {
+        const fromIdx = s.indexOf(fromId);
+        const toIdx = s.indexOf(toId);
+        if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return s;
+        const next = [...s];
+        const [item] = next.splice(fromIdx, 1);
+        next.splice(toIdx, 0, item);
+        return next;
+      });
+    },
+    [setStack],
   );
 
   const toggleCompare = useCallback((tool: Tool) => {
@@ -150,6 +167,7 @@ export function HangarApp() {
             onPick={setOpenTool}
             onLaunch={launch}
             onOpenStack={() => setShowStack(true)}
+            onReorderStack={reorderStack}
           />
 
           <div className="catalog-divider">
@@ -253,6 +271,18 @@ export function HangarApp() {
         onPin={togglePin}
         onLaunch={launch}
         onOpenKeys={() => setShowKeys(true)}
+        onAddKeyForTool={(tool) => {
+          setKeysFocusToolId(tool.id);
+          setShowKeys(true);
+        }}
+        onEditCustomTool={(tool) => {
+          setEditingTool(tool);
+          setOpenTool(null);
+        }}
+        onRemoveCustomTool={(tool) => {
+          handleRemoveCustomTool(tool.id);
+          setOpenTool(null);
+        }}
       />
 
       {showCompare && (
@@ -266,11 +296,16 @@ export function HangarApp() {
 
       {showKeys && (
         <KeysModal
+          tools={allTools}
           secrets={secrets}
           stack={stack}
           upsertKey={upsertKey}
           removeKey={removeKey}
-          onClose={() => setShowKeys(false)}
+          focusToolId={keysFocusToolId ?? undefined}
+          onClose={() => {
+            setShowKeys(false);
+            setKeysFocusToolId(null);
+          }}
         />
       )}
 
@@ -295,6 +330,15 @@ export function HangarApp() {
             setShowCatalog(true);
           }}
           onClose={() => setShowAddTool(false)}
+        />
+      )}
+
+      {editingTool && (
+        <AddToolModal
+          existingTool={editingTool}
+          onAdd={() => { /* unused in edit mode */ }}
+          onUpdate={(tool) => updateTool(tool)}
+          onClose={() => setEditingTool(null)}
         />
       )}
     </div>

@@ -369,6 +369,11 @@ input { font-family: inherit; }
 }
 .launcher-tile > svg { color: var(--text-3); flex-shrink: 0; transition: color .15s; }
 .launcher-tile:hover > svg { color: var(--accent); }
+.launcher-tile.is-drag-source { opacity: 0.4; }
+.launcher-tile.is-drop-target {
+  border-color: var(--accent);
+  box-shadow: -3px 0 0 0 var(--accent);
+}
 
 .deck-stats {
   display: grid;
@@ -828,6 +833,8 @@ input { font-family: inherit; }
 }
 .secondary-btn:hover { border-color: var(--line-2); }
 .secondary-btn.on { background: var(--accent-bg); border-color: var(--accent-line); color: var(--accent); }
+.secondary-btn.drawer-danger { padding: 10px 12px; }
+.secondary-btn.drawer-danger:hover { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 50%, transparent); }
 
 .drawer-meta { display: grid; grid-template-columns: 1fr; gap: 0; margin: 0 0 24px; }
 .drawer-meta > div {
@@ -1005,6 +1012,15 @@ input { font-family: inherit; }
 }
 .settings-seg button:hover { color: var(--text); }
 .settings-seg button.on { background: var(--panel); color: var(--text); }
+
+.settings-row { display: flex; gap: 6px; }
+.settings-row .ghost-btn { flex: 1; justify-content: center; }
+.settings-import-msg {
+  font-family: var(--font-mono); font-size: 10.5px;
+  padding: 4px 0;
+}
+.settings-import-msg.ok { color: var(--accent); }
+.settings-import-msg.err { color: var(--danger); }
 
 /* ----------------------------------------------------------- */
 /* Keys vault modal                                            */
@@ -1212,6 +1228,34 @@ input { font-family: inherit; }
 .skeleton-line.w-40 { width: 40%; }
 .skeleton-line.w-60 { width: 60%; }
 .skeleton-line.w-90 { width: 90%; }
+
+/* Linear / Vercel state pills */
+.linear-state-pill {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.linear-avatar-fallback {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-bg); color: var(--accent);
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.vercel-state-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  font-family: var(--font-mono); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text-3);
+}
+.vercel-state-pill.state-ready { background: color-mix(in oklab, var(--accent) 20%, transparent); color: var(--accent); }
+.vercel-state-pill.state-building, .vercel-state-pill.state-queued, .vercel-state-pill.state-initializing {
+  background: color-mix(in oklab, var(--warn) 20%, transparent); color: var(--warn);
+}
+.vercel-state-pill.state-error { background: color-mix(in oklab, var(--danger) 20%, transparent); color: var(--danger); }
 @keyframes skeleton {
   0% { background-position: 100% 0; }
   100% { background-position: -100% 0; }

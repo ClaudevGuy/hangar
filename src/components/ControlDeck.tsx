@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TOOLS } from "../data/tools";
 import { useDragScroll } from "../hooks/useDragScroll";
 import { Icon } from "../lib/icons";
@@ -16,9 +17,14 @@ interface Props {
   onPick: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenStack: () => void;
+  onReorderStack: (fromId: string, toId: string) => void;
 }
 
-export function ControlDeck({ stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack }: Props) {
+export function ControlDeck({
+  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onReorderStack,
+}: Props) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const stackCategories = new Set(stackTools.map((t) => t.category)).size;
   const totalCategories = new Set(TOOLS.map((t) => t.category)).size;
   const connectedCount = stackTools.filter((t) => (secrets[t.id]?.length ?? 0) > 0).length;
@@ -45,9 +51,34 @@ export function ControlDeck({ stackTools, totalTools, secrets, onPick, onLaunch,
               <button
                 type="button"
                 key={t.id}
-                className="launcher-tile"
+                className={`launcher-tile ${draggingId === t.id ? "is-drag-source" : ""} ${dragOverId === t.id && draggingId !== t.id ? "is-drop-target" : ""}`}
                 onClick={() => onLaunch(t)}
                 title={`Open ${t.name} dashboard`}
+                draggable
+                onDragStart={(e) => {
+                  setDraggingId(t.id);
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", t.id);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverId !== t.id) setDragOverId(t.id);
+                }}
+                onDragLeave={() => {
+                  if (dragOverId === t.id) setDragOverId(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const fromId = draggingId ?? e.dataTransfer.getData("text/plain");
+                  if (fromId && fromId !== t.id) onReorderStack(fromId, t.id);
+                  setDraggingId(null);
+                  setDragOverId(null);
+                }}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  setDragOverId(null);
+                }}
               >
                 <ToolLogo tool={t} size={32} />
                 <div className="launcher-tile-meta">

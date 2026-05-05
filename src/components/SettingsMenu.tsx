@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../lib/icons";
+import { downloadConfig, importConfigFromFile } from "../lib/config";
 import type { Accent, CardStyle, Density, Prefs } from "../types";
 
 const ACCENT_OPTIONS: { value: Accent; label: string; swatch: string }[] = [
@@ -29,6 +30,25 @@ interface Props {
 export function SettingsMenu({ prefs, setPref }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<{ kind: "idle" | "ok" | "err"; msg?: string }>({
+    kind: "idle",
+  });
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-importing the same file later
+    if (!file) return;
+    try {
+      const count = await importConfigFromFile(file);
+      setImportStatus({ kind: "ok", msg: `${count} ${count === 1 ? "section" : "sections"} imported. Reloading…` });
+      // Brief delay so the user sees the success line, then reload to rehydrate state.
+      window.setTimeout(() => window.location.reload(), 700);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Couldn't read file";
+      setImportStatus({ kind: "err", msg });
+    }
+  };
 
   // Close on outside click + Escape.
   useEffect(() => {
@@ -110,6 +130,41 @@ export function SettingsMenu({ prefs, setPref }: Props) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="settings-section">
+            <div className="settings-label">Backup</div>
+            <div className="settings-row">
+              <button
+                type="button"
+                className="ghost-btn small settings-export"
+                onClick={() => downloadConfig()}
+                title="Download a JSON backup of your stack, prefs, keys, and custom tools"
+              >
+                Export config
+              </button>
+              <button
+                type="button"
+                className="ghost-btn small"
+                onClick={() => fileInputRef.current?.click()}
+                title="Restore from a previously-exported JSON file"
+              >
+                Import…
+              </button>
+            </div>
+            {importStatus.kind === "err" && (
+              <div className="settings-import-msg err">{importStatus.msg}</div>
+            )}
+            {importStatus.kind === "ok" && (
+              <div className="settings-import-msg ok">{importStatus.msg}</div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={onPickFile}
+              style={{ display: "none" }}
+            />
           </div>
         </div>
       )}

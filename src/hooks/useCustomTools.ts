@@ -32,9 +32,13 @@ export function useCustomTools() {
     setTools((prev) => [...prev, tool]);
   }, []);
 
+  const updateTool = useCallback((tool: Tool) => {
+    setTools((prev) => prev.map((t) => (t.id === tool.id ? tool : t)));
+  }, []);
+
   const removeTool = useCallback((id: string) => {
     setTools((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  return { customTools: tools, addTool, removeTool } as const;
+  return { customTools: tools, addTool, updateTool, removeTool } as const;
 }
