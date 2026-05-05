@@ -61,5 +61,16 @@ export interface SecretEntry {
   value: string;
 }
 
+// Linkboard — context items pinned across tools while you work on something.
+// Each entry has a tool id (so we know which logo to show + how to deep-link)
+// or `null` for free-form URLs we couldn't classify.
+export interface LinkItem {
+  id: string;
+  label: string;
+  url: string;
+  toolId: string | null;
+  addedAt: number;
+}
+
 // Map of toolId → list of stored API keys / tokens for that tool.
 export type SecretsMap = Record<string, SecretEntry[]>;

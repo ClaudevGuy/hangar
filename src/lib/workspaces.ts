@@ -15,7 +15,14 @@ const DEFAULT_WORKSPACE: Workspace = { id: "default", name: "Personal", emoji: "
 
 // Per-workspace localStorage prefixes — same names the original hooks use,
 // just with the workspace id appended.
-const WORKSPACE_KEYS = ["hangar-stack", "hangar-prefs", "hangar-keys", "hangar-custom-tools"] as const;
+const WORKSPACE_KEYS = [
+  "hangar-stack",
+  "hangar-prefs",
+  "hangar-keys",
+  "hangar-custom-tools",
+  "hangar-linkboard",
+  "hangar-frecency",
+] as const;
 
 function readList(): Workspace[] {
   try {

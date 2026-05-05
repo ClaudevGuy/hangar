@@ -10,7 +10,7 @@ export interface FrecencyEntry {
 
 export type FrecencyMap = Record<string, FrecencyEntry>;
 
-const storageKey = () => workspaceKey("hangar-stack").replace("hangar-stack", "hangar-frecency");
+const storageKey = () => workspaceKey("hangar-frecency");
 
 function read(): FrecencyMap {
   try {

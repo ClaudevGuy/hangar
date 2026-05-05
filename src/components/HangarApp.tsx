@@ -21,6 +21,7 @@ import { CommandPalette } from "./CommandPalette";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
+import { useLinkboard } from "../hooks/useLinkboard";
 
 const COMPARE_MAX = 3;
 
@@ -46,6 +47,7 @@ export function HangarApp() {
   const { customTools, addTool, updateTool, removeTool } = useCustomTools();
   const { frecency, record: recordLaunch } = useFrecency();
   const sync = useGistSync();
+  const { links, addLink, removeLink, clearAll: clearLinks } = useLinkboard();
 
   // Resolve a stored GitHub token (if any) for use with gist sync.
   const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
@@ -194,9 +196,14 @@ export function HangarApp() {
           setActive={setActiveCat}
           counts={counts}
           stackTools={stackTools}
+          customTools={customTools}
           onRemoveStack={removeFromStack}
           onOpenTool={setOpenTool}
           onOpenStarters={() => setShowStarters(true)}
+          links={links}
+          onAddLink={addLink}
+          onRemoveLink={removeLink}
+          onClearLinks={clearLinks}
         />
 
         <main className="main">

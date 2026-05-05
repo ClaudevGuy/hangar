@@ -1,6 +1,7 @@
 import { ACTIVITY, CATEGORIES, TOOLS } from "../data/tools";
 import { Icon } from "../lib/icons";
-import type { CategoryId, Tool } from "../types";
+import type { CategoryId, LinkItem, Tool } from "../types";
+import { Linkboard } from "./Linkboard";
 import { ToolLogo } from "./ToolLogo";
 
 interface Props {
@@ -8,16 +9,32 @@ interface Props {
   setActive: (id: CategoryId) => void;
   counts: Partial<Record<CategoryId, number>>;
   stackTools: Tool[];
+  customTools: Tool[];
   onRemoveStack: (id: string) => void;
   onOpenTool: (tool: Tool) => void;
   onOpenStarters: () => void;
+  // Linkboard props
+  links: LinkItem[];
+  onAddLink: (entry: Omit<LinkItem, "id" | "addedAt">) => void;
+  onRemoveLink: (id: string) => void;
+  onClearLinks: () => void;
 }
 
 export function Sidebar({
-  active, setActive, counts, stackTools, onRemoveStack, onOpenTool, onOpenStarters,
+  active, setActive, counts, stackTools, customTools, onRemoveStack, onOpenTool, onOpenStarters,
+  links, onAddLink, onRemoveLink, onClearLinks,
 }: Props) {
   return (
     <aside className="sidebar">
+      <Linkboard
+        links={links}
+        builtInTools={TOOLS}
+        customTools={customTools}
+        onAdd={onAddLink}
+        onRemove={onRemoveLink}
+        onClear={onClearLinks}
+      />
+
       <div className="side-section">
         <div className="side-label">Categories</div>
         <nav className="cat-nav">
