@@ -14,6 +14,7 @@ import { ToolRow } from "./ToolRow";
 import { ToolDrawer } from "./ToolDrawer";
 import { CompareModal } from "./CompareModal";
 import { KeysModal } from "./KeysModal";
+import { StackModal } from "./StackModal";
 
 const COMPARE_MAX = 3;
 
@@ -28,6 +29,7 @@ export function HangarApp() {
   const [openTool, setOpenTool] = useState<Tool | null>(null);
   const [showCompare, setShowCompare] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
+  const [showStack, setShowStack] = useState(false);
   const { secrets, upsertKey, removeKey } = useSecrets();
   const totalKeys = useMemo(
     () => Object.values(secrets).reduce((sum, list) => sum + list.length, 0),
@@ -110,9 +112,7 @@ export function HangarApp() {
         stackCount={stack.length}
         compareCount={compare.length}
         keysCount={totalKeys}
-        onOpenStack={() => {
-          /* My-stack button is decorative — sidebar already shows the list. */
-        }}
+        onOpenStack={() => setShowStack(true)}
         onOpenCompare={handleOpenCompare}
         onOpenKeys={() => setShowKeys(true)}
       />
@@ -220,6 +220,16 @@ export function HangarApp() {
           upsertKey={upsertKey}
           removeKey={removeKey}
           onClose={() => setShowKeys(false)}
+        />
+      )}
+
+      {showStack && (
+        <StackModal
+          tools={stackTools}
+          onClose={() => setShowStack(false)}
+          onUnpin={togglePin}
+          onLaunch={launch}
+          onOpenTool={setOpenTool}
         />
       )}
     </div>
