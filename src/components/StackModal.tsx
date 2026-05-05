@@ -1,18 +1,19 @@
 import { useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Icon } from "../lib/icons";
-import type { Tool } from "../types";
+import type { SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
 
 interface Props {
   tools: Tool[];
+  secrets: SecretsMap;
   onClose: () => void;
   onUnpin: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenTool: (tool: Tool) => void;
 }
 
-export function StackModal({ tools, onClose, onUnpin, onLaunch, onOpenTool }: Props) {
+export function StackModal({ tools, secrets, onClose, onUnpin, onLaunch, onOpenTool }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -21,12 +22,8 @@ export function StackModal({ tools, onClose, onUnpin, onLaunch, onOpenTool }: Pr
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const monthly = tools.reduce((sum, t) => {
-    const m = t.pricing.match(/\$(\d+)\/mo/);
-    return sum + (m ? Number(m[1]) : 0);
-  }, 0);
-  const monthlyTools = tools.filter((t) => /\$\d+\/mo/.test(t.pricing)).length;
   const categories = new Set(tools.map((t) => t.category)).size;
+  const connectedCount = tools.filter((t) => (secrets[t.id]?.length ?? 0) > 0).length;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -67,15 +64,9 @@ export function StackModal({ tools, onClose, onUnpin, onLaunch, onOpenTool }: Pr
                 </span>
               </div>
               <div className="stack-stat">
-                <span className="stack-stat-num">
-                  <span className="stack-stat-curr">$</span>
-                  {monthly}
-                  <span className="stat-unit">/mo</span>
-                </span>
+                <span className="stack-stat-num">{connectedCount}</span>
                 <span className="stack-stat-lbl">
-                  {monthlyTools === 0
-                    ? "no recurring"
-                    : `${monthlyTools} ${monthlyTools === 1 ? "plan" : "plans"}`}
+                  {connectedCount === 0 ? "no keys yet" : "connected"}
                 </span>
               </div>
             </div>

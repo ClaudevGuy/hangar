@@ -233,6 +233,7 @@ export function HangarApp() {
       {showStack && (
         <StackModal
           tools={stackTools}
+          secrets={secrets}
           onClose={() => setShowStack(false)}
           onUnpin={togglePin}
           onLaunch={launch}
