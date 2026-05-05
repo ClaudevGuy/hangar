@@ -4,7 +4,7 @@ import { useDragScroll } from "../hooks/useDragScroll";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
-import { TodayPanel } from "./TodayPanel";
+import { LauncherTile } from "./LauncherTile";
 
 const POPULAR_IDS = [
   "neon", "vercel", "resend", "inngest", "clerk", "stripe",
@@ -18,12 +18,11 @@ interface Props {
   onPick: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenStack: () => void;
-  onOpenTool: (tool: Tool) => void;
   onReorderStack: (fromId: string, toId: string) => void;
 }
 
 export function ControlDeck({
-  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onOpenTool, onReorderStack,
+  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onReorderStack,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -50,30 +49,30 @@ export function ControlDeck({
             className={`stack-launcher-row ${launcherDragging ? "is-dragging" : ""}`}
           >
             {stackTools.map((t) => (
-              <button
-                type="button"
+              <LauncherTile
                 key={t.id}
-                className={`launcher-tile ${draggingId === t.id ? "is-drag-source" : ""} ${dragOverId === t.id && draggingId !== t.id ? "is-drop-target" : ""}`}
-                onClick={() => onLaunch(t)}
-                title={`Open ${t.name} dashboard`}
-                draggable
-                onDragStart={(e) => {
-                  setDraggingId(t.id);
+                tool={t}
+                secrets={secrets}
+                draggingId={draggingId}
+                dragOverId={dragOverId}
+                onLaunch={onLaunch}
+                onDragStart={(toolId, e) => {
+                  setDraggingId(toolId);
                   e.dataTransfer.effectAllowed = "move";
-                  e.dataTransfer.setData("text/plain", t.id);
+                  e.dataTransfer.setData("text/plain", toolId);
                 }}
-                onDragOver={(e) => {
+                onDragOver={(toolId, e) => {
                   e.preventDefault();
                   e.dataTransfer.dropEffect = "move";
-                  if (dragOverId !== t.id) setDragOverId(t.id);
+                  if (dragOverId !== toolId) setDragOverId(toolId);
                 }}
-                onDragLeave={() => {
-                  if (dragOverId === t.id) setDragOverId(null);
+                onDragLeave={(toolId) => {
+                  if (dragOverId === toolId) setDragOverId(null);
                 }}
-                onDrop={(e) => {
+                onDrop={(toolId, e) => {
                   e.preventDefault();
                   const fromId = draggingId ?? e.dataTransfer.getData("text/plain");
-                  if (fromId && fromId !== t.id) onReorderStack(fromId, t.id);
+                  if (fromId && fromId !== toolId) onReorderStack(fromId, toolId);
                   setDraggingId(null);
                   setDragOverId(null);
                 }}
@@ -81,23 +80,7 @@ export function ControlDeck({
                   setDraggingId(null);
                   setDragOverId(null);
                 }}
-              >
-                <ToolLogo tool={t} size={32} />
-                <div className="launcher-tile-meta">
-                  <div className="launcher-tile-name">
-                    {t.name}
-                    {(secrets[t.id]?.length ?? 0) > 0 && (
-                      <span
-                        className="launcher-status-dot"
-                        title="Connected — key in vault"
-                        aria-label="Connected"
-                      />
-                    )}
-                  </div>
-                  <div className="launcher-tile-cat">{t.category}</div>
-                </div>
-                <Icon.arrow />
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -145,23 +128,33 @@ export function ControlDeck({
         </div>
       </div>
 
-      <TodayPanel secrets={secrets} onOpenTool={onOpenTool} />
-
-      <div className="deck-strip">
-        <div className="strip-label">{stackTools.length === 0 ? "Start with a popular pick" : "Discover more"}</div>
-        <div ref={railRef} className={`strip-rail ${dragging ? "is-dragging" : ""}`}>
-          {POPULAR_IDS.map((id) => {
-            const t = TOOLS.find((x) => x.id === id);
-            if (!t) return null;
-            return (
-              <button type="button" key={id} className="strip-tool" onClick={() => onPick(t)}>
-                <ToolLogo tool={t} size={28} />
-                <span>{t.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {(() => {
+        const pinnedIds = new Set(stackTools.map((t) => t.id));
+        const unpinnedPopular = POPULAR_IDS
+          .map((id) => TOOLS.find((t) => t.id === id))
+          .filter((t): t is Tool => Boolean(t) && !pinnedIds.has(t!.id));
+        if (unpinnedPopular.length === 0) return null;
+        return (
+          <div className="deck-strip">
+            <div className="strip-label">
+              {stackTools.length === 0 ? "Start with a popular pick" : "Discover more"}
+            </div>
+            <div ref={railRef} className={`strip-rail ${dragging ? "is-dragging" : ""}`}>
+              {unpinnedPopular.map((t) => (
+                <button
+                  type="button"
+                  key={t.id}
+                  className="strip-tool"
+                  onClick={() => onPick(t)}
+                >
+                  <ToolLogo tool={t} size={28} />
+                  <span>{t.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </section>
   );
 }
