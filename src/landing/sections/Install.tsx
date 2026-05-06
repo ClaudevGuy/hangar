@@ -34,6 +34,10 @@ export function Install() {
               {"\n"}
               <span className="lp-terminal-prompt">$</span> npm run dev
               {"\n\n"}
+              <span className="lp-terminal-comment"># then open the tool in your browser</span>
+              {"\n"}
+              <span className="lp-accent">→</span> http://localhost:5173<span className="lp-accent">/app</span>
+              {"\n\n"}
               <span className="lp-terminal-comment"># or build for production</span>
               {"\n"}
               <span className="lp-terminal-prompt">$</span> npm run build
