@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TOOLS } from "../data/tools";
 import type { Tool } from "../types";
+import { ScrollToTop } from "./parts/ScrollToTop";
 import { ThemeToggle } from "./parts/ThemeToggle";
 import { Hero } from "./sections/Hero";
 import { Problem } from "./sections/Problem";
@@ -49,6 +50,7 @@ export function LandingPage() {
       <FAQ />
       <FinalCTA />
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

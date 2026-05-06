@@ -6,12 +6,14 @@
    app surface at /app.
    ============================================================ */
 
+/* Sticky nav requires no overflow trap on .landing — clip the document instead. */
+html, body { overflow-x: clip; }
+
 .landing {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 .landing a { color: inherit; text-decoration: none; }
 .landing button { font-family: inherit; }
@@ -877,11 +879,10 @@
 
 /* ===== FINAL CTA ===== */
 .lp-cta {
-  padding: 100px 0;
+  padding: 100px 0 60px;
   border-bottom: 1px solid var(--line);
   text-align: center;
   position: relative;
-  overflow: hidden;
 }
 .lp-cta::before {
   content: "";
@@ -906,16 +907,19 @@
   justify-content: center;
 }
 .lp-bigmark {
-  position: absolute;
-  bottom: -40px; left: 50%; transform: translateX(-50%);
+  display: block;
+  margin: 56px auto 0;
   font-family: var(--font-display);
-  font-size: clamp(120px, 18vw, 220px);
-  font-weight: 600;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--line);
+  font-size: clamp(120px, 22vw, 280px);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  color: var(--text);
   user-select: none;
   pointer-events: none;
-  letter-spacing: -0.06em;
+  font-variation-settings: 'opsz' 96;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
 }
 
 /* ===== FOOTER ===== */
@@ -972,4 +976,60 @@
   .lp-hero { padding: 60px 24px 40px; }
   .lp-hero-cta { flex-direction: column; align-items: stretch; }
   .lp-footer-top { grid-template-columns: 1fr; }
+}
+
+/* ===== Scroll-to-top: "Return to tower" ===== */
+.lp-tower {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px 10px 12px;
+  background: color-mix(in oklab, var(--bg) 70%, transparent);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px -12px rgba(0,0,0,0.4),
+              0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
+  opacity: 0; transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease, border-color .15s, box-shadow .25s;
+}
+.lp-tower.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.lp-tower:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -10px rgba(0,0,0,0.5),
+              0 0 0 1px color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.lp-tower:active { transform: translateY(0); }
+.lp-tower svg { color: var(--accent); }
+.lp-tower-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-2);
+}
+.lp-tower-pulse {
+  position: absolute; top: 6px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent);
+  animation: lp-tower-blink 2.4s ease-out infinite;
+}
+@keyframes lp-tower-blink {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent); }
+  70%  { box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-tower, .lp-tower-pulse { transition: none; animation: none; }
+  .lp-tower:hover { transform: none; }
+}
+@media (max-width: 700px) {
+  .lp-tower-label { display: none; }
+  .lp-tower { padding: 10px; }
 }
