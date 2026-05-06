@@ -259,19 +259,19 @@ export function Features() {
               sludge.
             </p>
             <div className="lp-feature-visual">
-              <div className="lp-hero-strip-tools">
+              <div className="lp-pairs-grid">
                 {PAIR_IDS.map((id) => {
                   const t = findTool(id);
                   if (!t) return null;
                   return (
-                    <a key={id} className="lp-hero-tool" href="/app">
+                    <div key={id} className="lp-hero-tool lp-pair">
                       <div
                         className="lp-tool-logo"
                         style={{ background: t.bg, color: t.color }}
                         dangerouslySetInnerHTML={{ __html: t.logo }}
                       />
                       <span>{t.name}</span>
-                    </a>
+                    </div>
                   );
                 })}
               </div>
