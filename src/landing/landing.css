@@ -57,11 +57,13 @@ html, body { overflow-x: clip; }
 .lp-btn:hover { border-color: var(--line-2); }
 .lp-btn-ghost { border-color: transparent; color: var(--text-2); }
 .lp-btn-ghost:hover { color: var(--text); border-color: var(--line); }
-.lp-btn-primary {
+/* `.landing` prefix bumps specificity above `.landing a { color: inherit }`
+   so the primary CTA stays black in both light and dark themes. */
+.landing .lp-btn-primary {
   background: var(--accent); color: #000; border-color: var(--accent);
   font-weight: 600;
 }
-.lp-btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.landing .lp-btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .lp-btn-lg { padding: 11px 20px; font-size: 14px; }
 
 /* ===== Tool logo (shared with app) ===== */
