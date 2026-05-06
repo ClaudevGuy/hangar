@@ -2,6 +2,8 @@
 
 > The dev's control tower. Pin the SaaS tools you actually ship with, jump to their dashboards in one click, vault your API keys, and watch your stack from one runway.
 
+**Live site:** <https://hangar-silk.vercel.app/>
+
 Hangar is a single-page React app that ships with a 29-tool catalogue across 11 categories — Vercel, Neon, Stripe, Anthropic, Sentry, Linear, Figma, and friends — and lets you **add any tool that isn't on the list yourself**. Pin the ones you use, store API keys per tool, and over time get live data straight from each provider (GitHub repos already, more to come).
 
 It runs entirely in your browser. No backend, no telemetry, no analytics. Your stack and your keys live in `localStorage` only.
@@ -14,6 +16,8 @@ The repo serves two surfaces from the same Vite build:
 | `/app` | The Hangar tool itself — the launcher, catalog, vault, drawers, all the features below. |
 
 Anything not matched (`/anything-else`) redirects to `/`.
+
+**On `localhost`** (`localhost`, `127.0.0.1`, `0.0.0.0`), `/` auto-redirects to `/app` so a fresh `npm run dev` install lands on the tool instead of the landing the user just came from. Append `?landing` (e.g. `http://localhost:5173/?landing`) to preview the marketing page locally.
 
 ---
 
@@ -85,7 +89,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173> for the landing page, or jump straight to <http://localhost:5173/app> for the tool. Requires Node 18 or newer.
+Open <http://localhost:5173> — on localhost it lands you straight on the tool (`/app`). Append `?landing` to preview the marketing landing locally. Requires Node 18 or newer.
 
 To build for production:
 
