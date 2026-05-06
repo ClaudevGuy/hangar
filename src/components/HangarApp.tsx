@@ -6,6 +6,7 @@ import { useVault } from "../hooks/useVault";
 import type { CategoryId, Tool } from "../types";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
+import { TodayPanel } from "./TodayPanel";
 import { ControlDeck } from "./ControlDeck";
 import { CategoryStrip } from "./CategoryStrip";
 import { ResultBar } from "./ResultBar";
@@ -214,6 +215,8 @@ export function HangarApp() {
         />
 
         <main className="main">
+          <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />
+
           <ControlDeck
             stackTools={stackTools}
             totalTools={allTools.length}
