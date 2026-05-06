@@ -28,8 +28,22 @@ const ITEMS: { q: string; a: React.ReactNode; open?: boolean }[] = [
         29 built-in across 11 categories — and you can add your own at any time via{" "}
         <strong>+ Add tool</strong>. Custom tools live in your local catalog and behave exactly
         like built-ins (pin, compare, vault keys). Live API data ships for{" "}
-        <strong>GitHub, Linear, and Vercel</strong> today; more providers are gated behind CORS
-        and will need a small server proxy (on the roadmap).
+        <strong>GitHub, Vercel, Linear, Resend, and Sentry</strong> today; CORS-blocked providers
+        go through a tiny Vercel Function proxy bundled in the repo.
+      </>
+    ),
+  },
+  {
+    q: "Can my AI assistant read my stack?",
+    a: (
+      <>
+        Yes — Hangar ships an MCP (Model Context Protocol) server in the{" "}
+        <code className="lp-code">mcp/</code> directory. Plug it into Claude Desktop or Cursor and
+        the AI gets six tools: read your stack, list unresolved Sentry issues, recent Vercel
+        deploys, your Linear queue, PRs waiting on your review, and recent Stripe revenue. Tokens
+        stay in env vars on your machine — never sent to a Hangar server. Click{" "}
+        <strong>Settings → AI agents → Download mcp.json</strong> in the dashboard to keep the
+        config in sync with your pinned tools.
       </>
     ),
   },

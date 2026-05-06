@@ -365,6 +365,42 @@ html, body { overflow-x: clip; }
 }
 .lp-span-3 { grid-column: span 3; }
 .lp-span-2 { grid-column: span 2; }
+.lp-span-6 { grid-column: span 6; }
+
+/* MCP feature card visual — two-column grid of tool → question pairs. */
+.lp-mcp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  margin-top: 14px;
+}
+.lp-mcp-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.lp-mcp-tool {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.lp-mcp-arrow {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.lp-mcp-q {
+  font-size: 13px;
+  color: var(--text-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .lp-mcp-grid { grid-template-columns: 1fr; }
+}
 .lp-feature-num {
   font-family: var(--font-mono); font-size: 10.5px;
   text-transform: uppercase; letter-spacing: 0.16em;

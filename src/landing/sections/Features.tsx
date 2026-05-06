@@ -207,8 +207,9 @@ export function Features() {
               See what your stack actually costs every month.
             </h3>
             <p className="lp-feature-desc">
-              Recurring totals across providers. Catch the "$19/mo" subscription you forgot about
-              three product launches ago. Hangar reads pricing from your account and rolls it up.
+              Tag yourself on each tool's plan — Free, Pro, Team — and Hangar rolls up the real
+              monthly total across your stack. Catch the "$19/mo" subscription you forgot about
+              three product launches ago.
             </p>
             <div className="lp-feature-visual">
               <svg width="100%" viewBox="0 0 400 100" style={{ overflow: "visible" }}>
@@ -277,8 +278,40 @@ export function Features() {
               </div>
             </div>
           </article>
+
+          <article className="lp-feature lp-span-6">
+            <div className="lp-feature-num">08 / AI agents</div>
+            <h3 className="lp-feature-title">
+              Your AI assistants already know your stack.
+            </h3>
+            <p className="lp-feature-desc">
+              Hangar ships a Model Context Protocol server. Plug it into Claude Desktop or Cursor and
+              your AI sees your pinned tools, deploy status, unresolved errors, Linear queue, GitHub
+              review backlog, and Stripe revenue — without you pasting any of it into a chat.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-mcp-grid">
+                {MCP_PROMPTS.map((p) => (
+                  <div key={p.tool} className="lp-mcp-row">
+                    <span className="lp-mcp-tool">{p.tool}</span>
+                    <span className="lp-mcp-arrow">↦</span>
+                    <span className="lp-mcp-q">"{p.q}"</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
   );
 }
+
+const MCP_PROMPTS: { tool: string; q: string }[] = [
+  { tool: "read_stack",             q: "What's in my dev stack?" },
+  { tool: "list_unresolved_issues", q: "Anything broken on Sentry?" },
+  { tool: "list_recent_deploys",    q: "Failed Vercel deploys this week?" },
+  { tool: "list_assigned_issues",   q: "What's on my Linear queue?" },
+  { tool: "list_review_requests",   q: "PRs waiting on my review?" },
+  { tool: "get_recent_revenue",     q: "How much Stripe revenue this month?" },
+];
