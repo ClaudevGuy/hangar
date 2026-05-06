@@ -8,6 +8,7 @@ import { Problem } from "./sections/Problem";
 import { Features } from "./sections/Features";
 import { Catalog } from "./sections/Catalog";
 import { HowItWorks } from "./sections/HowItWorks";
+import { Showcase } from "./sections/Showcase";
 import { Install } from "./sections/Install";
 import { FAQ } from "./sections/FAQ";
 import { FinalCTA } from "./sections/FinalCTA";
@@ -44,6 +45,7 @@ export function LandingPage() {
       <Features />
       <Catalog />
       <HowItWorks />
+      <Showcase />
       <Install />
       <FAQ />
       <FinalCTA />
