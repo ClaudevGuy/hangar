@@ -20,7 +20,7 @@ export function Footer() {
             <ul>
               <li><a href="#features">Features</a></li>
               <li><a href="#catalog">Catalog</a></li>
-              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#install">Install</a></li>
               <li>
                 <a href="https://github.com/ClaudevGuy/hangar" target="_blank" rel="noreferrer">
                   Changelog

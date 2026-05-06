@@ -24,8 +24,8 @@ export function Hero() {
           straight into your accounts, and watches your whole stack from one runway.
         </p>
         <div className="lp-hero-cta">
-          <a className="lp-btn lp-btn-primary lp-btn-lg" href="/app">
-            Open my hangar →
+          <a className="lp-btn lp-btn-primary lp-btn-lg" href="#install">
+            Get started →
           </a>
           <a className="lp-btn lp-btn-lg" href="#features">
             See how it works

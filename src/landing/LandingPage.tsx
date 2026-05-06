@@ -9,7 +9,6 @@ import { Features } from "./sections/Features";
 import { Catalog } from "./sections/Catalog";
 import { HowItWorks } from "./sections/HowItWorks";
 import { Install } from "./sections/Install";
-import { Pricing } from "./sections/Pricing";
 import { FAQ } from "./sections/FAQ";
 import { FinalCTA } from "./sections/FinalCTA";
 import { Footer } from "./sections/Footer";
@@ -46,7 +45,6 @@ export function LandingPage() {
       <Catalog />
       <HowItWorks />
       <Install />
-      <Pricing />
       <FAQ />
       <FinalCTA />
       <Footer />
@@ -76,7 +74,6 @@ function Nav({ theme, onToggleTheme }: NavProps) {
           <a href="#features">Features</a>
           <a href="#catalog">Catalog</a>
           <a href="#how">How it works</a>
-          <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
         </div>
       </div>
@@ -94,8 +91,8 @@ function Nav({ theme, onToggleTheme }: NavProps) {
           </svg>
           <span className="lp-nav-gh-label">Star on GitHub</span>
         </a>
-        <a className="lp-btn lp-btn-primary" href="/app">
-          Open hangar →
+        <a className="lp-btn lp-btn-primary" href="#install">
+          Get started →
         </a>
       </div>
     </nav>

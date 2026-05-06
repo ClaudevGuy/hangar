@@ -10,7 +10,7 @@ The repo serves two surfaces from the same Vite build:
 
 | Route | What lives there |
 |---|---|
-| `/` | Marketing landing page — sticky nav, hero, problem/feature/catalog/install/pricing/FAQ sections, "Park your stack in the hangar." final CTA, and a "Return to tower" scroll-to-top button. |
+| `/` | Marketing landing page — sticky nav, hero, problem/feature/catalog/install/FAQ sections, "Park your stack in the hangar." final CTA, and a "Return to tower" scroll-to-top button. |
 | `/app` | The Hangar tool itself — the launcher, catalog, vault, drawers, all the features below. |
 
 Anything not matched (`/anything-else`) redirects to `/`.
@@ -171,7 +171,7 @@ src/
 │   │   ├── ScrollToTop.tsx   # "Return to tower" floating button (>600px scroll)
 │   │   └── ThemeToggle.tsx   # landing-only dark/light toggle (own localStorage key)
 │   └── sections/             # Hero, Problem, Features, Catalog, HowItWorks,
-│                             # Install, Pricing, FAQ, FinalCTA, Footer
+│                             # Install, FAQ, FinalCTA, Footer
 └── components/
     ├── HangarApp.tsx         # top-level state + composition
     ├── TopBar.tsx            # logo, search, view toggle, theme, settings, vault, stack

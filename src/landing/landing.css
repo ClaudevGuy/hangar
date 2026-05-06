@@ -764,85 +764,6 @@ html, body { overflow-x: clip; }
   line-height: 1.55;
 }
 
-/* ===== PRICING ===== */
-#pricing { padding: 80px 0; border-bottom: 1px solid var(--line); }
-.lp-pricing-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 40px;
-}
-.lp-price-card {
-  position: relative;
-  padding: 28px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  display: flex; flex-direction: column;
-}
-.lp-price-card.lp-featured {
-  border-color: var(--accent);
-  box-shadow: 0 24px 60px -32px color-mix(in oklab, var(--accent) 60%, transparent);
-}
-.lp-price-badge {
-  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-  padding: 4px 12px;
-  background: var(--accent); color: #000;
-  font-family: var(--font-mono); font-size: 10px;
-  text-transform: uppercase; letter-spacing: 0.14em;
-  border-radius: 999px;
-  font-weight: 600;
-}
-.lp-price-tier {
-  font-family: var(--font-mono); font-size: 11px;
-  text-transform: uppercase; letter-spacing: 0.16em;
-  color: var(--text-3);
-  margin-bottom: 16px;
-}
-.lp-price-amount {
-  font-family: var(--font-display);
-  font-size: 44px; font-weight: 600;
-  color: var(--text);
-  letter-spacing: -0.03em;
-  line-height: 1;
-  display: flex; align-items: baseline; gap: 4px;
-  margin-bottom: 12px;
-}
-.lp-price-unit {
-  font-family: var(--font-mono); font-size: 12px;
-  color: var(--text-3);
-  letter-spacing: 0.04em;
-  font-weight: 400;
-}
-.lp-price-tag {
-  font-size: 13.5px; line-height: 1.5;
-  color: var(--text-2);
-  margin-bottom: 24px;
-  min-height: 40px;
-}
-.lp-price-list {
-  list-style: none; margin: 0 0 24px; padding: 0;
-  display: flex; flex-direction: column; gap: 10px;
-  flex: 1;
-}
-.lp-price-list li {
-  display: flex; align-items: flex-start; gap: 8px;
-  font-size: 13.5px; color: var(--text);
-}
-.lp-price-list li svg { color: var(--accent); flex-shrink: 0; margin-top: 3px; }
-.lp-price-cta {
-  display: flex; align-items: center; justify-content: center;
-  padding: 11px 16px;
-  border-radius: 10px;
-  font-size: 13px; font-weight: 600;
-  background: var(--panel-2); color: var(--text);
-  border: 1px solid var(--line);
-  cursor: pointer;
-  transition: background .15s, border-color .15s;
-}
-.lp-price-cta:hover { border-color: var(--line-2); background: var(--bg); }
-.lp-featured .lp-price-cta { background: var(--accent); color: #000; border-color: var(--accent); }
-.lp-featured .lp-price-cta:hover { filter: brightness(1.1); }
-
 /* ===== FAQ ===== */
 #faq { padding: 80px 0; border-bottom: 1px solid var(--line); }
 .lp-faq-grid {
@@ -966,7 +887,7 @@ html, body { overflow-x: clip; }
 @media (max-width: 1024px) {
   .lp-features-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-span-3, .lp-span-2 { grid-column: span 2; }
-  .lp-steps, .lp-pricing-grid { grid-template-columns: 1fr; }
+  .lp-steps { grid-template-columns: 1fr; }
   .lp-install-grid, .lp-problem-grid { grid-template-columns: 1fr; }
   .lp-faq-grid { grid-template-columns: 1fr; gap: 28px; }
   .lp-footer-top { grid-template-columns: 1fr 1fr; }
