@@ -52,12 +52,15 @@ interface Props {
   toolMeta: ToolMetaMap;
 }
 
+type SettingsTab = "look" | "security" | "data";
+
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
   stackTools, toolMeta,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<SettingsTab>("look");
   const wrapRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ kind: "idle" | "ok" | "err"; msg?: string }>({
@@ -110,6 +113,37 @@ export function SettingsMenu({
       </button>
       {open && (
         <div className="settings-menu" role="menu">
+          <div className="settings-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "look"}
+              className={tab === "look" ? "on" : ""}
+              onClick={() => setTab("look")}
+            >
+              Look
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "security"}
+              className={tab === "security" ? "on" : ""}
+              onClick={() => setTab("security")}
+            >
+              Security
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "data"}
+              className={tab === "data" ? "on" : ""}
+              onClick={() => setTab("data")}
+            >
+              Data
+            </button>
+          </div>
+
+          {tab === "look" && (<>
           <div className="settings-section">
             <div className="settings-label">Accent</div>
             <div className="settings-swatches">
@@ -160,7 +194,9 @@ export function SettingsMenu({
               ))}
             </div>
           </div>
+          </>)}
 
+          {tab === "security" && (<>
           <div className="settings-section">
             <div className="settings-label">Security</div>
             <SecurityControls
@@ -183,7 +219,9 @@ export function SettingsMenu({
               onDisconnect={onSyncDisconnect}
             />
           </div>
+          </>)}
 
+          {tab === "data" && (<>
           <div className="settings-section">
             <div className="settings-label">Backup</div>
             <div className="settings-row">
@@ -238,6 +276,7 @@ export function SettingsMenu({
               </button>
             </div>
           </div>
+          </>)}
         </div>
       )}
     </div>

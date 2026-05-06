@@ -1307,6 +1307,39 @@ input { font-family: inherit; }
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   box-shadow: 0 12px 40px -12px color-mix(in oklab, #000 60%, transparent);
+  /* Safety belt against unusually short viewports — even one tab's worth of
+     content shouldn't overflow normally, but the security tab can grow when
+     the passphrase form is open. */
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+.settings-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: color-mix(in oklab, var(--panel-2) 80%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin: -2px -2px 4px;
+}
+.settings-tabs button {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--line);
+  padding: 8px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.settings-tabs button:last-child { border-right: none; }
+.settings-tabs button:hover { color: var(--text-2); background: color-mix(in oklab, var(--panel) 60%, transparent); }
+.settings-tabs button.on {
+  color: var(--accent);
+  background: var(--panel);
 }
 .settings-section { display: flex; flex-direction: column; gap: 8px; }
 .settings-label {
