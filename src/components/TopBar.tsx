@@ -1,6 +1,7 @@
 import { useRef } from "react";
+import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { Icon } from "../lib/icons";
-import type { Prefs } from "../types";
+import type { Prefs, Tool } from "../types";
 import { SettingsMenu } from "./SettingsMenu";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
@@ -30,6 +31,9 @@ interface Props {
   onSyncPushNow: () => void;
   onSyncPullNow: () => void;
   onSyncDisconnect: () => void;
+  // Drilled through to SettingsMenu's "Export MCP config" button.
+  stackTools: Tool[];
+  toolMeta: ToolMetaMap;
 }
 
 export function TopBar({
@@ -41,6 +45,7 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
+  stackTools, toolMeta,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -133,6 +138,8 @@ export function TopBar({
           onSyncPushNow={onSyncPushNow}
           onSyncPullNow={onSyncPullNow}
           onSyncDisconnect={onSyncDisconnect}
+          stackTools={stackTools}
+          toolMeta={toolMeta}
         />
       </div>
     </header>

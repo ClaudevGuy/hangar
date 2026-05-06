@@ -195,6 +195,8 @@ export function HangarApp() {
         onSyncPushNow={() => githubToken && sync.pushNow(githubToken)}
         onSyncPullNow={() => githubToken && sync.pullNow(githubToken)}
         onSyncDisconnect={sync.disconnect}
+        stackTools={stackTools}
+        toolMeta={toolMeta}
       />
 
       <div className="layout">

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import type { ToolMetaMap } from "../hooks/useToolMeta";
+import type { VaultState } from "../hooks/useVault";
 import { Icon } from "../lib/icons";
 import { downloadConfig, importConfigFromFile } from "../lib/config";
-import type { VaultState } from "../hooks/useVault";
-import type { Accent, CardStyle, Density, Prefs } from "../types";
+import { downloadMcpConfig } from "../lib/mcpExport";
+import type { Accent, CardStyle, Density, Prefs, Tool } from "../types";
 
 const ACCENT_OPTIONS: { value: Accent; label: string; swatch: string }[] = [
   { value: "neon", label: "Neon", swatch: "#00e599" },
@@ -44,11 +46,16 @@ interface Props {
   onSyncPushNow: () => void;
   onSyncPullNow: () => void;
   onSyncDisconnect: () => void;
+  // For "Export MCP config" — drilled through so we can build the JSON
+  // the hangar-mcp server expects at ~/.hangar/mcp.json.
+  stackTools: Tool[];
+  toolMeta: ToolMetaMap;
 }
 
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
+  stackTools, toolMeta,
 }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -210,6 +217,26 @@ export function SettingsMenu({
               onChange={onPickFile}
               style={{ display: "none" }}
             />
+          </div>
+
+          <div className="settings-section">
+            <div className="settings-label">AI agents</div>
+            <div className="settings-row settings-row-vert">
+              <div className="muted settings-blurb">
+                Download <code>mcp.json</code> for the Hangar MCP server. Drop it at{" "}
+                <code>~/.hangar/mcp.json</code> so Claude Desktop / Cursor can read your
+                stack. Re-export anytime you change pinned tools or plans.
+              </div>
+              <button
+                type="button"
+                className="ghost-btn small settings-export"
+                onClick={() => downloadMcpConfig(stackTools, toolMeta)}
+                disabled={stackTools.length === 0}
+                title={stackTools.length === 0 ? "Pin some tools first" : "Download mcp.json"}
+              >
+                Download mcp.json
+              </button>
+            </div>
           </div>
         </div>
       )}

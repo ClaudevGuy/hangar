@@ -247,8 +247,12 @@ Hangar ships a Model Context Protocol server in [`mcp/`](mcp/) so local AI agent
 - *"What's in my dev stack?"*
 - *"What's broken on Sentry right now?"*
 - *"Show me my failed Vercel deploys this week."*
+- *"What PRs are waiting on my review?"*
+- *"How much Stripe revenue did I make in the last 30 days?"*
 
-Three tools in v1: `read_stack` (from `~/.hangar/mcp.json`), `list_unresolved_issues` (Sentry, env-token), `list_recent_deploys` (Vercel, env-token). See [mcp/README.md](mcp/README.md) for setup.
+Six tools today: `read_stack`, `list_unresolved_issues` (Sentry), `list_recent_deploys` (Vercel), `list_assigned_issues` (Linear), `list_review_requests` (GitHub), `get_recent_revenue` (Stripe). All token-scoped via env vars; no token = that tool errors but the rest still work.
+
+The dashboard has a **Settings → AI agents → Download mcp.json** button so the stack config stays in sync with your pinned tools / plans without hand-editing the JSON. See [mcp/README.md](mcp/README.md) for full setup.
 
 ---
 
