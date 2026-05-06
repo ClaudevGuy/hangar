@@ -282,14 +282,13 @@ input { font-family: inherit; }
   grid-template-columns: 268px 1fr;
   gap: 0;
   flex: 1;
+  /* Tint lives on the grid container so the sidebar column always reaches
+     the bottom of the row — the sticky sidebar element is shorter than
+     the row when main is tall, which would otherwise expose --bg below it. */
+  background: var(--bg-2);
 }
 
 .sidebar {
-  /* Subtle warm tint distinguishes the nav from the main canvas without
-     reading as a heavy panel — the existing border-right gets to do real
-     work once it has a background to contrast against. */
-  background: var(--bg-2);
-  border-right: 1px solid var(--line);
   padding: var(--pad-2) 16px;
   display: flex; flex-direction: column; gap: 28px;
   position: sticky; top: 64px; align-self: flex-start;
@@ -464,6 +463,8 @@ input { font-family: inherit; }
 .main {
   padding: 0;
   min-width: 0;
+  background: var(--bg);
+  border-left: 1px solid var(--line);
 }
 
 .deck {
