@@ -1015,3 +1015,67 @@ html, body { overflow-x: clip; }
   background: #000;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
 }
+
+/* ----------------------------------------------------------- */
+/* Run-local prompt (shown at /app on the deployed origin)     */
+/* ----------------------------------------------------------- */
+.run-local {
+  position: relative;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 80px 24px;
+  overflow: hidden;
+}
+.run-local-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 0%, transparent 70%);
+  opacity: 0.45;
+}
+.run-local-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 50% 40% at 50% 10%, var(--accent-bg), transparent 60%);
+  opacity: 0.7;
+}
+.run-local-inner {
+  position: relative; z-index: 1;
+  max-width: 720px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 28px;
+}
+.run-local-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--accent);
+}
+.run-local-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0;
+  color: var(--text);
+}
+.run-local-desc {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--text-2);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.run-local-cta {
+  display: flex; gap: 12px; justify-content: center;
+  flex-wrap: wrap;
+}
+.run-local-foot {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin-top: 8px;
+  opacity: 0.85;
+}
+.run-local-foot .lp-code { font-size: 13px; }

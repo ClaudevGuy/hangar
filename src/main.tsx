@@ -3,11 +3,17 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { HangarApp } from "./components/HangarApp";
 import { LandingPage } from "./landing/LandingPage";
+import { RunLocalPrompt } from "./landing/parts/RunLocalPrompt";
 import "./styles.css";
 import "./landing/landing.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root");
+
+function isLocalHost(): boolean {
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
+}
 
 // On localhost the marketing landing is friction — someone running
 // `npm run dev` already followed the install flow on the marketing
@@ -16,11 +22,17 @@ if (!rootEl) throw new Error("Missing #root");
 // Escape hatch: `?landing` on localhost still renders the marketing
 // page (handy for design work).
 function RootRoute() {
-  const host = window.location.hostname;
-  const isLocal = host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
   const wantsLanding = new URLSearchParams(window.location.search).has("landing");
-  if (isLocal && !wantsLanding) return <Navigate to="/app" replace />;
+  if (isLocalHost() && !wantsLanding) return <Navigate to="/app" replace />;
   return <LandingPage />;
+}
+
+// /app is for the local install only. On the deployed origin we'd just be
+// creating a separate localStorage silo per visitor with no path back to
+// their real stack — show an install prompt instead.
+function AppRoute() {
+  if (!isLocalHost()) return <RunLocalPrompt />;
+  return <HangarApp />;
 }
 
 createRoot(rootEl).render(
@@ -28,7 +40,7 @@ createRoot(rootEl).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<RootRoute />} />
-        <Route path="/app/*" element={<HangarApp />} />
+        <Route path="/app/*" element={<AppRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
