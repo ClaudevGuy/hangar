@@ -95,16 +95,9 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="side-section side-foot">
-        <div className="side-label">Activity</div>
-        {ACTIVITY.length === 0 ? (
-          <div className="empty-stack">
-            <span>
-              Activity surfaces here once you connect a tool. Start by adding a GitHub PAT in the
-              keys vault.
-            </span>
-          </div>
-        ) : (
+      {ACTIVITY.length > 0 && (
+        <div className="side-section side-foot">
+          <div className="side-label">Activity</div>
           <ul className="activity">
             {ACTIVITY.slice(0, 5).map((a, i) => {
               const tool = TOOLS.find((t) => t.id === a.tool);
@@ -120,8 +113,8 @@ export function Sidebar({
               );
             })}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

@@ -71,14 +71,6 @@ export function Linkboard({ links, customTools, builtInTools, onAdd, onRemove, o
         )}
       </div>
 
-      {links.length === 0 && !adding && (
-        <div className="empty-stack">
-          <span>
-            Pin PRs, issues, deployments — anything you're working on right now.
-          </span>
-        </div>
-      )}
-
       {links.length > 0 && (
         <ul className="link-list">
           {links.map((link) => {
