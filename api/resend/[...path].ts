@@ -5,41 +5,45 @@
 
 const UPSTREAM = "https://api.resend.com";
 
-export default async function handler(req: Request): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   const auth = req.headers.get("authorization");
   if (!auth || !auth.startsWith("Bearer ")) {
     return json({ error: "Missing or malformed Authorization header" }, 401);
   }
 
-  const url = new URL(req.url);
-  // Strip the /api/resend prefix so /api/resend/emails -> /emails upstream.
-  const path = url.pathname.replace(/^\/api\/resend/, "") || "/";
-  const upstreamUrl = `${UPSTREAM}${path}${url.search}`;
-
-  // Only forward the methods we'll actually use from the client.
-  const method = req.method.toUpperCase();
-  if (!["GET", "HEAD"].includes(method)) {
-    return json({ error: `Method ${method} not allowed` }, 405);
+  let upstreamUrl: string;
+  try {
+    const url = new URL(req.url);
+    // Strip the /api/resend prefix so /api/resend/emails -> /emails upstream.
+    const path = url.pathname.replace(/^\/api\/resend/, "") || "/";
+    upstreamUrl = `${UPSTREAM}${path}${url.search}`;
+  } catch (err) {
+    console.error("[api/resend] bad request url", err);
+    return json({ error: `Bad request URL: ${err instanceof Error ? err.message : "unknown"}` }, 400);
   }
 
   try {
     const upstreamRes = await fetch(upstreamUrl, {
-      method,
+      method: "GET",
       headers: {
         Authorization: auth,
         Accept: "application/json",
       },
     });
     const body = await upstreamRes.text();
+    if (!upstreamRes.ok) {
+      console.error("[api/resend] upstream non-OK", { status: upstreamRes.status, url: upstreamUrl });
+    }
     return new Response(body, {
       status: upstreamRes.status,
       headers: {
         "content-type": upstreamRes.headers.get("content-type") ?? "application/json",
-        // Avoid caching at the edge — the response is per-user.
+        // Per-user response — never let the edge cache it.
         "cache-control": "private, no-store",
       },
     });
   } catch (err) {
+    console.error("[api/resend] upstream fetch failed", err);
     return json({ error: err instanceof Error ? err.message : "Upstream fetch failed" }, 502);
   }
 }
