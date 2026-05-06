@@ -8,6 +8,7 @@ import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
 import { LinearInsights } from "./LinearInsights";
 import { ResendInsights } from "./ResendInsights";
+import { SentryInsights } from "./SentryInsights";
 import { TokenPrompt } from "./TokenPrompt";
 import { VercelInsights } from "./VercelInsights";
 import { ToolLogo } from "./ToolLogo";
@@ -222,6 +223,12 @@ export function ToolDrawer({
         {tool.id === "resend" && (
           <div className="drawer-section">
             <ResendInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
+          </div>
+        )}
+
+        {tool.id === "sentry" && (
+          <div className="drawer-section">
+            <SentryInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
           </div>
         )}
 

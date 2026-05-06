@@ -229,7 +229,7 @@ localStorage.clear(); location.reload();
   - [x] Vercel projects
   - [x] Linear issues
   - [x] Resend deliverability
-  - [ ] Sentry issues
+  - [x] Sentry issues
   - [ ] Stripe revenue
 - [x] User-set per-tool plans — Free / Pro / etc., powering a real monthly-cost stat in the deck
 - [x] Per-tool last-opened timestamp — "you opened Vercel 2h ago" hint in the stack list

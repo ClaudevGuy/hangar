@@ -1969,3 +1969,22 @@ input { font-family: inherit; }
 }
 .plan-select:hover { border-color: var(--line-2); background-color: var(--panel); }
 .plan-select:focus { outline: none; border-color: var(--accent-line); }
+
+/* ----------------------------------------------------------- */
+/* Sentry issue level pill (error/warning/info/debug/fatal)    */
+/* ----------------------------------------------------------- */
+.sentry-level-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  color: var(--text-3);
+}
+.sentry-level-pill.level-fatal,
+.sentry-level-pill.level-error { color: var(--danger); }
+.sentry-level-pill.level-warning { color: var(--warn); }
+.sentry-level-pill.level-info { color: var(--accent); }
