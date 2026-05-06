@@ -5,6 +5,7 @@ import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
 import { LinearInsights } from "./LinearInsights";
+import { ResendInsights } from "./ResendInsights";
 import { TokenPrompt } from "./TokenPrompt";
 import { VercelInsights } from "./VercelInsights";
 import { ToolLogo } from "./ToolLogo";
@@ -192,14 +193,7 @@ export function ToolDrawer({
 
         {tool.id === "resend" && (
           <div className="drawer-section">
-            <TokenPrompt
-              toolId="resend"
-              toolName="Resend"
-              description="Add a Resend API key to your vault to see recent email sends and verified domains."
-              tokenUrl="https://resend.com/api-keys"
-              secrets={secrets}
-              onAddKey={() => onAddKeyForTool(tool)}
-            />
+            <ResendInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
           </div>
         )}
 
