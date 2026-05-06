@@ -225,13 +225,18 @@ localStorage.clear(); location.reload();
 - [x] Custom catalog entries — add tools that aren't in the built-in 29
 - [x] Collapsible catalog — defer browsing for returning users
 - [x] GitHub live insights from the vault token
-- [ ] More live integrations beyond GitHub (Vercel projects, Linear issues, Stripe revenue, Sentry issues — each behind their own PAT/key in the vault)
-- [ ] User-set per-tool plans — flag yourself as Free/Pro on a tool so monthly-cost stats are real instead of guessed
-- [ ] Per-tool last-opened timestamp — surface "you opened Vercel 2h ago" for quick re-launching
-- [ ] Edit existing custom tools (current flow only allows add + delete)
-- [ ] Drag-to-reorder pinned tools in the launcher
-- [ ] Optional encrypted vault (passphrase-derived key) for the API tokens
-- [ ] Optional server proxy (Vercel Functions / Cloudflare Worker) for tools that don't allow browser CORS
+- [x] More live integrations beyond GitHub — each behind its own PAT/key in the vault
+  - [x] Vercel projects
+  - [x] Linear issues
+  - [x] Resend deliverability
+  - [ ] Sentry issues
+  - [ ] Stripe revenue
+- [x] User-set per-tool plans — Free / Pro / etc., powering a real monthly-cost stat in the deck
+- [x] Per-tool last-opened timestamp — "you opened Vercel 2h ago" hint in the stack list
+- [x] Edit existing custom tools (was: add + delete only)
+- [x] Drag-to-reorder pinned tools in the launcher
+- [x] Optional encrypted vault (passphrase-derived AES-GCM) for the API tokens
+- [ ] Generalized server proxy for CORS-blocked tools (currently: Resend only, via Vercel Function)
 
 ---
 
