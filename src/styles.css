@@ -288,6 +288,10 @@ input { font-family: inherit; }
 }
 
 .sidebar {
+  /* Subtle warm tint distinguishes the nav from the main canvas without
+     reading as a heavy panel — the existing border-right gets to do real
+     work once it has a background to contrast against. */
+  background: var(--bg-2);
   border-right: 1px solid var(--line);
   padding: var(--pad-2) 16px;
   display: flex; flex-direction: column; gap: 28px;
