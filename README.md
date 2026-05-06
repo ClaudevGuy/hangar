@@ -6,6 +6,15 @@ Hangar is a single-page React app that ships with a 29-tool catalogue across 11 
 
 It runs entirely in your browser. No backend, no telemetry, no analytics. Your stack and your keys live in `localStorage` only.
 
+The repo serves two surfaces from the same Vite build:
+
+| Route | What lives there |
+|---|---|
+| `/` | Marketing landing page — sticky nav, hero, problem/feature/catalog/install/pricing/FAQ sections, "Park your stack in the hangar." final CTA, and a "Return to tower" scroll-to-top button. |
+| `/app` | The Hangar tool itself — the launcher, catalog, vault, drawers, all the features below. |
+
+Anything not matched (`/anything-else`) redirects to `/`.
+
 ---
 
 ## Why?
@@ -76,7 +85,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. Requires Node 18 or newer.
+Open <http://localhost:5173> for the landing page, or jump straight to <http://localhost:5173/app> for the tool. Requires Node 18 or newer.
 
 To build for production:
 
@@ -136,11 +145,11 @@ Click the **cog** in the top bar (right of the theme toggle). Pick an accent col
 
 ## Architecture
 
-Vite 5 + React 18 + TypeScript. No backend. State lives in React + `localStorage`.
+Vite 5 + React 18 + TypeScript, with `react-router-dom` switching between the marketing landing and the app. No backend. State lives in React + `localStorage`.
 
 ```
 src/
-├── main.tsx
+├── main.tsx                  # routes: / → LandingPage, /app/* → HangarApp
 ├── styles.css                # global, CSS-custom-property themed
 ├── types.ts                  # Tool, Prefs, SecretsMap, etc.
 ├── data/tools.ts             # 29-tool catalog with inline-SVG logos
@@ -155,6 +164,14 @@ src/
 │   ├── useCustomTools.ts     # user-added catalog entries (hangar-custom-tools)
 │   ├── useDragScroll.ts      # mouse drag-to-scroll for rails
 │   └── useGitHubData.ts      # fetch + per-token in-memory cache
+├── landing/                  # marketing page served at /
+│   ├── LandingPage.tsx       # nav + section composition
+│   ├── landing.css           # all `.lp-*` styles, themed via the app's CSS vars
+│   ├── parts/
+│   │   ├── ScrollToTop.tsx   # "Return to tower" floating button (>600px scroll)
+│   │   └── ThemeToggle.tsx   # landing-only dark/light toggle (own localStorage key)
+│   └── sections/             # Hero, Problem, Features, Catalog, HowItWorks,
+│                             # Install, Pricing, FAQ, FinalCTA, Footer
 └── components/
     ├── HangarApp.tsx         # top-level state + composition
     ├── TopBar.tsx            # logo, search, view toggle, theme, settings, vault, stack
