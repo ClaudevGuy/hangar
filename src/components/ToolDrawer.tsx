@@ -5,6 +5,7 @@ import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
 import { LinearInsights } from "./LinearInsights";
+import { TokenPrompt } from "./TokenPrompt";
 import { VercelInsights } from "./VercelInsights";
 import { ToolLogo } from "./ToolLogo";
 
@@ -160,6 +161,45 @@ export function ToolDrawer({
         {tool.id === "vercel" && (
           <div className="drawer-section">
             <VercelInsights secrets={secrets} onAddKey={() => onAddKeyForTool(tool)} />
+          </div>
+        )}
+
+        {tool.id === "neon" && (
+          <div className="drawer-section">
+            <TokenPrompt
+              toolId="neon"
+              toolName="Neon"
+              description="Add a Neon API key to your vault to see your projects and recent branches."
+              tokenUrl="https://console.neon.tech/app/settings/api-keys"
+              secrets={secrets}
+              onAddKey={() => onAddKeyForTool(tool)}
+            />
+          </div>
+        )}
+
+        {tool.id === "inngest" && (
+          <div className="drawer-section">
+            <TokenPrompt
+              toolId="inngest"
+              toolName="Inngest"
+              description="Add an Inngest signing key to your vault to surface recent function runs and event activity."
+              tokenUrl="https://app.inngest.com/env/production/manage/signing-key"
+              secrets={secrets}
+              onAddKey={() => onAddKeyForTool(tool)}
+            />
+          </div>
+        )}
+
+        {tool.id === "resend" && (
+          <div className="drawer-section">
+            <TokenPrompt
+              toolId="resend"
+              toolName="Resend"
+              description="Add a Resend API key to your vault to see recent email sends and verified domains."
+              tokenUrl="https://resend.com/api-keys"
+              secrets={secrets}
+              onAddKey={() => onAddKeyForTool(tool)}
+            />
           </div>
         )}
 
