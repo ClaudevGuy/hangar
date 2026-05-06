@@ -22,6 +22,7 @@ const WORKSPACE_KEYS = [
   "hangar-custom-tools",
   "hangar-linkboard",
   "hangar-frecency",
+  "hangar-tool-meta",
 ] as const;
 
 function readList(): Workspace[] {

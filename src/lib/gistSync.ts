@@ -22,6 +22,7 @@ const HANGAR_KEY_PREFIXES = [
   "hangar-custom-tools",
   "hangar-frecency",
   "hangar-linkboard",
+  "hangar-tool-meta",
 ] as const;
 
 // Build the sync blob from current localStorage. Iterates all keys to find

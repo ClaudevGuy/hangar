@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { TOOLS } from "../data/tools";
 import { useDragScroll } from "../hooks/useDragScroll";
+import type { ToolMetaMap } from "../hooks/useToolMeta";
+import { monthlyTotal } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
@@ -15,6 +17,7 @@ interface Props {
   stackTools: Tool[];
   totalTools: number;
   secrets: SecretsMap;
+  toolMeta: ToolMetaMap;
   onPick: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
   onOpenStack: () => void;
@@ -22,7 +25,7 @@ interface Props {
 }
 
 export function ControlDeck({
-  stackTools, totalTools, secrets, onPick, onLaunch, onOpenStack, onReorderStack,
+  stackTools, totalTools, secrets, toolMeta, onPick, onLaunch, onOpenStack, onReorderStack,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -31,6 +34,7 @@ export function ControlDeck({
   const connectedCount = stackTools.filter((t) => (secrets[t.id]?.length ?? 0) > 0).length;
   const totalKeysCount = Object.values(secrets).reduce((sum, list) => sum + list.length, 0);
   const toolsWithKeys = Object.keys(secrets).filter((id) => (secrets[id]?.length ?? 0) > 0).length;
+  const cost = monthlyTotal(stackTools, (id) => toolMeta[id]?.plan);
   const { ref: railRef, dragging } = useDragScroll<HTMLDivElement>();
   const { ref: launcherRef, dragging: launcherDragging } = useDragScroll<HTMLDivElement>();
 
@@ -117,6 +121,17 @@ export function ControlDeck({
             {totalKeysCount === 0
               ? "vault is empty"
               : `across ${toolsWithKeys} ${toolsWithKeys === 1 ? "tool" : "tools"}`}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-lbl">Monthly</div>
+          <div className="stat-num">${cost.total.toFixed(0)}</div>
+          <div className="stat-foot">
+            {stackTools.length === 0
+              ? "pin tools to track"
+              : cost.tracked === 0
+                ? "set plans to track"
+                : `${cost.tracked} tracked${cost.untracked > 0 ? ` · ${cost.untracked} untracked` : ""}`}
           </div>
         </div>
         <div className="stat">

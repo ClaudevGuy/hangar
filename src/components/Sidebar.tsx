@@ -1,5 +1,7 @@
 import { ACTIVITY, CATEGORIES, TOOLS } from "../data/tools";
+import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { Icon } from "../lib/icons";
+import { timeAgo } from "../lib/timeAgo";
 import type { CategoryId, LinkItem, Tool } from "../types";
 import { Linkboard } from "./Linkboard";
 import { ToolLogo } from "./ToolLogo";
@@ -10,6 +12,7 @@ interface Props {
   counts: Partial<Record<CategoryId, number>>;
   stackTools: Tool[];
   customTools: Tool[];
+  toolMeta: ToolMetaMap;
   onRemoveStack: (id: string) => void;
   onOpenTool: (tool: Tool) => void;
   onOpenStarters: () => void;
@@ -21,7 +24,7 @@ interface Props {
 }
 
 export function Sidebar({
-  active, setActive, counts, stackTools, customTools, onRemoveStack, onOpenTool, onOpenStarters,
+  active, setActive, counts, stackTools, customTools, toolMeta, onRemoveStack, onOpenTool, onOpenStarters,
   links, onAddLink, onRemoveLink, onClearLinks,
 }: Props) {
   return (
@@ -68,16 +71,20 @@ export function Sidebar({
           </div>
         ) : (
           <ul className="stack-list">
-            {stackTools.map((t) => (
+            {stackTools.map((t) => {
+              const m = toolMeta[t.id];
+              const plan = m?.plan ?? t.plan;
+              const lastOpenedAt = m?.lastOpenedAt;
+              const metaParts: string[] = [t.category];
+              if (plan) metaParts.push(plan);
+              if (lastOpenedAt) metaParts.push(timeAgo(lastOpenedAt));
+              return (
               <li key={t.id} className="stack-item">
                 <button type="button" className="stack-main" onClick={() => onOpenTool(t)}>
                   <ToolLogo tool={t} size={26} />
                   <div className="stack-meta">
                     <div className="stack-name">{t.name}</div>
-                    <div className="stack-cat">
-                      {t.category}
-                      {t.plan ? ` · ${t.plan}` : ""}
-                    </div>
+                    <div className="stack-cat">{metaParts.join(" · ")}</div>
                   </div>
                   {t.status === "live" && <span className="status-dot" title="Live" />}
                 </button>
@@ -90,7 +97,8 @@ export function Sidebar({
                   <Icon.close />
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>

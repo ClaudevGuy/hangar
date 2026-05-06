@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import { ACTIVITY, TOOLS } from "../data/tools";
 import { QUICK_ACTIONS } from "../data/quickActions";
+import type { ToolMetaMap } from "../hooks/useToolMeta";
+import { parsePricingTiers, type PricingTier } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
@@ -14,20 +16,32 @@ interface Props {
   tool: Tool | null;
   pinned: boolean;
   secrets: SecretsMap;
+  toolMeta: ToolMetaMap;
   onClose: () => void;
   onPin: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
+  onSetPlan: (toolId: string, plan: string | null) => void;
   onOpenKeys: () => void;
   onAddKeyForTool: (tool: Tool) => void;
   onEditCustomTool: (tool: Tool) => void;
   onRemoveCustomTool: (tool: Tool) => void;
 }
 
+function formatTier(tier: PricingTier): string {
+  if (tier.monthly === 0) return tier.name;
+  if (tier.monthly != null) return `${tier.name} · $${tier.monthly}/mo`;
+  return tier.name;
+}
+
 export function ToolDrawer({
-  tool, pinned, secrets, onClose, onPin, onLaunch, onOpenKeys, onAddKeyForTool,
+  tool, pinned, secrets, toolMeta, onClose, onPin, onLaunch, onSetPlan, onOpenKeys, onAddKeyForTool,
   onEditCustomTool, onRemoveCustomTool,
 }: Props) {
   if (!tool) return null;
+
+  const effectivePlan = toolMeta[tool.id]?.plan ?? tool.plan ?? "";
+  const tiers = parsePricingTiers(tool.pricing);
+  const planInTiers = tiers.some((t) => t.name.toLowerCase() === effectivePlan.toLowerCase());
 
   const recent = ACTIVITY.filter((a) => a.tool === tool.id);
   const pairs = TOOLS.filter((t) => t.id !== tool.id).slice(0, 6);
@@ -131,12 +145,26 @@ export function ToolDrawer({
             <dt>Pricing</dt>
             <dd>{tool.pricing}</dd>
           </div>
-          {tool.plan && (
-            <div>
-              <dt>Your plan</dt>
-              <dd className="plan-pill">{tool.plan}</dd>
-            </div>
-          )}
+          <div>
+            <dt>Your plan</dt>
+            <dd>
+              <select
+                className="plan-select"
+                value={effectivePlan}
+                onChange={(e) => onSetPlan(tool.id, e.target.value || null)}
+              >
+                <option value="">Not set</option>
+                {tiers.map((tier) => (
+                  <option key={tier.name} value={tier.name}>
+                    {formatTier(tier)}
+                  </option>
+                ))}
+                {effectivePlan && !planInTiers && (
+                  <option value={effectivePlan}>{effectivePlan}</option>
+                )}
+              </select>
+            </dd>
+          </div>
           {tool.status === "live" && (
             <div>
               <dt>Status</dt>

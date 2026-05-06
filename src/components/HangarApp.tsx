@@ -22,6 +22,7 @@ import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
 import { useLinkboard } from "../hooks/useLinkboard";
+import { useToolMeta } from "../hooks/useToolMeta";
 
 const COMPARE_MAX = 3;
 
@@ -45,6 +46,7 @@ export function HangarApp() {
   const vault = useVault();
   const { secrets, upsertKey, removeKey, state: vaultState } = vault;
   const { customTools, addTool, updateTool, removeTool } = useCustomTools();
+  const { meta: toolMeta, setPlan: setToolPlan, recordOpened } = useToolMeta();
   const { frecency, record: recordLaunch } = useFrecency();
   const sync = useGistSync();
   const { links, addLink, removeLink, clearAll: clearLinks } = useLinkboard();
@@ -149,8 +151,9 @@ export function HangarApp() {
     (tool: Tool) => {
       window.open(tool.accountUrl, "_blank", "noopener,noreferrer");
       recordLaunch(tool.id);
+      recordOpened(tool.id);
     },
-    [recordLaunch],
+    [recordLaunch, recordOpened],
   );
 
   const handleOpenCompare = () => {
@@ -200,6 +203,7 @@ export function HangarApp() {
           counts={counts}
           stackTools={stackTools}
           customTools={customTools}
+          toolMeta={toolMeta}
           onRemoveStack={removeFromStack}
           onOpenTool={setOpenTool}
           onOpenStarters={() => setShowStarters(true)}
@@ -214,6 +218,7 @@ export function HangarApp() {
             stackTools={stackTools}
             totalTools={allTools.length}
             secrets={secrets}
+            toolMeta={toolMeta}
             onPick={setOpenTool}
             onLaunch={launch}
             onOpenStack={() => setShowStack(true)}
@@ -317,6 +322,8 @@ export function HangarApp() {
         tool={openTool}
         pinned={openTool ? stack.includes(openTool.id) : false}
         secrets={secrets}
+        toolMeta={toolMeta}
+        onSetPlan={setToolPlan}
         onClose={() => setOpenTool(null)}
         onPin={togglePin}
         onLaunch={launch}
