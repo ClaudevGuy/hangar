@@ -18,6 +18,11 @@
   --accent-2:  #00b87a;
   --accent-bg: rgba(0,229,153,0.10);
   --accent-line: rgba(0,229,153,0.32);
+  /* Foreground colour for text/icons sitting on top of var(--accent).
+     Dark mode = bright neon bg → black text. Light mode overrides this
+     to white because the darker forest-green light-mode --accent gives
+     muddy contrast under black text. */
+  --accent-fg: #000;
 
   --danger:    #ef4444;
   --warn:      #f59e0b;
@@ -52,6 +57,7 @@
   --accent-2:  #006e48;
   --accent-bg: rgba(0,143,94,0.10);
   --accent-line: rgba(0,143,94,0.40);
+  --accent-fg: #fff;
 }
 
 [data-accent="ember"]  { --accent:#ff7849; --accent-2:#e0501f; --accent-bg:rgba(255,120,73,.10); --accent-line:rgba(255,120,73,.32); }
@@ -251,7 +257,7 @@ input { font-family: inherit; }
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 18px; height: 18px; padding: 0 5px;
   font-family: var(--font-mono); font-size: 10px; font-weight: 600;
-  background: var(--accent); color: #000; border-radius: 9px;
+  background: var(--accent); color: var(--accent-fg); border-radius: 9px;
   margin-left: 2px;
 }
 [data-accent="paper"][data-theme="dark"] .pill { color: #000; }
@@ -267,15 +273,6 @@ input { font-family: inherit; }
   color: var(--text-3);
 }
 .seg button.on { background: var(--panel-2); color: var(--text); }
-
-.avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #000; font-weight: 700; font-size: 11px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono);
-  letter-spacing: 0;
-}
 
 /* ----------------------------------------------------------- */
 /* Layout                                                      */
@@ -807,7 +804,7 @@ input { font-family: inherit; }
 }
 .cat-chip.active .muted {
   background: var(--accent);
-  color: #000;
+  color: var(--accent-fg);
 }
 [data-accent="paper"][data-theme="dark"] .cat-chip.active .muted { color: #000; }
 
@@ -881,7 +878,7 @@ input { font-family: inherit; }
   transition: all .12s;
 }
 .chip-btn:hover { color: var(--text); border-color: var(--line-2); }
-.chip-btn.on { background: var(--accent); color: #000; border-color: var(--accent); }
+.chip-btn.on { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 [data-accent="paper"][data-theme="dark"] .chip-btn.on { color: #000; }
 
 .card-name {
@@ -1082,7 +1079,7 @@ input { font-family: inherit; }
 .primary-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 10px 16px;
-  background: var(--accent); color: #000;
+  background: var(--accent); color: var(--accent-fg);
   border: 1px solid var(--accent); border-radius: var(--r-md);
   font-weight: 500; font-size: 13px;
   transition: filter .15s;

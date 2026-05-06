@@ -134,7 +134,6 @@ export function TopBar({
           onSyncPullNow={onSyncPullNow}
           onSyncDisconnect={onSyncDisconnect}
         />
-        <div className="avatar">JD</div>
       </div>
     </header>
   );
