@@ -1448,6 +1448,21 @@ input { font-family: inherit; }
 }
 .keys-add-btn:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
 
+/* Per-tool inline hint (e.g. nudge to add a GitHub PAT) shown when the
+   tool block has no entries yet. Subtle accent tint so it reads as a
+   suggestion, not an error. */
+.keys-tool-hint {
+  margin: 8px 0;
+  padding: 9px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  font-size: 12.5px; line-height: 1.5;
+  color: var(--text-2);
+}
+.keys-tool-hint a { color: var(--accent); white-space: nowrap; font-weight: 500; }
+.keys-tool-hint a:hover { text-decoration: underline; }
+
 .keys-empty { padding: 60px 20px; text-align: center; }
 
 @media (max-width: 700px) {

@@ -208,6 +208,19 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
         </ul>
       )}
 
+      {tool.id === "github" && entries.length === 0 && !adding && (
+        <div className="keys-tool-hint">
+          Add a Personal Access Token to surface your repos and recent activity in the sidebar.{" "}
+          <a
+            href="https://github.com/settings/tokens"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Create one →
+          </a>
+        </div>
+      )}
+
       {adding ? (
         <NewKeyRow
           onCancel={() => setAdding(false)}
