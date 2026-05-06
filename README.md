@@ -240,6 +240,18 @@ localStorage.clear(); location.reload();
 
 ---
 
+## AI agent access (MCP)
+
+Hangar ships a Model Context Protocol server in [`mcp/`](mcp/) so local AI agents (Claude Desktop, Cursor, anything that speaks MCP over stdio) can query your stack:
+
+- *"What's in my dev stack?"*
+- *"What's broken on Sentry right now?"*
+- *"Show me my failed Vercel deploys this week."*
+
+Three tools in v1: `read_stack` (from `~/.hangar/mcp.json`), `list_unresolved_issues` (Sentry, env-token), `list_recent_deploys` (Vercel, env-token). See [mcp/README.md](mcp/README.md) for setup.
+
+---
+
 ## Tech stack
 
 - **Vite 5** — dev server + bundler
