@@ -274,7 +274,6 @@ export function HangarApp() {
             totalTools={allTools.length}
             secrets={secrets}
             toolMeta={toolMeta}
-            onPick={setOpenTool}
             onOpenTool={setOpenTool}
             onOpenStack={() => setShowStack(true)}
             onReorderStack={reorderStack}

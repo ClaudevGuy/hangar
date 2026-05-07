@@ -5,27 +5,20 @@ import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { monthlyTotal } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
-import { ToolLogo } from "./ToolLogo";
 import { LauncherTile } from "./LauncherTile";
-
-const POPULAR_IDS = [
-  "neon", "vercel", "resend", "inngest", "clerk", "stripe",
-  "anthropic", "sentry", "posthog", "figma", "linear", "supabase",
-];
 
 interface Props {
   stackTools: Tool[];
   totalTools: number;
   secrets: SecretsMap;
   toolMeta: ToolMetaMap;
-  onPick: (tool: Tool) => void;
   onOpenTool: (tool: Tool) => void;
   onOpenStack: () => void;
   onReorderStack: (fromId: string, toId: string) => void;
 }
 
 export function ControlDeck({
-  stackTools, totalTools, secrets, toolMeta, onPick, onOpenTool, onOpenStack, onReorderStack,
+  stackTools, totalTools, secrets, toolMeta, onOpenTool, onOpenStack, onReorderStack,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -35,7 +28,6 @@ export function ControlDeck({
   const totalKeysCount = Object.values(secrets).reduce((sum, list) => sum + list.length, 0);
   const toolsWithKeys = Object.keys(secrets).filter((id) => (secrets[id]?.length ?? 0) > 0).length;
   const cost = monthlyTotal(stackTools, (id) => toolMeta[id]?.plan);
-  const { ref: railRef, dragging } = useDragScroll<HTMLDivElement>();
   const { ref: launcherRef, dragging: launcherDragging } = useDragScroll<HTMLDivElement>();
 
   return (
@@ -142,34 +134,6 @@ export function ControlDeck({
           </div>
         </div>
       </div>
-
-      {(() => {
-        const pinnedIds = new Set(stackTools.map((t) => t.id));
-        const unpinnedPopular = POPULAR_IDS
-          .map((id) => TOOLS.find((t) => t.id === id))
-          .filter((t): t is Tool => Boolean(t) && !pinnedIds.has(t!.id));
-        if (unpinnedPopular.length === 0) return null;
-        return (
-          <div className="deck-strip">
-            <div className="strip-label">
-              {stackTools.length === 0 ? "Start with a popular pick" : "Discover more"}
-            </div>
-            <div ref={railRef} className={`strip-rail ${dragging ? "is-dragging" : ""}`}>
-              {unpinnedPopular.map((t) => (
-                <button
-                  type="button"
-                  key={t.id}
-                  className="strip-tool"
-                  onClick={() => onPick(t)}
-                >
-                  <ToolLogo tool={t} size={28} />
-                  <span>{t.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
     </section>
   );
 }
