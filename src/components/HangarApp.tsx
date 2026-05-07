@@ -6,9 +6,11 @@ import { useVault } from "../hooks/useVault";
 import type { CategoryId, Tool } from "../types";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
+import { CheatSheet, ChordIndicator } from "./CheatSheet";
 import { ShareModal } from "./ShareModal";
 import { TodayPanel } from "./TodayPanel";
 import { ControlDeck } from "./ControlDeck";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { CategoryStrip } from "./CategoryStrip";
 import { ResultBar } from "./ResultBar";
 import { ToolCard } from "./ToolCard";
@@ -44,6 +46,7 @@ export function HangarApp() {
   const [showStarters, setShowStarters] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -158,6 +161,29 @@ export function HangarApp() {
     },
     [recordLaunch, recordOpened],
   );
+
+  // Linear-style chord shortcuts. Search input gets id="hangar-search" so
+  // "/" can target it without coupling components.
+  const { chordPrefix } = useKeyboardShortcuts({
+    onOpenCheatSheet: useCallback(() => setShowCheatSheet(true), []),
+    onLaunchToolByIndex: useCallback(
+      (index: number) => {
+        const tool = stackTools[index];
+        if (tool) launch(tool);
+      },
+      [stackTools, launch],
+    ),
+    onScrollToTop: useCallback(
+      () => window.scrollTo({ top: 0, behavior: "smooth" }),
+      [],
+    ),
+    onScrollToToday: useCallback(() => {
+      const el = document.querySelector(".today-panel");
+      if (el instanceof HTMLElement) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, []),
+  });
 
   const handleOpenCompare = () => {
     if (compare.length >= 2) setShowCompare(true);
@@ -454,6 +480,9 @@ export function HangarApp() {
           onClose={() => setShowStarters(false)}
         />
       )}
+
+      <CheatSheet open={showCheatSheet} onClose={() => setShowCheatSheet(false)} />
+      <ChordIndicator chord={chordPrefix} />
     </div>
   );
 }

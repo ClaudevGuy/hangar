@@ -1116,6 +1116,105 @@ input { font-family: inherit; }
   border-color: var(--accent);
 }
 
+/* ----------------------------------------------------------- */
+/* Keyboard shortcuts — cheat sheet + chord indicator          */
+/* ----------------------------------------------------------- */
+.cheat-sheet {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 64px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 24px 60px -12px color-mix(in oklab, #000 80%, transparent);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.cheat-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.cheat-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.cheat-body {
+  padding: 18px 22px;
+  display: flex; flex-direction: column; gap: 22px;
+  overflow-y: auto;
+}
+.cheat-foot {
+  padding: 12px 22px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  text-align: center;
+}
+.cheat-section { display: flex; flex-direction: column; gap: 10px; }
+.cheat-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.cheat-rows { display: flex; flex-direction: column; gap: 4px; }
+.cheat-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 4px;
+}
+.cheat-keys {
+  display: inline-flex; gap: 4px; align-items: center;
+}
+.cheat-kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px;
+  padding: 3px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+}
+.cheat-desc {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.chord-indicator {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 100;
+  background: var(--panel);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 24px -8px color-mix(in oklab, var(--accent) 30%, transparent);
+  pointer-events: none;
+  animation: chord-pop .14s ease-out;
+}
+@keyframes chord-pop {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .feed-item-skeleton {
   padding: 12px 10px;
   display: flex;

@@ -77,6 +77,7 @@ export function TopBar({
           <Icon.search />
           <input
             ref={searchRef}
+            id="hangar-search"
             type="text"
             placeholder="Search tools, accounts, docs…"
             value={query}
