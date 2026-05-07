@@ -827,7 +827,10 @@ input { font-family: inherit; }
 /* Today panel — unified incident feed across connected tools  */
 /* ----------------------------------------------------------- */
 .today-panel {
-  margin: 12px 0 18px;
+  /* Match the .deck section's 40px horizontal padding so Today's left
+     edge lines up with the stack launcher / deck-stats / catalog grid
+     below it. Otherwise it hugs the sidebar awkwardly. */
+  margin: 20px 40px 18px;
   padding: 16px 18px 12px;
   background: var(--panel);
   border: 1px solid var(--line);
