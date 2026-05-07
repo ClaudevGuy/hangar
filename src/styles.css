@@ -68,6 +68,25 @@
 
 [data-density="compact"] { --pad: 12px; --pad-2: 16px; }
 
+/* Compact density — squeeze the sidebar so users actually feel the toggle.
+   Density only changing --pad/--pad-2 wasn't enough; the cat list, stack list,
+   and section gaps stayed roomy. These overrides cut vertical space ~30%. */
+[data-density="compact"] .sidebar { gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+[data-density="compact"] .side-section { gap: 2px; }
+[data-density="compact"] .side-label { margin-bottom: 2px; }
+[data-density="compact"] .cat-nav { gap: 1px; }
+[data-density="compact"] .cat-btn { padding: 4px 10px; font-size: 13px; }
+[data-density="compact"] .stack-list { gap: 1px; }
+[data-density="compact"] .stack-main { padding: 4px 8px; gap: 8px; }
+[data-density="compact"] .stack-name { font-size: 12.5px; }
+[data-density="compact"] .stack-cat { font-size: 10.5px; }
+[data-density="compact"] .activity { gap: 1px; }
+[data-density="compact"] .activity li { padding: 5px 8px; }
+[data-density="compact"] .empty-stack { padding: 10px 12px; }
+[data-density="compact"] .link-list { gap: 1px; }
+[data-density="compact"] .link-main { padding: 4px 8px; }
+[data-density="compact"] .link-add-btn { padding: 4px 10px; }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
