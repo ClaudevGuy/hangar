@@ -161,17 +161,28 @@ export function Brief({ stackTools, toolMeta, secrets, onAddAnthropicKey }: Prop
                 </>
               )}
             </div>
-            {anthropicKey && (
+            <div className="brief-pop-actions">
+              {anthropicKey && (
+                <button
+                  type="button"
+                  className="brief-refresh"
+                  onClick={handleGenerate}
+                  disabled={loading || dataLoading}
+                  title={dataLoading ? "Waiting for live data" : "Synthesize a fresh brief"}
+                >
+                  {loading ? "…" : structured || rawFallback ? "Refresh" : "Generate"}
+                </button>
+              )}
               <button
                 type="button"
-                className="brief-refresh"
-                onClick={handleGenerate}
-                disabled={loading || dataLoading}
-                title={dataLoading ? "Waiting for live data" : "Synthesize a fresh brief"}
+                className="brief-close"
+                onClick={() => setOpen(false)}
+                title="Close"
+                aria-label="Close brief"
               >
-                {loading ? "…" : structured || rawFallback ? "Refresh" : "Generate"}
+                <Icon.close />
               </button>
-            )}
+            </div>
           </div>
 
           <div className="brief-pop-body">
