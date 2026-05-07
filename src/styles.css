@@ -980,6 +980,62 @@ input { font-family: inherit; }
   filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
 }
 
+/* Quick Actions — small icon buttons inline on each incident row.
+   Subtle by default (40% opacity), full strength on hover/focus, so they
+   don't distract from the row's primary read. */
+.feed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: opacity .15s;
+}
+.feed-item-row:hover .feed-actions,
+.feed-item-row:focus-within .feed-actions {
+  opacity: 1;
+}
+.feed-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.feed-action:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+}
+.feed-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.feed-action-symbol {
+  font-size: 14px;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+.feed-action-error {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  background: color-mix(in oklab, var(--danger) 15%, transparent);
+  border: 1px solid color-mix(in oklab, var(--danger) 40%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--danger);
+  flex-shrink: 0;
+  cursor: help;
+}
+
 /* Expanded investigation panel — slides under its incident row */
 .feed-investigation {
   margin: 4px 0 4px 12px;

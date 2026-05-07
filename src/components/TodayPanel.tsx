@@ -9,6 +9,11 @@ import {
   type ActionPayload,
   type Investigation,
 } from "../lib/investigate";
+import {
+  ignoreSentryIssue,
+  resolveSentryIssue,
+  snoozeLinearIssue,
+} from "../lib/quickActions";
 import { timeAgo } from "../lib/timeAgo";
 import type { SecretsMap, Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
@@ -38,6 +43,45 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [investigations, setInvestigations] = useState<Map<string, InvestigationState>>(
     () => new Map(),
+  );
+
+  // Quick Actions — optimistic dismissal of incidents the user has acted on.
+  // Underlying provider data may still include the row until the next page
+  // load; the local Set keeps the view in sync with the user's intent.
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
+  const [actionError, setActionError] = useState<{ incidentId: string; message: string } | null>(
+    null,
+  );
+
+  const sentryToken = secrets["sentry"]?.find((k) => k.value)?.value || null;
+  const linearToken = secrets["linear"]?.find((k) => k.value)?.value || null;
+
+  const runQuickAction = useCallback(
+    async (incident: Incident, exec: () => Promise<void>) => {
+      // Optimistic dismiss — fade out the row immediately.
+      setDismissedIds((prev) => {
+        const next = new Set(prev);
+        next.add(incident.id);
+        return next;
+      });
+      setActionError((cur) => (cur?.incidentId === incident.id ? null : cur));
+      try {
+        await exec();
+      } catch (err) {
+        // Restore the row and show the error briefly.
+        setDismissedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(incident.id);
+          return next;
+        });
+        const message = err instanceof Error ? err.message : "Action failed";
+        setActionError({ incidentId: incident.id, message });
+        window.setTimeout(() => {
+          setActionError((cur) => (cur?.incidentId === incident.id ? null : cur));
+        }, 4500);
+      }
+    },
+    [],
   );
 
   const runInvestigation = useCallback(
@@ -104,8 +148,9 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   if (!hasAnyToken) return null;
 
   const showSkeleton = loading && incidents.length === 0;
-  const visible = incidents.slice(0, MAX_VISIBLE);
-  const hidden = Math.max(0, incidents.length - MAX_VISIBLE);
+  const visibleIncidents = incidents.filter((inc) => !dismissedIds.has(inc.id));
+  const visible = visibleIncidents.slice(0, MAX_VISIBLE);
+  const hidden = Math.max(0, visibleIncidents.length - MAX_VISIBLE);
 
   return (
     <section className="today-panel">
@@ -114,9 +159,9 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
         <div className="feed-head-meta">
           {showSkeleton
             ? "checking…"
-            : incidents.length === 0
+            : visibleIncidents.length === 0
               ? "all clear"
-              : `${incidents.length} ${incidents.length === 1 ? "item" : "items"} to look at`}
+              : `${visibleIncidents.length} ${visibleIncidents.length === 1 ? "item" : "items"} to look at`}
         </div>
       </div>
 
@@ -129,7 +174,7 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
             </div>
           ))}
         </div>
-      ) : incidents.length === 0 ? (
+      ) : visibleIncidents.length === 0 ? (
         <div className="feed-empty">
           <Icon.check />
           <span>Nothing pressing across your stack right now.</span>
@@ -161,6 +206,71 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
                       <span className="feed-time">{timeAgo(inc.occurredAt)}</span>
                       <span className="feed-arrow"><Icon.arrow /></span>
                     </button>
+                    {(() => {
+                      // Per-incident Quick Actions — browser-direct API calls
+                      // authenticated with the user's vault token. Dismisses
+                      // the row optimistically; the error banner below
+                      // restores it on failure.
+                      if (inc.raw.kind === "sentry-issue" && sentryToken) {
+                        const sentryId = inc.raw.data.id;
+                        return (
+                          <div className="feed-actions">
+                            <button
+                              type="button"
+                              className="feed-action"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void runQuickAction(inc, () => resolveSentryIssue(sentryId, sentryToken));
+                              }}
+                              title="Resolve issue"
+                              aria-label="Resolve Sentry issue"
+                            >
+                              <Icon.check />
+                            </button>
+                            <button
+                              type="button"
+                              className="feed-action"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void runQuickAction(inc, () => ignoreSentryIssue(sentryId, sentryToken));
+                              }}
+                              title="Ignore issue"
+                              aria-label="Ignore Sentry issue"
+                            >
+                              <span className="feed-action-symbol" aria-hidden>⊘</span>
+                            </button>
+                          </div>
+                        );
+                      }
+                      if (inc.raw.kind === "linear-issue" && linearToken) {
+                        const linearId = inc.raw.data.id;
+                        return (
+                          <div className="feed-actions">
+                            <button
+                              type="button"
+                              className="feed-action"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void runQuickAction(inc, () => snoozeLinearIssue(linearId, linearToken));
+                              }}
+                              title="Snooze (lower priority to Low)"
+                              aria-label="Snooze Linear issue"
+                            >
+                              <span className="feed-action-symbol" aria-hidden>↓</span>
+                            </button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {actionError?.incidentId === inc.id && (
+                      <span
+                        className="feed-action-error"
+                        title={actionError.message}
+                      >
+                        failed
+                      </span>
+                    )}
                     {anthropicKey && (
                       <button
                         type="button"

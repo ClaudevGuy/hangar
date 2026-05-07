@@ -2,10 +2,12 @@
 // CORS unless the org allowlists the origin. This Vercel Function forwards
 // the user's auth token (Authorization header) and streams the response back.
 // Stateless — no token is ever persisted server-side.
+//
+// Supports GET (read) and PUT (Quick Actions: resolve / ignore an issue).
 
 const UPSTREAM = "https://sentry.io/api/0";
 
-export async function GET(req: Request): Promise<Response> {
+async function forward(req: Request, method: "GET" | "PUT"): Promise<Response> {
   const auth = req.headers.get("authorization");
   if (!auth || !auth.startsWith("Bearer ")) {
     return json({ error: "Missing or malformed Authorization header" }, 401);
@@ -23,18 +25,31 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   try {
-    const upstreamRes = await fetch(upstreamUrl, {
-      method: "GET",
+    const init: RequestInit = {
+      method,
       headers: {
         Authorization: auth,
         Accept: "application/json",
       },
-    });
-    const body = await upstreamRes.text();
-    if (!upstreamRes.ok) {
-      console.error("[api/sentry] upstream non-OK", { status: upstreamRes.status, url: upstreamUrl });
+    };
+    if (method === "PUT") {
+      const body = await req.text();
+      if (body) {
+        init.body = body;
+        (init.headers as Record<string, string>)["Content-Type"] =
+          req.headers.get("content-type") ?? "application/json";
+      }
     }
-    return new Response(body, {
+    const upstreamRes = await fetch(upstreamUrl, init);
+    const responseBody = await upstreamRes.text();
+    if (!upstreamRes.ok) {
+      console.error("[api/sentry] upstream non-OK", {
+        status: upstreamRes.status,
+        url: upstreamUrl,
+        method,
+      });
+    }
+    return new Response(responseBody, {
       status: upstreamRes.status,
       headers: {
         "content-type": upstreamRes.headers.get("content-type") ?? "application/json",
@@ -45,6 +60,14 @@ export async function GET(req: Request): Promise<Response> {
     console.error("[api/sentry] upstream fetch failed", err);
     return json({ error: err instanceof Error ? err.message : "Upstream fetch failed" }, 502);
   }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  return forward(req, "GET");
+}
+
+export async function PUT(req: Request): Promise<Response> {
+  return forward(req, "PUT");
 }
 
 function json(body: unknown, status: number): Response {
