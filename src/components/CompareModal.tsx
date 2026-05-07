@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import type { CSSProperties } from "react";
 import { Icon } from "../lib/icons";
 import type { Tool } from "../types";
 import { ToolLogo } from "./ToolLogo";
@@ -36,7 +37,11 @@ export function CompareModal({ tools, onClose, onRemove, onLaunch }: Props) {
         >
           <div className="compare-corner" />
           {tools.map((t) => (
-            <div key={t.id} className="compare-tool-head">
+            <div
+              key={t.id}
+              className="compare-tool-head"
+              style={{ "--brand": t.color } as CSSProperties}
+            >
               <ToolLogo tool={t} size={36} />
               <div className="compare-tool-name">{t.name}</div>
               <div className="compare-tool-cat">{t.category}</div>
