@@ -29,19 +29,45 @@ interface StatusPageResponse {
 
 // Map of tool id → public status endpoint. Each entry is a JSON v2 status
 // API (the StatusPage.io standard). Add new tools here as integrations land.
+// Failed fetches surface as "unknown" pills, so it's safe to include URLs
+// we're not 100% certain about — graceful degradation either way.
 export const STATUS_PAGES: Record<string, { api: string; page: string }> = {
-  vercel:     { api: "https://www.vercel-status.com/api/v2/status.json",   page: "https://www.vercel-status.com" },
-  github:     { api: "https://www.githubstatus.com/api/v2/status.json",    page: "https://www.githubstatus.com" },
-  stripe:     { api: "https://status.stripe.com/api/v2/status.json",       page: "https://status.stripe.com" },
-  sentry:     { api: "https://status.sentry.io/api/v2/status.json",        page: "https://status.sentry.io" },
-  linear:     { api: "https://status.linear.app/api/v2/status.json",       page: "https://status.linear.app" },
-  cloudflare: { api: "https://www.cloudflarestatus.com/api/v2/status.json", page: "https://www.cloudflarestatus.com" },
-  supabase:   { api: "https://status.supabase.com/api/v2/status.json",     page: "https://status.supabase.com" },
-  clerk:      { api: "https://status.clerk.com/api/v2/status.json",        page: "https://status.clerk.com" },
-  auth0:      { api: "https://status.auth0.com/api/v2/status.json",        page: "https://status.auth0.com" },
-  anthropic:  { api: "https://status.anthropic.com/api/v2/status.json",    page: "https://status.anthropic.com" },
-  inngest:    { api: "https://status.inngest.com/api/v2/status.json",      page: "https://status.inngest.com" },
-  resend:     { api: "https://status.resend.com/api/v2/status.json",       page: "https://status.resend.com" },
+  // Hosting
+  vercel:      { api: "https://www.vercel-status.com/api/v2/status.json",   page: "https://www.vercel-status.com" },
+  netlify:     { api: "https://www.netlifystatus.com/api/v2/status.json",   page: "https://www.netlifystatus.com" },
+  fly:         { api: "https://status.flyio.net/api/v2/status.json",        page: "https://status.flyio.net" },
+  cloudflare:  { api: "https://www.cloudflarestatus.com/api/v2/status.json", page: "https://www.cloudflarestatus.com" },
+  // Databases
+  neon:        { api: "https://neonstatus.com/api/v2/status.json",          page: "https://neonstatus.com" },
+  supabase:    { api: "https://status.supabase.com/api/v2/status.json",     page: "https://status.supabase.com" },
+  planetscale: { api: "https://status.planetscale.com/api/v2/status.json",  page: "https://status.planetscale.com" },
+  mongodb:     { api: "https://status.mongodb.com/api/v2/status.json",      page: "https://status.mongodb.com" },
+  // Auth
+  clerk:       { api: "https://status.clerk.com/api/v2/status.json",        page: "https://status.clerk.com" },
+  auth0:       { api: "https://status.auth0.com/api/v2/status.json",        page: "https://status.auth0.com" },
+  workos:      { api: "https://status.workos.com/api/v2/status.json",       page: "https://status.workos.com" },
+  // Code
+  github:      { api: "https://www.githubstatus.com/api/v2/status.json",    page: "https://www.githubstatus.com" },
+  gitlab:      { api: "https://status.gitlab.com/api/v2/status.json",       page: "https://status.gitlab.com" },
+  linear:      { api: "https://status.linear.app/api/v2/status.json",       page: "https://status.linear.app" },
+  // Jobs / queues
+  inngest:     { api: "https://status.inngest.com/api/v2/status.json",      page: "https://status.inngest.com" },
+  trigger:     { api: "https://status.trigger.dev/api/v2/status.json",      page: "https://status.trigger.dev" },
+  upstash:     { api: "https://status.upstash.com/api/v2/status.json",      page: "https://status.upstash.com" },
+  // Monitoring
+  sentry:      { api: "https://status.sentry.io/api/v2/status.json",        page: "https://status.sentry.io" },
+  posthog:     { api: "https://status.posthog.com/api/v2/status.json",      page: "https://status.posthog.com" },
+  datadog:     { api: "https://status.datadoghq.com/api/v2/status.json",    page: "https://status.datadoghq.com" },
+  // Email
+  resend:      { api: "https://status.resend.com/api/v2/status.json",       page: "https://status.resend.com" },
+  postmark:    { api: "https://status.postmarkapp.com/api/v2/status.json",  page: "https://status.postmarkapp.com" },
+  // Payments
+  stripe:      { api: "https://status.stripe.com/api/v2/status.json",       page: "https://status.stripe.com" },
+  // AI
+  anthropic:   { api: "https://status.anthropic.com/api/v2/status.json",    page: "https://status.anthropic.com" },
+  openai:      { api: "https://status.openai.com/api/v2/status.json",       page: "https://status.openai.com" },
+  // Design
+  figma:       { api: "https://www.figmastatus.com/api/v2/status.json",     page: "https://www.figmastatus.com" },
 };
 
 function validIndicator(v: unknown): StatusIndicator | null {
