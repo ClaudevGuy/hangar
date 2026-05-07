@@ -1215,6 +1215,106 @@ input { font-family: inherit; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ----------------------------------------------------------- */
+/* Status Radar — public status-page aggregator above Today    */
+/* ----------------------------------------------------------- */
+.status-radar {
+  margin: 20px 0 12px;
+  padding: 12px 18px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  max-width: 1100px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: background .2s, border-color .2s;
+}
+.status-radar.is-green {
+  background: color-mix(in oklab, var(--accent-bg) 35%, var(--panel));
+  border-color: color-mix(in oklab, var(--accent-line) 50%, var(--line));
+}
+.status-radar.has-issues {
+  background: color-mix(in oklab, var(--warn) 7%, var(--panel));
+  border-color: color-mix(in oklab, var(--warn) 30%, var(--line));
+}
+
+.status-radar-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.status-radar-summary {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.status-radar.is-green .status-radar-summary { color: var(--accent); }
+.status-radar.has-issues .status-radar-summary { color: var(--warn); }
+
+.status-radar-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px 5px 9px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.status-pill:hover {
+  border-color: var(--line-2);
+  background: var(--panel);
+  color: var(--text);
+}
+.status-pill-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+}
+.status-pill.sev-ok .status-pill-dot {
+  background: var(--accent);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--accent) 80%, transparent);
+}
+.status-pill.sev-minor {
+  background: color-mix(in oklab, var(--warn) 10%, var(--bg-2));
+  border-color: color-mix(in oklab, var(--warn) 35%, var(--line));
+  color: var(--text);
+}
+.status-pill.sev-minor .status-pill-dot {
+  background: var(--warn);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--warn) 80%, transparent);
+}
+.status-pill.sev-major {
+  background: color-mix(in oklab, var(--danger) 12%, var(--bg-2));
+  border-color: color-mix(in oklab, var(--danger) 40%, var(--line));
+  color: var(--text);
+}
+.status-pill.sev-major .status-pill-dot {
+  background: var(--danger);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--danger) 80%, transparent);
+}
+.status-pill.sev-maintenance .status-pill-dot {
+  background: var(--accent-2);
+  box-shadow: 0 0 4px color-mix(in oklab, var(--accent-2) 60%, transparent);
+}
+
+.status-radar-detail {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid color-mix(in oklab, var(--warn) 20%, var(--line));
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+.status-radar-detail strong { color: var(--text); font-weight: 600; }
+
 .feed-item-skeleton {
   padding: 12px 10px;
   display: flex;
