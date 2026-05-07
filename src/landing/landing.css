@@ -401,6 +401,152 @@ html, body { overflow-x: clip; }
 @media (max-width: 700px) {
   .lp-mcp-grid { grid-template-columns: 1fr; }
 }
+
+/* Feature card 09 — Today demo */
+.lp-demo-today {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 12px;
+}
+.lp-demo-today-row {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  color: var(--text-2);
+}
+.lp-demo-today-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+.lp-demo-today-row.sev-critical .lp-demo-today-dot { background: var(--danger); box-shadow: 0 0 4px var(--danger); }
+.lp-demo-today-row.sev-warning  .lp-demo-today-dot { background: var(--warn);   box-shadow: 0 0 4px var(--warn); }
+.lp-demo-today-row.sev-info     .lp-demo-today-dot { background: var(--accent); }
+.lp-demo-today-title {
+  color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lp-demo-today-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+
+/* Feature card 10 — Brief demo */
+.lp-demo-brief {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--accent-bg) 50%, var(--bg-2)) 0%,
+    var(--bg-2) 60%);
+  border: 1px solid color-mix(in oklab, var(--accent-line) 35%, var(--line));
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-sm);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.lp-demo-brief-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px 3px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--warn) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--warn) 40%, transparent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--warn);
+  align-self: flex-start;
+}
+.lp-demo-brief-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 4px var(--warn);
+}
+.lp-demo-brief-headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.lp-demo-brief-headline strong { color: var(--accent); font-weight: 600; }
+.lp-demo-brief-obs {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.lp-demo-brief-obs li {
+  position: relative;
+  padding-left: 14px;
+}
+.lp-demo-brief-obs li::before {
+  content: "▸";
+  position: absolute; left: 0; top: 0;
+  color: var(--accent);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+/* Feature card 11 — Stack Share demo */
+.lp-demo-share {
+  margin-top: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.lp-demo-share-url {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  word-break: break-all;
+  display: flex; flex-wrap: wrap;
+  gap: 0;
+}
+.lp-demo-share-host { color: var(--text-2); }
+.lp-demo-share-hash {
+  color: var(--accent);
+  opacity: 0.85;
+}
+.lp-demo-share-preview {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.lp-demo-share-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+.lp-demo-share-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.lp-demo-share-stats {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
 .lp-feature-num {
   font-family: var(--font-mono); font-size: 10.5px;
   text-transform: uppercase; letter-spacing: 0.16em;

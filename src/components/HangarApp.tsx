@@ -125,6 +125,21 @@ export function HangarApp() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // First-run welcome: if a brand-new user has nothing pinned yet, pop the
+  // Starter Stacks modal so they don't stare at an empty grid trying to
+  // figure out where to start. Only shown once per workspace — a localStorage
+  // flag keeps it from interrupting users who deliberately unpinned everything.
+  useEffect(() => {
+    if (stack.length > 0) return;
+    const seen = localStorage.getItem("hangar-first-run-shown");
+    if (seen) return;
+    localStorage.setItem("hangar-first-run-shown", "1");
+    setShowStarters(true);
+    // Run only once on initial mount; we don't want to re-open if the user
+    // unpins everything later.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const reorderStack = useCallback(
     (fromId: string, toId: string) => {
       setStack((s) => {

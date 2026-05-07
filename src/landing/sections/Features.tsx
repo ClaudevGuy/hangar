@@ -25,7 +25,7 @@ export function Features() {
             A control tower, <span className="lp-soft">not another dashboard.</span>
           </h2>
           <p className="lp-sec-sub">
-            Six small things that, together, replace the chaos of bookmark folders, password
+            Eleven small things that, together, replace the chaos of bookmark folders, password
             managers and "uhh let me find the link."
           </p>
         </div>
@@ -301,11 +301,95 @@ export function Features() {
               </div>
             </div>
           </article>
+
+          <article className="lp-feature lp-span-3">
+            <div className="lp-feature-num">09 / Today</div>
+            <h3 className="lp-feature-title">
+              One feed for everything that's broken.
+            </h3>
+            <p className="lp-feature-desc">
+              Failed deploys, unresolved Sentry issues, urgent Linear tickets — all aggregated into
+              one ranked list at the top of the dashboard. Public status pages get pulled in too, so
+              you know if it's <em>your</em> problem or your provider's.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-today">
+                {TODAY_MOCK.map((row) => (
+                  <div key={row.title} className={`lp-demo-today-row sev-${row.sev}`}>
+                    <span className="lp-demo-today-dot" />
+                    <span className="lp-demo-today-title">{row.title}</span>
+                    <span className="lp-demo-today-time">{row.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <article className="lp-feature lp-span-3">
+            <div className="lp-feature-num">10 / Brief</div>
+            <h3 className="lp-feature-title">
+              A 9 a.m. briefing on your stack.
+            </h3>
+            <p className="lp-feature-desc">
+              One click in the topbar — Hangar pipes your live deploy/issue/ticket data through Claude
+              and returns a structured briefing: status, headline, three observations, and a
+              recommended action. Browser-direct using your own Anthropic key, never through us.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-brief">
+                <div className="lp-demo-brief-status">
+                  <span className="lp-demo-brief-dot" />
+                  <span>WATCH</span>
+                </div>
+                <p className="lp-demo-brief-headline">
+                  <strong>Vercel</strong> v2.4.1 deployed 18 minutes before this <strong>Sentry</strong> error first appeared.
+                </p>
+                <ul className="lp-demo-brief-obs">
+                  <li>1 new error · 12 users affected</li>
+                  <li>Stack trace points to checkout.tsx</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article className="lp-feature lp-span-6">
+            <div className="lp-feature-num">11 / Stack Share</div>
+            <h3 className="lp-feature-title">
+              Share your stack with one URL. No backend, no signup.
+            </h3>
+            <p className="lp-feature-desc">
+              Hit <strong>Share my stack</strong> in Settings and Hangar encodes your tools, plans,
+              and metadata into the URL hash fragment of a public link. Tweet it. Slack it. The
+              recipient lands on a preview page and can adopt the whole stack with one click. The
+              data lives in the URL itself — browsers never send fragments to servers, so the share
+              never touches Hangar infrastructure.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-share">
+                <div className="lp-demo-share-url">
+                  <span className="lp-demo-share-host">hangar-silk.vercel.app/share#data=</span>
+                  <span className="lp-demo-share-hash">eyJ2IjoxLCJ0aXRsZSI6Ik15IFNhYVMgc3RhY2si…</span>
+                </div>
+                <div className="lp-demo-share-preview">
+                  <span className="lp-demo-share-eyebrow">A shared Hangar stack</span>
+                  <span className="lp-demo-share-title">My SaaS stack <span className="lp-soft">· by @danvg</span></span>
+                  <span className="lp-demo-share-stats">8 tools · 4 plans tagged</span>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
   );
 }
+
+const TODAY_MOCK: { title: string; sev: "critical" | "warning" | "info"; time: string }[] = [
+  { title: "hangar · deploy failed", sev: "critical", time: "12m" },
+  { title: "TypeError in checkout.tsx · 47 events", sev: "critical", time: "1h" },
+  { title: "HAN-12 · Fix login redirect (urgent)", sev: "critical", time: "2h" },
+  { title: "Vercel: investigating elevated 5xx", sev: "warning", time: "now" },
+];
 
 const MCP_PROMPTS: { tool: string; q: string }[] = [
   { tool: "read_stack",             q: "What's in my dev stack?" },

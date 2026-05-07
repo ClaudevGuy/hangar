@@ -222,6 +222,20 @@ localStorage.clear(); location.reload();
 
 ## Roadmap
 
+### Shipped recently — beyond the original roadmap
+
+- [x] **Today panel** — unified incident feed across Vercel/Sentry/Linear, ranked by severity then recency
+- [x] **AI Brief** — Claude-powered stack summary in a topbar dropdown. Structured output (status badge, headline, observations, recommended action). Browser-direct, your own Anthropic key
+- [x] **AI Action / Investigate** — per-incident `✦` button on Today rows. Claude diagnoses with cross-tool correlation and offers concrete actions (open URL / copy drafted ticket)
+- [x] **Stack Share** — encode your stack into a URL hash and share publicly. Recipients adopt with one click. Zero-infra: data lives in the URL fragment, never sent to a server
+- [x] **Stack Health Radar** — public StatusPage.io endpoints aggregated for pinned providers (Vercel, GitHub, Stripe, Sentry, Linear, Cloudflare, Supabase, Clerk, Auth0, Anthropic, Inngest, Resend). Compact pill in the topbar; popover for details
+- [x] **MCP server** — `mcp/` package with 6 tools so Claude Desktop / Cursor / any MCP client can query your stack (`read_stack`, `list_unresolved_issues`, `list_recent_deploys`, `list_assigned_issues`, `list_review_requests`, `get_recent_revenue`)
+- [x] **Keyboard shortcuts** — Linear-style chord system: `g 1-9` to launch pinned tool, `g g` top, `g t` Today, `?` cheat sheet, `/` focus search
+- [x] **Privacy Policy + Terms of Service** — honest, specific, non-boilerplate. `/privacy` and `/terms`
+- [x] **Stack share page at `/share`** — preview + adopt flow with localhost-only adoption to keep data local-first
+
+### Original roadmap
+
 - [x] Custom catalog entries — add tools that aren't in the built-in 29
 - [x] Collapsible catalog — defer browsing for returning users
 - [x] GitHub live insights from the vault token
@@ -230,13 +244,19 @@ localStorage.clear(); location.reload();
   - [x] Linear issues
   - [x] Resend deliverability
   - [x] Sentry issues
-  - [ ] Stripe revenue
+  - [x] Stripe revenue (via MCP server)
 - [x] User-set per-tool plans — Free / Pro / etc., powering a real monthly-cost stat in the deck
 - [x] Per-tool last-opened timestamp — "you opened Vercel 2h ago" hint in the stack list
 - [x] Edit existing custom tools (was: add + delete only)
 - [x] Drag-to-reorder pinned tools in the launcher
 - [x] Optional encrypted vault (passphrase-derived AES-GCM) for the API tokens
-- [ ] Generalized server proxy for CORS-blocked tools (currently: Resend only, via Vercel Function)
+- [x] Server proxy for CORS-blocked tools (Resend + Sentry, each via a stateless Vercel Function)
+
+### Open
+
+- [ ] Stripe revenue in the web app (currently MCP only)
+- [ ] AI cost optimizer — recommend plan changes based on usage patterns
+- [ ] Daily Brief auto-generation + email digest via the user's Resend key
 
 ---
 
