@@ -1,9 +1,20 @@
 import { useLinearData } from "./useLinearData";
 import { useSentryData } from "./useSentryData";
 import { useVercelData } from "./useVercelData";
+import type { LinearIssue } from "../lib/linear";
+import type { SentryIssue } from "../lib/sentry";
+import type { VercelDeployment } from "../lib/vercel";
 import type { SecretsMap } from "../types";
 
 export type IncidentSeverity = "critical" | "warning" | "info";
+
+// Discriminated union of the original provider record that produced this
+// incident — used by the AI Action ("Investigate") flow to feed Claude the
+// full structured detail without re-fetching.
+export type IncidentRaw =
+  | { kind: "vercel-deploy"; data: VercelDeployment }
+  | { kind: "sentry-issue"; data: SentryIssue }
+  | { kind: "linear-issue"; data: LinearIssue };
 
 export interface Incident {
   id: string;
@@ -13,12 +24,19 @@ export interface Incident {
   context?: string;
   url?: string;
   occurredAt: number;
+  raw: IncidentRaw;
 }
 
 export interface IncidentFeed {
   incidents: Incident[];
   loading: boolean;
   hasAnyToken: boolean;
+  // Recent provider activity surfaced for cross-tool correlation in the
+  // Investigate flow. These are the same arrays the per-tool drawers see —
+  // shared cache, no extra fetch.
+  vercelDeployments: VercelDeployment[];
+  sentryIssues: SentryIssue[];
+  linearIssues: LinearIssue[];
 }
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
@@ -59,6 +77,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
           ? `https://vercel.com/${vercel.user.username}/${d.name}`
           : undefined,
         occurredAt: d.created,
+        raw: { kind: "vercel-deploy", data: d },
       });
     } else if (d.state === "CANCELED") {
       incidents.push({
@@ -71,6 +90,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
           ? `https://vercel.com/${vercel.user.username}/${d.name}`
           : undefined,
         occurredAt: d.created,
+        raw: { kind: "vercel-deploy", data: d },
       });
     }
   }
@@ -88,6 +108,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
       ]),
       url: issue.permalink,
       occurredAt: new Date(issue.lastSeen).getTime(),
+      raw: { kind: "sentry-issue", data: issue },
     });
   }
 
@@ -102,6 +123,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
       context: joinContext([issue.team.key, issue.state.name]),
       url: issue.url,
       occurredAt: new Date(issue.updatedAt).getTime(),
+      raw: { kind: "linear-issue", data: issue },
     });
   }
 
@@ -117,7 +139,14 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     (!!linearToken && linear.loading) ||
     (!!sentryToken && sentry.loading);
 
-  return { incidents, loading, hasAnyToken };
+  return {
+    incidents,
+    loading,
+    hasAnyToken,
+    vercelDeployments: vercel.deployments,
+    sentryIssues: sentry.issues,
+    linearIssues: linear.issues,
+  };
 }
 
 function joinContext(parts: Array<string | null | undefined>): string | undefined {

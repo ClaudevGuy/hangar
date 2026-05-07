@@ -932,6 +932,190 @@ input { font-family: inherit; }
 }
 .feed-empty svg { color: var(--accent); }
 
+/* ----------------------------------------------------------- */
+/* AI Action — per-incident "Investigate" button + panel       */
+/* ----------------------------------------------------------- */
+.feed-item-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.feed-item-row > .feed-item-btn { flex: 1; }
+
+.feed-investigate {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s, box-shadow .2s;
+}
+.feed-investigate:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+  box-shadow: 0 0 14px -4px color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.feed-investigate.is-on {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px -2px color-mix(in oklab, var(--accent) 55%, transparent);
+}
+.feed-investigate-spark {
+  font-size: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+
+/* Expanded investigation panel — slides under its incident row */
+.feed-investigation {
+  margin: 4px 0 4px 12px;
+  padding: 14px 16px 14px 18px;
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--accent-bg) 60%, var(--panel)) 0%,
+    var(--panel) 60%);
+  border: 1px solid color-mix(in oklab, var(--accent-line) 50%, var(--line));
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.feed-investigation-loading,
+.feed-investigation-error {
+  background: var(--panel);
+  border-left-color: var(--text-4);
+}
+.feed-investigation-error { border-left-color: var(--danger); }
+
+.feed-investigation-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.feed-investigation-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.feed-investigation-spark {
+  color: var(--accent);
+  font-size: 13px;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+.feed-investigation-actions {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.feed-investigation-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.feed-investigation-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+.feed-investigation-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.feed-investigation-close:hover {
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: var(--line);
+}
+
+.feed-investigation-diagnosis {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  text-wrap: pretty;
+}
+.feed-investigation-diagnosis strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+.feed-investigation-err-msg {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.feed-investigation-err-msg code {
+  background: transparent;
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* Suggested actions list */
+.feed-suggestions {
+  list-style: none;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in oklab, var(--accent-line) 30%, var(--line));
+  display: flex; flex-direction: column; gap: 6px;
+}
+.feed-suggestion {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.feed-suggestion-label {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+.feed-suggestion-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 5px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.feed-suggestion-action:hover {
+  background: color-mix(in oklab, var(--accent-bg) 200%, transparent);
+  border-color: var(--accent);
+}
+
 .feed-item-skeleton {
   padding: 12px 10px;
   display: flex;
