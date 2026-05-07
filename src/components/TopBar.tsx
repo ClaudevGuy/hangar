@@ -38,6 +38,7 @@ interface Props {
   toolMeta: ToolMetaMap;
   secrets: SecretsMap;
   onOpenAnthropicKey: () => void;
+  onOpenShare: () => void;
 }
 
 export function TopBar({
@@ -49,7 +50,7 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta, secrets, onOpenAnthropicKey,
+  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenShare,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -150,6 +151,7 @@ export function TopBar({
           onSyncDisconnect={onSyncDisconnect}
           stackTools={stackTools}
           toolMeta={toolMeta}
+          onOpenShare={onOpenShare}
         />
       </div>
     </header>

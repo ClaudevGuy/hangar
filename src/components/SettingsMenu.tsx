@@ -50,6 +50,8 @@ interface Props {
   // the hangar-mcp server expects at ~/.hangar/mcp.json.
   stackTools: Tool[];
   toolMeta: ToolMetaMap;
+  // Opens the Share modal at the app level. Closes the settings popover.
+  onOpenShare: () => void;
 }
 
 type SettingsTab = "look" | "security" | "data";
@@ -57,7 +59,7 @@ type SettingsTab = "look" | "security" | "data";
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta,
+  stackTools, toolMeta, onOpenShare,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("look");
@@ -273,6 +275,28 @@ export function SettingsMenu({
                 title={stackTools.length === 0 ? "Pin some tools first" : "Download mcp.json"}
               >
                 Download mcp.json
+              </button>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <div className="settings-label">Share stack</div>
+            <div className="settings-row settings-row-vert">
+              <div className="muted settings-blurb">
+                Generate a public URL of your pinned stack. The data lives in the URL
+                hash — never on a server. Paste it on Twitter, Slack, anywhere.
+              </div>
+              <button
+                type="button"
+                className="ghost-btn small settings-export"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenShare();
+                }}
+                disabled={stackTools.length === 0}
+                title={stackTools.length === 0 ? "Pin some tools first" : "Share your stack"}
+              >
+                Share my stack
               </button>
             </div>
           </div>

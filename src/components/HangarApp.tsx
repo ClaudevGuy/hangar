@@ -6,6 +6,7 @@ import { useVault } from "../hooks/useVault";
 import type { CategoryId, Tool } from "../types";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
+import { ShareModal } from "./ShareModal";
 import { TodayPanel } from "./TodayPanel";
 import { ControlDeck } from "./ControlDeck";
 import { CategoryStrip } from "./CategoryStrip";
@@ -42,6 +43,7 @@ export function HangarApp() {
   const [showAddTool, setShowAddTool] = useState(false);
   const [showStarters, setShowStarters] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -202,6 +204,7 @@ export function HangarApp() {
           setKeysFocusToolId("anthropic");
           setShowKeys(true);
         }}
+        onOpenShare={() => setShowShare(true)}
       />
 
       <div className="layout">
@@ -399,6 +402,14 @@ export function HangarApp() {
             setShowCatalog(true);
           }}
           onClose={() => setShowAddTool(false)}
+        />
+      )}
+
+      {showShare && (
+        <ShareModal
+          stackTools={stackTools}
+          toolMeta={toolMeta}
+          onClose={() => setShowShare(false)}
         />
       )}
 
