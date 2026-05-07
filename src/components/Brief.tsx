@@ -89,64 +89,88 @@ export function Brief({ stackTools, toolMeta, secrets, onAddAnthropicKey }: Prop
     vercel, sentry, linear, github.user, github.error,
   ]);
 
-  // No Anthropic key in the vault → show a connect prompt instead.
+  // No Anthropic key in the vault → small subtle prompt; doesn't dominate
+  // the dashboard for users who don't want AI features.
   if (!anthropicKey) {
     return (
       <section className="brief-panel brief-empty">
-        <div className="brief-head">
-          <div className="strip-label">Brief</div>
-          <div className="brief-head-meta">connect anthropic to enable</div>
+        <div className="brief-bar" />
+        <div className="brief-body-wrap">
+          <div className="brief-head">
+            <div className="brief-label">
+              <span className="brief-spark">✦</span>
+              <span className="brief-label-text">Brief</span>
+              <span className="brief-sep">·</span>
+              <span className="brief-time">connect anthropic to enable</span>
+            </div>
+          </div>
+          <p className="brief-cta">
+            Drop an Anthropic API key into your vault and Hangar synthesizes your stack
+            state — deploys, errors, urgent tickets — into a 4-sentence briefing.
+          </p>
+          <button type="button" className="primary-btn small" onClick={onAddAnthropicKey}>
+            <Icon.key /> Add Anthropic key
+          </button>
         </div>
-        <p className="muted brief-empty-blurb">
-          Drop an Anthropic API key into your vault and Hangar will synthesize
-          your stack state into a 4-sentence morning briefing — cross-tool
-          correlations, anomalies, and a recommended action.
-        </p>
-        <button type="button" className="primary-btn small" onClick={onAddAnthropicKey}>
-          <Icon.key /> Add Anthropic key
-        </button>
       </section>
     );
   }
 
   return (
-    <section className="brief-panel">
-      <div className="brief-head">
-        <div className="strip-label">Brief</div>
-        <div className="brief-head-actions">
-          {generatedAt && !loading && (
-            <span className="brief-head-meta">generated {timeAgo(generatedAt)}</span>
-          )}
+    <section className={`brief-panel${brief ? " brief-has-content" : ""}`}>
+      <div className="brief-bar" />
+      <div className="brief-body-wrap">
+        <div className="brief-head">
+          <div className="brief-label">
+            <span className="brief-spark">✦</span>
+            <span className="brief-label-text">Brief</span>
+            {generatedAt && !loading && (
+              <>
+                <span className="brief-sep">·</span>
+                <span className="brief-time">generated {timeAgo(generatedAt)}</span>
+              </>
+            )}
+            {loading && (
+              <>
+                <span className="brief-sep">·</span>
+                <span className="brief-time">synthesizing…</span>
+              </>
+            )}
+          </div>
           <button
             type="button"
-            className="ghost-btn small"
+            className="brief-refresh"
             onClick={handleGenerate}
             disabled={loading || dataLoading}
-            title={dataLoading ? "Waiting for live data to load" : "Synthesize a brief"}
+            title={
+              dataLoading
+                ? "Waiting for live data to load"
+                : brief
+                  ? "Refresh — re-synthesize from the latest data"
+                  : "Generate brief"
+            }
           >
-            {loading ? "Synthesizing…" : brief ? "Refresh" : "Generate brief"}
+            {loading ? "…" : brief ? "Refresh" : "Generate brief"}
           </button>
         </div>
+
+        {error && (
+          <div className="brief-error">
+            Couldn&apos;t reach Anthropic: <code>{error}</code>
+          </div>
+        )}
+
+        {brief ? (
+          <p className="brief-body">{renderBrief(brief)}</p>
+        ) : (
+          !error && (
+            <p className="brief-cta">
+              Read your stack&apos;s story right now — a 4-sentence synthesis of recent deploys,
+              unresolved errors, urgent tickets, and what to look at first.
+            </p>
+          )
+        )}
       </div>
-
-      {error && (
-        <div className="brief-error">
-          Couldn't reach Anthropic: <code>{error}</code>
-        </div>
-      )}
-
-      {brief ? (
-        <p className="brief-body">{renderBrief(brief)}</p>
-      ) : (
-        !error && (
-          <p className="muted brief-blurb">
-            Click <strong>Generate brief</strong> to read your stack&apos;s current state — a
-            short narrative built from your live Vercel deploys, Sentry issues, Linear
-            queue, and stack costs. Costs about a fraction of a cent per run on
-            <code> claude-sonnet-4-5</code>.
-          </p>
-        )
-      )}
     </section>
   );
 }

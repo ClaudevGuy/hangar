@@ -561,77 +561,142 @@ input { font-family: inherit; }
 }
 
 /* ----------------------------------------------------------- */
-/* Brief panel — AI-synthesized stack summary, top of the deck */
+/* Brief panel — AI-synthesized stack summary, premium hero    */
+/* card. The accent bar + display typography mark this as the   */
+/* executive-tier read above the procedural Today list below.   */
 /* ----------------------------------------------------------- */
 .brief-panel {
-  margin: 20px 0 12px;
-  padding: 16px 20px 18px;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  position: relative;
+  margin: 24px 0 14px;
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--accent-bg) 70%, var(--panel)) 0%,
+      var(--panel) 45%,
+      var(--panel) 100%);
+  border: 1px solid color-mix(in oklab, var(--accent-line) 35%, var(--line));
   border-radius: var(--r-lg);
   max-width: 1100px;
-  position: relative;
+  display: flex;
+  align-items: stretch;
   overflow: hidden;
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--accent) 14%, transparent) inset,
+    0 12px 40px -16px color-mix(in oklab, var(--accent) 22%, transparent),
+    0 2px 8px -2px color-mix(in oklab, #000 50%, transparent);
+  transition: box-shadow .2s ease, border-color .2s ease;
 }
-.brief-panel::before {
-  /* Subtle accent halo so the brief reads as the "executive summary" tier
-     above the more procedural Today panel below it. */
-  content: "";
-  position: absolute;
-  top: -40%; right: -20%;
-  width: 60%; height: 200%;
-  background: radial-gradient(circle, var(--accent-bg), transparent 60%);
-  opacity: 0.5;
-  pointer-events: none;
-  filter: blur(40px);
+.brief-panel.brief-has-content {
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--accent) 18%, transparent) inset,
+    0 14px 48px -14px color-mix(in oklab, var(--accent) 28%, transparent),
+    0 2px 8px -2px color-mix(in oklab, #000 50%, transparent);
 }
-.brief-panel > * { position: relative; z-index: 1; }
+
+.brief-bar {
+  width: 3px;
+  background: linear-gradient(to bottom, var(--accent), color-mix(in oklab, var(--accent) 50%, transparent));
+  flex-shrink: 0;
+}
+
+.brief-body-wrap {
+  flex: 1;
+  padding: 22px 28px 24px;
+  min-width: 0;
+}
 
 .brief-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
   gap: 12px;
-}
-.brief-head-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.brief-head-meta {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-3);
-  letter-spacing: 0.04em;
+  margin-bottom: 14px;
 }
 
-.brief-body {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text);
-  margin: 4px 0 0;
-  letter-spacing: -0.005em;
+.brief-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  min-width: 0;
 }
-.brief-body strong {
+.brief-spark {
   color: var(--accent);
+  font-size: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+.brief-label-text {
+  color: var(--text-2);
   font-weight: 600;
 }
-
-.brief-blurb,
-.brief-empty-blurb {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 4px 0 12px;
+.brief-sep { opacity: 0.4; }
+.brief-time {
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.brief-empty-blurb { margin-bottom: 14px; }
-.brief-empty .brief-head-meta { text-transform: uppercase; }
+
+.brief-refresh {
+  background: transparent;
+  border: 1px solid color-mix(in oklab, var(--line) 100%, transparent);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.brief-refresh:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+.brief-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* The brief body itself — display font, generous size, a touch tighter
+   tracking. This is where the "premium" feel lives. */
+.brief-body {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.55;
+  letter-spacing: -0.012em;
+  color: var(--text);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+.brief-body strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Pre-generation CTA copy — same display font but lighter weight and
+   smaller size so it reads as a placeholder, not the actual brief. */
+.brief-cta {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.008em;
+  color: var(--text-2);
+  max-width: 720px;
+}
 
 .brief-error {
-  margin-top: 8px;
+  margin: 0 0 12px;
   padding: 10px 12px;
-  background: color-mix(in oklab, var(--danger) 15%, transparent);
-  border: 1px solid color-mix(in oklab, var(--danger) 40%, transparent);
+  background: color-mix(in oklab, var(--danger) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
   border-radius: var(--r-sm);
   font-size: 13px;
   color: var(--text);
@@ -641,6 +706,28 @@ input { font-family: inherit; }
   color: var(--danger);
   font-family: var(--font-mono);
   font-size: 12px;
+}
+
+/* Empty state (no Anthropic key) — strip the gradient + glow so the panel
+   recedes; users without AI features shouldn't see a glowing prompt. */
+.brief-panel.brief-empty {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: none;
+}
+.brief-panel.brief-empty .brief-bar {
+  background: var(--text-4);
+}
+.brief-panel.brief-empty .brief-body-wrap {
+  padding: 16px 20px 18px;
+}
+.brief-panel.brief-empty .brief-spark {
+  color: var(--text-3);
+  filter: none;
+}
+.brief-panel.brief-empty .brief-cta {
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 /* ----------------------------------------------------------- */
