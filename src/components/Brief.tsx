@@ -1,10 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type React from "react";
 import { useGitHubData } from "../hooks/useGitHubData";
 import { useLinearData } from "../hooks/useLinearData";
 import { useSentryData } from "../hooks/useSentryData";
 import { useVercelData } from "../hooks/useVercelData";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
-import { buildBriefInput, generateBrief } from "../lib/brief";
+import {
+  buildBriefInput,
+  generateBrief,
+  parseBriefStructured,
+  type BriefStatus,
+  type BriefStructured,
+} from "../lib/brief";
 import { monthlyTotal } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import { timeAgo } from "../lib/timeAgo";
@@ -17,10 +24,20 @@ interface Props {
   onAddAnthropicKey: () => void;
 }
 
-// Formats the brief markdown — Claude returns plain prose with **bold** spans.
-// We render **...** as <strong>; everything else is text. No need to pull in a
-// full markdown lib for this.
-function renderBrief(text: string): (string | React.ReactElement)[] {
+const STATUS_LABEL: Record<BriefStatus, string> = {
+  green: "all clear",
+  yellow: "watch",
+  red: "needs attention",
+};
+
+const STATUS_SEV: Record<BriefStatus, "ok" | "warning" | "critical"> = {
+  green: "ok",
+  yellow: "warning",
+  red: "critical",
+};
+
+// Render Claude's **bold** spans as <strong>. Plain text otherwise.
+function renderWithBold(text: string): (string | React.ReactElement)[] {
   const parts: (string | React.ReactElement)[] = [];
   const re = /\*\*([^*]+)\*\*/g;
   let last = 0;
@@ -42,24 +59,44 @@ export function Brief({ stackTools, toolMeta, secrets, onAddAnthropicKey }: Prop
   const linearToken = secrets["linear"]?.find((k) => k.value)?.value || null;
   const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
 
-  // Each hook short-circuits to IDLE when token is null — calling them
-  // unconditionally is safe and keeps the per-token cache warm with the
-  // existing insights drawers.
+  // Each hook short-circuits to IDLE when token is null and reuses the
+  // per-token in-memory cache the Insights drawers populate, so we don't
+  // spend new fetches when the user opens the brief popover.
   const vercel = useVercelData(vercelToken);
   const sentry = useSentryData(sentryToken);
   const linear = useLinearData(linearToken);
   const github = useGitHubData(githubToken);
 
-  const [brief, setBrief] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [structured, setStructured] = useState<BriefStructured | null>(null);
+  const [rawFallback, setRawFallback] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   const dataLoading =
     (!!vercelToken && vercel.loading) ||
     (!!sentryToken && sentry.loading) ||
     (!!linearToken && linear.loading) ||
     (!!githubToken && github.loading);
+
+  // Outside-click + Escape close.
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("mousedown", onClick);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   const handleGenerate = useCallback(async () => {
     if (!anthropicKey) return;
@@ -76,7 +113,9 @@ export function Brief({ stackTools, toolMeta, secrets, onAddAnthropicKey }: Prop
         github: { token: !!githubToken, user: github.user, error: github.error },
       });
       const text = await generateBrief(input, anthropicKey);
-      setBrief(text);
+      const parsed = parseBriefStructured(text);
+      setStructured(parsed);
+      setRawFallback(parsed ? null : text);
       setGeneratedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -89,88 +128,101 @@ export function Brief({ stackTools, toolMeta, secrets, onAddAnthropicKey }: Prop
     vercel, sentry, linear, github.user, github.error,
   ]);
 
-  // No Anthropic key in the vault → small subtle prompt; doesn't dominate
-  // the dashboard for users who don't want AI features.
-  if (!anthropicKey) {
-    return (
-      <section className="brief-panel brief-empty">
-        <div className="brief-bar" />
-        <div className="brief-body-wrap">
-          <div className="brief-head">
+  return (
+    <div className="brief-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className={`brief-trigger${open ? " is-open" : ""}`}
+        onClick={() => setOpen((s) => !s)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        title="Hangar Brief — AI-synthesized stack summary"
+      >
+        <span className="brief-trigger-spark">✦</span>
+        <span>Brief</span>
+      </button>
+
+      {open && (
+        <div className="brief-popover" role="dialog" aria-label="Hangar Brief">
+          <div className="brief-pop-head">
             <div className="brief-label">
               <span className="brief-spark">✦</span>
               <span className="brief-label-text">Brief</span>
-              <span className="brief-sep">·</span>
-              <span className="brief-time">connect anthropic to enable</span>
+              {generatedAt && !loading && (
+                <>
+                  <span className="brief-sep">·</span>
+                  <span className="brief-time">{timeAgo(generatedAt)}</span>
+                </>
+              )}
+              {loading && (
+                <>
+                  <span className="brief-sep">·</span>
+                  <span className="brief-time">synthesizing…</span>
+                </>
+              )}
             </div>
-          </div>
-          <p className="brief-cta">
-            Drop an Anthropic API key into your vault and Hangar synthesizes your stack
-            state — deploys, errors, urgent tickets — into a 4-sentence briefing.
-          </p>
-          <button type="button" className="primary-btn small" onClick={onAddAnthropicKey}>
-            <Icon.key /> Add Anthropic key
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className={`brief-panel${brief ? " brief-has-content" : ""}`}>
-      <div className="brief-bar" />
-      <div className="brief-body-wrap">
-        <div className="brief-head">
-          <div className="brief-label">
-            <span className="brief-spark">✦</span>
-            <span className="brief-label-text">Brief</span>
-            {generatedAt && !loading && (
-              <>
-                <span className="brief-sep">·</span>
-                <span className="brief-time">generated {timeAgo(generatedAt)}</span>
-              </>
-            )}
-            {loading && (
-              <>
-                <span className="brief-sep">·</span>
-                <span className="brief-time">synthesizing…</span>
-              </>
+            {anthropicKey && (
+              <button
+                type="button"
+                className="brief-refresh"
+                onClick={handleGenerate}
+                disabled={loading || dataLoading}
+                title={dataLoading ? "Waiting for live data" : "Synthesize a fresh brief"}
+              >
+                {loading ? "…" : structured || rawFallback ? "Refresh" : "Generate"}
+              </button>
             )}
           </div>
-          <button
-            type="button"
-            className="brief-refresh"
-            onClick={handleGenerate}
-            disabled={loading || dataLoading}
-            title={
-              dataLoading
-                ? "Waiting for live data to load"
-                : brief
-                  ? "Refresh — re-synthesize from the latest data"
-                  : "Generate brief"
-            }
-          >
-            {loading ? "…" : brief ? "Refresh" : "Generate brief"}
-          </button>
-        </div>
 
-        {error && (
-          <div className="brief-error">
-            Couldn&apos;t reach Anthropic: <code>{error}</code>
+          <div className="brief-pop-body">
+            {!anthropicKey ? (
+              <>
+                <p className="brief-cta">
+                  Drop an Anthropic API key into your vault and Hangar synthesizes your
+                  stack — deploys, errors, urgent tickets — into a structured briefing.
+                </p>
+                <button type="button" className="primary-btn small" onClick={onAddAnthropicKey}>
+                  <Icon.key /> Add Anthropic key
+                </button>
+              </>
+            ) : error ? (
+              <div className="brief-error">
+                Couldn&apos;t reach Anthropic: <code>{error}</code>
+              </div>
+            ) : structured ? (
+              <>
+                <div className={`brief-status sev-${STATUS_SEV[structured.status]}`}>
+                  <span className="brief-status-dot" />
+                  <span>{STATUS_LABEL[structured.status]}</span>
+                </div>
+                <p className="brief-headline">{renderWithBold(structured.headline)}</p>
+                {structured.observations.length > 0 && (
+                  <ul className="brief-observations">
+                    {structured.observations.map((o, i) => (
+                      <li key={i}>{renderWithBold(o)}</li>
+                    ))}
+                  </ul>
+                )}
+                {structured.recommendation && (
+                  <div className="brief-rec">
+                    <div className="brief-rec-label">Recommended action</div>
+                    <p className="brief-rec-body">{renderWithBold(structured.recommendation)}</p>
+                  </div>
+                )}
+              </>
+            ) : rawFallback ? (
+              // Claude returned non-JSON despite the prompt — render as prose
+              // rather than failing visibly.
+              <p className="brief-headline">{renderWithBold(rawFallback)}</p>
+            ) : (
+              <p className="brief-cta">
+                Read your stack&apos;s story right now — a structured synthesis of recent
+                deploys, unresolved errors, urgent tickets, and what to look at first.
+              </p>
+            )}
           </div>
-        )}
-
-        {brief ? (
-          <p className="brief-body">{renderBrief(brief)}</p>
-        ) : (
-          !error && (
-            <p className="brief-cta">
-              Read your stack&apos;s story right now — a 4-sentence synthesis of recent deploys,
-              unresolved errors, urgent tickets, and what to look at first.
-            </p>
-          )
-        )}
-      </div>
-    </section>
+        </div>
+      )}
+    </div>
   );
 }

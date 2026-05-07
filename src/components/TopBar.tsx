@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { Icon } from "../lib/icons";
-import type { Prefs, Tool } from "../types";
+import type { Prefs, SecretsMap, Tool } from "../types";
+import { Brief } from "./Brief";
 import { SettingsMenu } from "./SettingsMenu";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
@@ -31,9 +32,12 @@ interface Props {
   onSyncPushNow: () => void;
   onSyncPullNow: () => void;
   onSyncDisconnect: () => void;
-  // Drilled through to SettingsMenu's "Export MCP config" button.
+  // Drilled through to SettingsMenu's "Export MCP config" button and the
+  // Brief popover. Brief also needs the secrets map to read tokens.
   stackTools: Tool[];
   toolMeta: ToolMetaMap;
+  secrets: SecretsMap;
+  onOpenAnthropicKey: () => void;
 }
 
 export function TopBar({
@@ -45,7 +49,7 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta,
+  stackTools, toolMeta, secrets, onOpenAnthropicKey,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -82,6 +86,12 @@ export function TopBar({
       </div>
 
       <div className="topbar-right">
+        <Brief
+          stackTools={stackTools}
+          toolMeta={toolMeta}
+          secrets={secrets}
+          onAddAnthropicKey={onOpenAnthropicKey}
+        />
         <button
           type="button"
           className="ghost-btn"

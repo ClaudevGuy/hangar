@@ -63,16 +63,73 @@ export interface BriefLinearIssue {
   ageHours: number;
 }
 
-const SYSTEM_PROMPT = `You are a senior dev's morning briefing assistant. You read structured data about their dev tool stack and produce a short, actionable narrative.
+export type BriefStatus = "green" | "yellow" | "red";
 
-Style rules — strict:
-- 4 to 6 sentences total. Never more.
-- Lead with the most important thing (deploy failures, error spikes, urgent tickets).
-- Call out cross-tool correlations when the data suggests one (e.g., new Sentry errors right after a Vercel deploy).
-- End with one clear recommended action, or a calm "all clear" sentence if nothing notable.
-- Plain prose only. No bullets, no headers, no markdown beyond **bold** for tool names or critical claims.
-- Tone: matter-of-fact, like a senior teammate at standup. No "as an AI" preamble, no apologies, no fluff.
-- If a provider isn't mentioned in the snapshot, the user hasn't connected it — don't say "I can't see X". Just write around the gap.`;
+// Structured brief returned by Claude. The system prompt requires this exact
+// shape; the parser below tolerates Claude wrapping in ```json fences anyway.
+export interface BriefStructured {
+  status: BriefStatus;
+  headline: string;
+  observations: string[];
+  recommendation: string;
+}
+
+export function parseBriefStructured(text: string): BriefStructured | null {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/, "")
+    .trim();
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed)
+  ) {
+    return null;
+  }
+  const obj = parsed as Record<string, unknown>;
+  const headline = obj.headline;
+  const observations = obj.observations;
+  const recommendation = obj.recommendation;
+  const status = obj.status;
+  if (
+    typeof headline !== "string" ||
+    !Array.isArray(observations) ||
+    !observations.every((o): o is string => typeof o === "string") ||
+    typeof recommendation !== "string"
+  ) {
+    return null;
+  }
+  const validStatus: BriefStatus =
+    status === "green" || status === "yellow" || status === "red" ? status : "yellow";
+  return {
+    status: validStatus,
+    headline,
+    observations,
+    recommendation,
+  };
+}
+
+const SYSTEM_PROMPT = `You are a senior dev's morning briefing assistant. Read the structured stack data and output strict JSON in exactly this shape — no other text:
+
+{"status":"green"|"yellow"|"red","headline":"...","observations":["...","..."],"recommendation":"..."}
+
+Field rules:
+- status: green = all clear; yellow = something noteworthy to watch; red = active failure or urgent issue
+- headline: ONE sentence, ~12-22 words. Use **bold** for tool names. This is the executive read.
+- observations: 2 to 4 items. Each one is a single specific data point from the snapshot, ~10-25 words. Use **bold** for tool names. No padding, no filler.
+- recommendation: ONE sentence with a concrete next action. Use "No action needed." when status is green and nothing's noteworthy.
+- Don't mention providers absent from the snapshot — write around gaps, never say "I can't see X."
+- No preamble, no markdown fences, no trailing text. JSON object only.
+
+Example:
+{"status":"yellow","headline":"**Vercel** has a build in progress; recent deploys are clean.","observations":["**Vercel** hangar build started just now (BUILDING)","4 successful prod deploys in past 9 hours, no failures","**GitHub**, **Neon**, **Inngest** connected but no activity surfaced"],"recommendation":"Wait for the in-progress build to finish; check Vercel logs if it errors."}`;
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-5";
