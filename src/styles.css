@@ -476,7 +476,13 @@ input { font-family: inherit; }
 /* ----------------------------------------------------------- */
 /* Stack launcher — quick-open tiles for pinned tools          */
 /* ----------------------------------------------------------- */
-.stack-launcher { margin-bottom: 14px; max-width: 920px; }
+.stack-launcher {
+  margin-bottom: 14px;
+  /* Section width matches the deck-stats below (1100px) so the "Manage"
+     button can sit at the right edge of the deck instead of being capped
+     at the narrower tile-row width. */
+  max-width: 1100px;
+}
 .stack-launcher-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px;
