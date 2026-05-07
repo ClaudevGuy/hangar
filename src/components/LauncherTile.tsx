@@ -10,7 +10,11 @@ interface Props {
   secrets: SecretsMap;
   draggingId: string | null;
   dragOverId: string | null;
-  onLaunch: (tool: Tool) => void;
+  // Click opens the tool drawer (with its own "Open tool" button to actually
+  // launch). Direct-launch from the tile would be one click for power users
+  // but loses access to the rest of the drawer's surface — counts, recent
+  // activity, "pairs well with", quick actions — for everyone else.
+  onOpenTool: (tool: Tool) => void;
   onDragStart: (toolId: string, e: React.DragEvent<HTMLButtonElement>) => void;
   onDragOver: (toolId: string, e: React.DragEvent<HTMLButtonElement>) => void;
   onDragLeave: (toolId: string) => void;
@@ -20,7 +24,7 @@ interface Props {
 
 export function LauncherTile({
   tool, secrets, draggingId, dragOverId,
-  onLaunch, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
+  onOpenTool, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
 }: Props) {
   const token = secrets[tool.id]?.find((k) => k.value)?.value || null;
   const isConnected = !!token;
@@ -30,8 +34,8 @@ export function LauncherTile({
     <button
       type="button"
       className={`launcher-tile ${draggingId === tool.id ? "is-drag-source" : ""} ${dragOverId === tool.id && draggingId !== tool.id ? "is-drop-target" : ""}`}
-      onClick={() => onLaunch(tool)}
-      title={`Open ${tool.name} dashboard`}
+      onClick={() => onOpenTool(tool)}
+      title={`${tool.name} details`}
       draggable
       onDragStart={(e) => onDragStart(tool.id, e)}
       onDragOver={(e) => onDragOver(tool.id, e)}

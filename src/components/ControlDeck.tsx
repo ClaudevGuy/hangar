@@ -19,13 +19,13 @@ interface Props {
   secrets: SecretsMap;
   toolMeta: ToolMetaMap;
   onPick: (tool: Tool) => void;
-  onLaunch: (tool: Tool) => void;
+  onOpenTool: (tool: Tool) => void;
   onOpenStack: () => void;
   onReorderStack: (fromId: string, toId: string) => void;
 }
 
 export function ControlDeck({
-  stackTools, totalTools, secrets, toolMeta, onPick, onLaunch, onOpenStack, onReorderStack,
+  stackTools, totalTools, secrets, toolMeta, onPick, onOpenTool, onOpenStack, onReorderStack,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function ControlDeck({
                 secrets={secrets}
                 draggingId={draggingId}
                 dragOverId={dragOverId}
-                onLaunch={onLaunch}
+                onOpenTool={onOpenTool}
                 onDragStart={(toolId, e) => {
                   setDraggingId(toolId);
                   e.dataTransfer.effectAllowed = "move";
