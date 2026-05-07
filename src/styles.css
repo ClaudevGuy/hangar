@@ -561,10 +561,93 @@ input { font-family: inherit; }
 }
 
 /* ----------------------------------------------------------- */
+/* Brief panel — AI-synthesized stack summary, top of the deck */
+/* ----------------------------------------------------------- */
+.brief-panel {
+  margin: 20px 0 12px;
+  padding: 16px 20px 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  max-width: 1100px;
+  position: relative;
+  overflow: hidden;
+}
+.brief-panel::before {
+  /* Subtle accent halo so the brief reads as the "executive summary" tier
+     above the more procedural Today panel below it. */
+  content: "";
+  position: absolute;
+  top: -40%; right: -20%;
+  width: 60%; height: 200%;
+  background: radial-gradient(circle, var(--accent-bg), transparent 60%);
+  opacity: 0.5;
+  pointer-events: none;
+  filter: blur(40px);
+}
+.brief-panel > * { position: relative; z-index: 1; }
+
+.brief-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+.brief-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brief-head-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+
+.brief-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 4px 0 0;
+  letter-spacing: -0.005em;
+}
+.brief-body strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.brief-blurb,
+.brief-empty-blurb {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 4px 0 12px;
+}
+.brief-empty-blurb { margin-bottom: 14px; }
+.brief-empty .brief-head-meta { text-transform: uppercase; }
+
+.brief-error {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--danger) 15%, transparent);
+  border: 1px solid color-mix(in oklab, var(--danger) 40%, transparent);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  color: var(--text);
+}
+.brief-error code {
+  background: transparent;
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ----------------------------------------------------------- */
 /* Today panel — unified incident feed across connected tools  */
 /* ----------------------------------------------------------- */
 .today-panel {
-  margin: 20px 0 18px;
+  margin: 12px 0 18px;
   padding: 16px 18px 12px;
   background: var(--panel);
   border: 1px solid var(--line);

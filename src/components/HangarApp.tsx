@@ -6,6 +6,7 @@ import { useVault } from "../hooks/useVault";
 import type { CategoryId, Tool } from "../types";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
+import { Brief } from "./Brief";
 import { TodayPanel } from "./TodayPanel";
 import { ControlDeck } from "./ControlDeck";
 import { CategoryStrip } from "./CategoryStrip";
@@ -217,6 +218,15 @@ export function HangarApp() {
         />
 
         <main className="main">
+          <Brief
+            stackTools={stackTools}
+            toolMeta={toolMeta}
+            secrets={secrets}
+            onAddAnthropicKey={() => {
+              setKeysFocusToolId("anthropic");
+              setShowKeys(true);
+            }}
+          />
           <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />
 
           <ControlDeck
