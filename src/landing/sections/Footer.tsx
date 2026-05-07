@@ -53,9 +53,13 @@ export function Footer() {
           <div className="lp-footer-col">
             <h4>Legal</h4>
             <ul>
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
-              <li><a href="#">DPA</a></li>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
+              <li>
+                <a href="https://github.com/ClaudevGuy/hangar/blob/main/LICENSE" target="_blank" rel="noreferrer">
+                  License (MIT)
+                </a>
+              </li>
             </ul>
           </div>
         </div>

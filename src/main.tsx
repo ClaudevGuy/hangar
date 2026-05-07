@@ -3,8 +3,10 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { HangarApp } from "./components/HangarApp";
 import { LandingPage } from "./landing/LandingPage";
+import { PrivacyPage } from "./landing/parts/PrivacyPage";
 import { RunLocalPrompt } from "./landing/parts/RunLocalPrompt";
 import { SharePreview } from "./landing/parts/SharePreview";
+import { TermsPage } from "./landing/parts/TermsPage";
 import "./styles.css";
 import "./landing/landing.css";
 
@@ -43,6 +45,8 @@ createRoot(rootEl).render(
         <Route path="/" element={<RootRoute />} />
         <Route path="/app/*" element={<AppRoute />} />
         <Route path="/share" element={<SharePreview />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
