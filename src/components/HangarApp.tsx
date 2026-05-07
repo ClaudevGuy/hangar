@@ -366,8 +366,26 @@ export function HangarApp() {
 
           <footer className="foot">
             <div>Hangar · the dev's control tower · v0.4 (preview)</div>
-            <div className="muted">
-              {allTools.length} tools indexed{customTools.length > 0 && ` · ${customTools.length} custom`}
+            <div className="foot-actions">
+              <button
+                type="button"
+                className="foot-help-btn"
+                onClick={() => setShowTour(true)}
+                title="Replay the welcome tour"
+              >
+                <span className="foot-help-spark">✦</span> Show tour
+              </button>
+              <button
+                type="button"
+                className="foot-help-btn"
+                onClick={() => setShowCheatSheet(true)}
+                title="Keyboard shortcuts cheat sheet"
+              >
+                <kbd>?</kbd> Shortcuts
+              </button>
+              <span className="muted">
+                {allTools.length} tools indexed{customTools.length > 0 && ` · ${customTools.length} custom`}
+              </span>
             </div>
           </footer>
         </main>

@@ -2301,6 +2301,46 @@ input { font-family: inherit; }
   color: var(--text-3);
   border-top: 1px solid var(--line);
 }
+.foot-actions {
+  display: inline-flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.foot-help-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s, box-shadow .2s;
+}
+.foot-help-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+  box-shadow: 0 0 12px -4px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.foot-help-spark {
+  color: var(--accent);
+  font-size: 12px;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+.foot-help-btn kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px;
+  padding: 1px 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-2);
+}
 
 /* ----------------------------------------------------------- */
 /* Drawer                                                      */
