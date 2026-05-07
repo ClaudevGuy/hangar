@@ -1,6 +1,32 @@
 export function Footer() {
+  // 28 evenly-spaced runway lights, blink offsets staggered so the row
+  // reads as a flowing taxiway rather than a synchronized strobe.
+  const runwayDots = Array.from({ length: 28 }, (_, i) => {
+    const delay = ((i * 0.17) % 2.4).toFixed(2);
+    return <span key={i} style={{ animationDelay: `${delay}s` }} />;
+  });
+
   return (
     <footer className="lp-footer">
+      <div className="lp-footer-fx" aria-hidden="true">
+        <div className="lp-footer-grid" />
+        <div className="lp-footer-radar">
+          <div className="lp-footer-radar-rings" />
+          <div className="lp-footer-radar-sweep" />
+          <div className="lp-footer-radar-cross" />
+        </div>
+        <div className="lp-footer-runway">{runwayDots}</div>
+        <div className="lp-footer-readout">
+          <span>LIS-TWR</span>
+          <span className="lp-footer-readout-sep">·</span>
+          <span>38.72°N · 9.14°W</span>
+          <span className="lp-footer-readout-sep">·</span>
+          <span>ALT 0042</span>
+          <span className="lp-footer-readout-sep">·</span>
+          <span>SQ 1200</span>
+        </div>
+      </div>
+
       <div className="lp-wrap">
         <div className="lp-footer-top">
           <div className="lp-footer-brand">

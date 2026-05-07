@@ -1033,7 +1033,152 @@ html, body { overflow-x: clip; }
 }
 
 /* ===== FOOTER ===== */
-.lp-footer { padding: 60px 0 32px; }
+/* The footer leans into the "control tower" metaphor: a radar scope rises
+   from the bottom-center horizon, a perspective tarmac grid converges into
+   it, runway lights blink along the very bottom edge, and a small ICAO-style
+   readout sits in the top-right. All effects are themed via --accent so they
+   adapt to neon green / violet / ember / ice / paper. Pure CSS, motion-safe. */
+.lp-footer {
+  position: relative;
+  padding: 64px 0 40px;
+  margin-top: 64px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(140% 70% at 50% 100%,
+      color-mix(in oklab, var(--accent) 5%, var(--bg)) 0%,
+      var(--bg) 70%);
+}
+.lp-footer .lp-wrap { position: relative; z-index: 2; }
+
+/* FX layer — absolute, behind content */
+.lp-footer-fx {
+  position: absolute; inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Perspective tarmac grid converging on the horizon */
+.lp-footer-grid {
+  position: absolute;
+  left: -10%; right: -10%; bottom: 0;
+  height: 70%;
+  background-image:
+    linear-gradient(to right,
+      color-mix(in oklab, var(--accent) 22%, transparent) 1px,
+      transparent 1px),
+    linear-gradient(to bottom,
+      color-mix(in oklab, var(--accent) 22%, transparent) 1px,
+      transparent 1px);
+  background-size: 80px 80px;
+  transform: perspective(540px) rotateX(62deg);
+  transform-origin: bottom center;
+  -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 0%, transparent 80%);
+          mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 0%, transparent 80%);
+  opacity: 0.55;
+}
+
+/* Radar scope — concentric rings + slow sweep, half-buried at bottom */
+.lp-footer-radar {
+  position: absolute;
+  left: 50%; bottom: -300px;
+  width: 620px; height: 620px;
+  margin-left: -310px;
+  -webkit-mask-image: radial-gradient(circle, black 30%, transparent 65%);
+          mask-image: radial-gradient(circle, black 30%, transparent 65%);
+}
+.lp-footer-radar-rings {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      color-mix(in oklab, var(--accent) 28%, transparent) 0 1px,
+      transparent 1px 70px);
+  opacity: 0.6;
+}
+.lp-footer-radar-cross {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to right, transparent calc(50% - 0.5px),
+      color-mix(in oklab, var(--accent) 22%, transparent) calc(50% - 0.5px),
+      color-mix(in oklab, var(--accent) 22%, transparent) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 0.5px),
+      color-mix(in oklab, var(--accent) 22%, transparent) calc(50% - 0.5px),
+      color-mix(in oklab, var(--accent) 22%, transparent) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px));
+  opacity: 0.6;
+}
+.lp-footer-radar-sweep {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    color-mix(in oklab, var(--accent) 55%, transparent) 0deg,
+    color-mix(in oklab, var(--accent) 18%, transparent) 18deg,
+    transparent 60deg,
+    transparent 360deg);
+  animation: lp-footer-sweep 7s linear infinite;
+  opacity: 0.45;
+  mix-blend-mode: screen;
+}
+[data-theme="light"] .lp-footer-radar-sweep { mix-blend-mode: multiply; opacity: 0.35; }
+[data-theme="light"] .lp-footer-radar-rings { opacity: 0.7; }
+[data-theme="light"] .lp-footer-radar-cross { opacity: 0.7; }
+
+@keyframes lp-footer-sweep {
+  to { transform: rotate(360deg); }
+}
+
+/* Runway lights — evenly distributed dots, staggered blink */
+.lp-footer-runway {
+  position: absolute;
+  left: 0; right: 0; bottom: 12px;
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  justify-items: center;
+  padding: 0 32px;
+  pointer-events: none;
+}
+.lp-footer-runway span {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--accent) 45%, transparent);
+  animation: lp-footer-blink 2.4s ease-in-out infinite;
+}
+@keyframes lp-footer-blink {
+  0%, 70% { opacity: 0.25; box-shadow: 0 0 0 0 transparent; }
+  35% {
+    opacity: 1;
+    box-shadow: 0 0 8px 1px color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+}
+
+/* ICAO-style readout, top-right corner */
+.lp-footer-readout {
+  position: absolute;
+  top: 18px; right: 32px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--text-3) 55%, transparent);
+  pointer-events: none;
+}
+.lp-footer-readout-sep { color: color-mix(in oklab, var(--accent) 60%, transparent); }
+
+/* Reduced motion — kill the spin and the strobing */
+@media (prefers-reduced-motion: reduce) {
+  .lp-footer-radar-sweep { animation: none; opacity: 0.3; }
+  .lp-footer-runway span { animation: none; opacity: 0.5; box-shadow: none; }
+}
+
+/* Hide the readout on small screens — it would crowd the columns */
+@media (max-width: 1024px) {
+  .lp-footer-readout { display: none; }
+}
+
 .lp-footer-top {
   display: grid;
   grid-template-columns: 2fr repeat(4, 1fr);
