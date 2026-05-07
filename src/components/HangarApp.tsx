@@ -9,6 +9,7 @@ import { Sidebar } from "./Sidebar";
 import { CheatSheet, ChordIndicator } from "./CheatSheet";
 import { ShareModal } from "./ShareModal";
 import { TodayPanel } from "./TodayPanel";
+import { TourModal } from "./TourModal";
 import { ControlDeck } from "./ControlDeck";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { CategoryStrip } from "./CategoryStrip";
@@ -47,6 +48,7 @@ export function HangarApp() {
   const [showPalette, setShowPalette] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -125,18 +127,17 @@ export function HangarApp() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // First-run welcome: if a brand-new user has nothing pinned yet, pop the
-  // Starter Stacks modal so they don't stare at an empty grid trying to
-  // figure out where to start. Only shown once per workspace — a localStorage
-  // flag keeps it from interrupting users who deliberately unpinned everything.
+  // First-run guided tour. Replaces an earlier auto-Starter-Stacks behavior;
+  // the tour itself ends with a "Try a starter stack" CTA so the entry point
+  // is preserved. Stored under a separate flag so anyone who completed the
+  // older auto-Starter flow still gets the new tour exactly once.
   useEffect(() => {
-    if (stack.length > 0) return;
-    const seen = localStorage.getItem("hangar-first-run-shown");
+    const seen = localStorage.getItem("hangar-tour-completed");
     if (seen) return;
-    localStorage.setItem("hangar-first-run-shown", "1");
-    setShowStarters(true);
-    // Run only once on initial mount; we don't want to re-open if the user
-    // unpins everything later.
+    setShowTour(true);
+    // Mark on mount so a refresh during the tour doesn't re-trigger it. The
+    // tour can still be dismissed at any step — that counts as "done."
+    localStorage.setItem("hangar-tour-completed", "1");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -498,6 +499,13 @@ export function HangarApp() {
 
       <CheatSheet open={showCheatSheet} onClose={() => setShowCheatSheet(false)} />
       <ChordIndicator chord={chordPrefix} />
+
+      {showTour && (
+        <TourModal
+          onClose={() => setShowTour(false)}
+          onOpenStarters={() => setShowStarters(true)}
+        />
+      )}
     </div>
   );
 }
