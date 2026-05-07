@@ -4,6 +4,7 @@ import { Icon } from "../lib/icons";
 import type { Prefs, SecretsMap, Tool } from "../types";
 import { Brief } from "./Brief";
 import { SettingsMenu } from "./SettingsMenu";
+import { StatusRadar } from "./StatusRadar";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 import type { VaultState } from "../hooks/useVault";
@@ -94,6 +95,7 @@ export function TopBar({
           secrets={secrets}
           onAddAnthropicKey={onOpenAnthropicKey}
         />
+        <StatusRadar stackTools={stackTools} />
         <button
           type="button"
           className="ghost-btn"

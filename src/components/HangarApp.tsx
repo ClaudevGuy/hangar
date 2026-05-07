@@ -8,7 +8,6 @@ import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
 import { CheatSheet, ChordIndicator } from "./CheatSheet";
 import { ShareModal } from "./ShareModal";
-import { StatusRadar } from "./StatusRadar";
 import { TodayPanel } from "./TodayPanel";
 import { ControlDeck } from "./ControlDeck";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
@@ -252,7 +251,6 @@ export function HangarApp() {
         />
 
         <main className="main">
-          <StatusRadar stackTools={stackTools} />
           <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />
 
           <ControlDeck
