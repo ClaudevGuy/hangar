@@ -76,6 +76,7 @@ function Nav({ theme, onToggleTheme }: NavProps) {
           <a href="#features">Features</a>
           <a href="#catalog">Catalog</a>
           <a href="#how">How it works</a>
+          <a href="#showcase">Demo Video</a>
           <a href="#faq">FAQ</a>
         </div>
       </div>
