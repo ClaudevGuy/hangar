@@ -350,7 +350,9 @@ input { font-family: inherit; }
 .side-tool-btn {
   display: inline-flex; align-items: center; justify-content: center;
   position: relative;
-  width: 34px; height: 34px;
+  flex: 1;
+  min-width: 34px;
+  height: 34px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -392,12 +394,17 @@ input { font-family: inherit; }
 [data-accent="paper"] .side-tool-count { color: var(--bg); }
 
 /* When the SettingsMenu is mounted inside the sticky tools rail, the cog
-   trigger reuses the side-tool-btn look so all three icons match. */
+   trigger reuses the side-tool-btn look so all three icons match. The wrap
+   itself is a flex item that grows; its inner button fills the wrap. */
 .side-tools .settings-wrap {
-  display: inline-flex;
+  display: flex;
+  flex: 1;
+  min-width: 34px;
 }
 .side-tools .settings-wrap > button {
-  width: 34px; height: 34px;
+  flex: 1;
+  width: auto;
+  height: 34px;
   padding: 0;
   background: var(--panel);
   border: 1px solid var(--line);
