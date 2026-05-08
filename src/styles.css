@@ -318,6 +318,125 @@ input { font-family: inherit; }
 
 .side-section { display: flex; flex-direction: column; gap: 6px; }
 .side-foot { margin-top: auto; }
+
+/* Bottom-anchored cluster (activity + tools rail). Single margin-top:auto
+   on the wrapper so its children don't fight for the same auto-space. */
+.side-bottom {
+  margin-top: auto;
+  display: flex; flex-direction: column;
+  gap: 28px;
+}
+
+/* Sticky tools rail at the bottom of the sidebar — theme · settings · keys.
+   `position: sticky; bottom: 0` keeps it pinned to the bottom edge of the
+   sidebar's own scroll viewport regardless of how tall the content above
+   gets. Subtle border-top + bg-2 base so it reads as grounded, not floating.
+   Negative side margins extend the bar through the sidebar's 16px padding so
+   it spans edge-to-edge. */
+.side-tools {
+  position: sticky;
+  bottom: 0;
+  margin: 0 -16px -16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  z-index: 5;
+}
+[data-density="compact"] .side-tools { padding: 8px 14px; }
+
+.side-tool-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  position: relative;
+  width: 34px; height: 34px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s, transform .12s;
+}
+.side-tool-btn:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: var(--panel-2);
+  transform: translateY(-1px);
+}
+.side-tool-btn:active { transform: translateY(0); }
+
+/* Keys vault — count pill in the corner; locked state warns via warn color. */
+.side-tool-keys.is-locked {
+  color: var(--warn);
+  border-color: color-mix(in oklab, var(--warn) 50%, var(--line));
+}
+.side-tool-keys.is-locked:hover {
+  border-color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 10%, transparent);
+}
+.side-tool-count {
+  position: absolute;
+  top: -4px; right: -4px;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-fg, #000);
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  letter-spacing: 0;
+  box-shadow: 0 0 0 1.5px var(--bg-2);
+}
+[data-theme="light"] .side-tool-count { color: #fff; }
+[data-accent="paper"] .side-tool-count { color: var(--bg); }
+
+/* When the SettingsMenu is mounted inside the sticky tools rail, its
+   `.settings-wrap` trigger inherits side-tool-btn styling. The popover is
+   normally `position: absolute` relative to the trigger — but that gets
+   clipped by the sidebar's `overflow-y: auto`. Override to `position: fixed`
+   so the popover floats above the page, anchored just outside the sidebar's
+   right edge near its bottom. */
+.side-tools .settings-wrap {
+  display: inline-flex;
+}
+.side-tools .settings-wrap > button {
+  /* Reuse the side-tool-btn look so all three icons match. */
+  width: 34px; height: 34px;
+  padding: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s, transform .12s;
+}
+.side-tools .settings-wrap > button:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: var(--panel-2);
+  transform: translateY(-1px);
+}
+.side-tools .settings-menu {
+  /* Escape the sidebar's overflow context. */
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: 16px;
+  left: 280px;          /* sidebar width 268 + 12px clearance */
+  /* Soft entrance so the menu doesn't snap. */
+  animation: side-tools-menu-pop .18s cubic-bezier(.2, .9, .25, 1);
+}
+@keyframes side-tools-menu-pop {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 1100px) {
+  /* When the layout grid narrows the sidebar to 220px (per the responsive
+     rule in this file), shift the popover anchor accordingly. */
+  .side-tools .settings-menu { left: 232px; }
+}
 .side-label {
   font-family: var(--font-mono); font-size: 10px;
   text-transform: uppercase; letter-spacing: 0.14em;

@@ -242,25 +242,10 @@ export function HangarApp() {
         setQuery={setQuery}
         view={view}
         setView={setView}
-        prefs={prefs}
-        setPref={setPref}
         stackCount={stack.length}
         compareCount={compare.length}
-        keysCount={totalKeys}
-        vaultState={vaultState}
         onOpenStack={() => setShowStack(true)}
         onOpenCompare={handleOpenCompare}
-        onOpenKeys={() => setShowKeys(true)}
-        onSetPassphrase={vault.setPassphrase}
-        onChangePassphrase={vault.changePassphrase}
-        onRemovePassphrase={vault.removePassphrase}
-        onLock={vault.lock}
-        sync={{ status: sync.status, lastSyncedAt: sync.lastSyncedAt, error: sync.error }}
-        hasGitHubToken={!!githubToken}
-        onSyncSetUp={() => githubToken && sync.setUp(githubToken)}
-        onSyncPushNow={() => githubToken && sync.pushNow(githubToken)}
-        onSyncPullNow={() => githubToken && sync.pullNow(githubToken)}
-        onSyncDisconnect={sync.disconnect}
         stackTools={stackTools}
         toolMeta={toolMeta}
         secrets={secrets}
@@ -268,8 +253,6 @@ export function HangarApp() {
           setKeysFocusToolId("anthropic");
           setShowKeys(true);
         }}
-        onOpenShare={() => setShowShare(true)}
-        onOpenRepoScan={() => setShowRepoScan(true)}
         onOpenAsk={() => setShowAsk(true)}
       />
 
@@ -288,6 +271,23 @@ export function HangarApp() {
           onAddLink={addLink}
           onRemoveLink={removeLink}
           onClearLinks={clearLinks}
+          prefs={prefs}
+          setPref={setPref}
+          vaultState={vaultState}
+          keysCount={totalKeys}
+          onOpenKeys={() => setShowKeys(true)}
+          onSetPassphrase={vault.setPassphrase}
+          onChangePassphrase={vault.changePassphrase}
+          onRemovePassphrase={vault.removePassphrase}
+          onLock={vault.lock}
+          sync={{ status: sync.status, lastSyncedAt: sync.lastSyncedAt, error: sync.error }}
+          hasGitHubToken={!!githubToken}
+          onSyncSetUp={() => githubToken && sync.setUp(githubToken)}
+          onSyncPushNow={() => githubToken && sync.pushNow(githubToken)}
+          onSyncPullNow={() => githubToken && sync.pullNow(githubToken)}
+          onSyncDisconnect={sync.disconnect}
+          onOpenShare={() => setShowShare(true)}
+          onOpenRepoScan={() => setShowRepoScan(true)}
         />
 
         <main className="main">

@@ -1,10 +1,18 @@
 import { ACTIVITY, CATEGORIES, TOOLS } from "../data/tools";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
+import type { VaultState } from "../hooks/useVault";
 import { Icon } from "../lib/icons";
 import { timeAgo } from "../lib/timeAgo";
-import type { CategoryId, LinkItem, Tool } from "../types";
+import type { CategoryId, LinkItem, Prefs, Tool } from "../types";
 import { Linkboard } from "./Linkboard";
+import { SettingsMenu } from "./SettingsMenu";
 import { ToolLogo } from "./ToolLogo";
+
+interface SyncStateForUI {
+  status: "off" | "idle" | "syncing" | "error";
+  lastSyncedAt: number | null;
+  error: string | null;
+}
 
 interface Props {
   active: CategoryId;
@@ -21,12 +29,38 @@ interface Props {
   onAddLink: (entry: Omit<LinkItem, "id" | "addedAt">) => void;
   onRemoveLink: (id: string) => void;
   onClearLinks: () => void;
+  // Sticky tools rail at the bottom — theme toggle, settings menu, keys vault.
+  // Drilled down from HangarApp so each tool can stay where it logically lives.
+  prefs: Prefs;
+  setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+  vaultState: VaultState;
+  keysCount: number;
+  onOpenKeys: () => void;
+  onSetPassphrase: (p: string) => Promise<void>;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
+  onRemovePassphrase: (current: string) => Promise<void>;
+  onLock: () => void;
+  sync: SyncStateForUI;
+  hasGitHubToken: boolean;
+  onSyncSetUp: () => void;
+  onSyncPushNow: () => void;
+  onSyncPullNow: () => void;
+  onSyncDisconnect: () => void;
+  // SettingsMenu drilled-through props (Data tab)
+  onOpenShare: () => void;
+  onOpenRepoScan: () => void;
 }
 
 export function Sidebar({
   active, setActive, counts, stackTools, customTools, toolMeta, onRemoveStack, onOpenTool, onOpenStarters,
   links, onAddLink, onRemoveLink, onClearLinks,
+  prefs, setPref, vaultState, keysCount, onOpenKeys,
+  onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
+  sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
+  onOpenShare, onOpenRepoScan,
 }: Props) {
+  const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
+
   return (
     <aside className="sidebar">
       <Linkboard
@@ -103,26 +137,78 @@ export function Sidebar({
         )}
       </div>
 
-      {ACTIVITY.length > 0 && (
-        <div className="side-section side-foot">
-          <div className="side-label">Activity</div>
-          <ul className="activity">
-            {ACTIVITY.slice(0, 5).map((a, i) => {
-              const tool = TOOLS.find((t) => t.id === a.tool);
-              return (
-                <li key={i}>
-                  {tool && <ToolLogo tool={tool} size={18} />}
-                  <div className="act-text">
-                    <span className="act-line">{a.text}</span>
-                    {a.repo && <span className="act-repo">{a.repo}</span>}
-                  </div>
-                  <span className="act-time">{a.time}</span>
-                </li>
-              );
-            })}
-          </ul>
+      {/* Bottom-anchored cluster: activity (when present) sits right above
+          the sticky tools rail. Wrapping both in `.side-bottom` keeps a
+          single `margin-top: auto` on the wrapper so they don't fight for
+          the auto-space. */}
+      <div className="side-bottom">
+        {ACTIVITY.length > 0 && (
+          <div className="side-section">
+            <div className="side-label">Activity</div>
+            <ul className="activity">
+              {ACTIVITY.slice(0, 5).map((a, i) => {
+                const tool = TOOLS.find((t) => t.id === a.tool);
+                return (
+                  <li key={i}>
+                    {tool && <ToolLogo tool={tool} size={18} />}
+                    <div className="act-text">
+                      <span className="act-line">{a.text}</span>
+                      {a.repo && <span className="act-repo">{a.repo}</span>}
+                    </div>
+                    <span className="act-time">{a.time}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Sticky tools rail — theme · settings · keys vault. Pinned to
+            the bottom of the sidebar's visible scroll viewport regardless
+            of how tall the content above is. */}
+        <div className="side-tools">
+          <button
+            type="button"
+            className="side-tool-btn"
+            onClick={toggleTheme}
+            title={prefs.theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label="Toggle theme"
+          >
+            {prefs.theme === "dark" ? <Icon.sun /> : <Icon.moon />}
+          </button>
+          <SettingsMenu
+            prefs={prefs}
+            setPref={setPref}
+            vaultState={vaultState}
+            onSetPassphrase={onSetPassphrase}
+            onChangePassphrase={onChangePassphrase}
+            onRemovePassphrase={onRemovePassphrase}
+            onLock={onLock}
+            sync={sync}
+            hasGitHubToken={hasGitHubToken}
+            onSyncSetUp={onSyncSetUp}
+            onSyncPushNow={onSyncPushNow}
+            onSyncPullNow={onSyncPullNow}
+            onSyncDisconnect={onSyncDisconnect}
+            stackTools={stackTools}
+            toolMeta={toolMeta}
+            onOpenShare={onOpenShare}
+            onOpenRepoScan={onOpenRepoScan}
+          />
+          <button
+            type="button"
+            className={`side-tool-btn side-tool-keys ${vaultState === "locked" ? "is-locked" : ""}`}
+            onClick={onOpenKeys}
+            title={vaultState === "locked" ? "Vault locked — click to unlock" : "API keys vault"}
+            aria-label="Open keys vault"
+          >
+            <Icon.key />
+            {keysCount > 0 && vaultState !== "locked" && (
+              <span className="side-tool-count">{keysCount}</span>
+            )}
+          </button>
         </div>
-      )}
+      </div>
     </aside>
   );
 }
