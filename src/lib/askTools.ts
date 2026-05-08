@@ -6,7 +6,7 @@
 import { fetchGitHubUser, fetchGitHubRepos } from "./github";
 import { fetchLinearIssues, fetchLinearViewer, type LinearIssue } from "./linear";
 import { fetchSentryIssues, fetchSentryOrgs, type SentryIssue } from "./sentry";
-import { fetchVercelDeployments, fetchVercelProjects, type VercelDeployment } from "./vercel";
+import { fetchVercelDeployments, type VercelDeployment } from "./vercel";
 import { monthlyTotal } from "./cost";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
 import type { SecretsMap, Tool } from "../types";
