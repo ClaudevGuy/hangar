@@ -33,6 +33,7 @@ export function CheatSheet({ open, onClose }: Props) {
             <Row keys={["/"]} desc="Focus catalog search" />
             <Row keys={["⌘", "K"]} desc="Command palette" />
             <Row keys={["⌘", "⇧", "F"]} desc="Stack-wide search (every connected tool)" />
+            <Row keys={["⌘", "⇧", "A"]} desc="Ask your stack (Claude over your tools)" />
             <Row keys={["Esc"]} desc="Close popovers, blur inputs" />
           </Section>
           <Section title="Go to">

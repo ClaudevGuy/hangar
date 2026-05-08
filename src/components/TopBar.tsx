@@ -41,6 +41,7 @@ interface Props {
   onOpenAnthropicKey: () => void;
   onOpenShare: () => void;
   onOpenRepoScan: () => void;
+  onOpenAsk: () => void;
 }
 
 export function TopBar({
@@ -52,7 +53,7 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenShare, onOpenRepoScan,
+  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenShare, onOpenRepoScan, onOpenAsk,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -96,6 +97,15 @@ export function TopBar({
           secrets={secrets}
           onAddAnthropicKey={onOpenAnthropicKey}
         />
+        <button
+          type="button"
+          className="ask-trigger"
+          onClick={onOpenAsk}
+          title="Ask your stack — chat with Claude over your connected tools (⌘⇧A)"
+        >
+          <span className="ask-trigger-spark">✦</span>
+          <span>Ask</span>
+        </button>
         <StatusRadar stackTools={stackTools} />
         <button
           type="button"

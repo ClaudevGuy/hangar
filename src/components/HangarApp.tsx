@@ -25,6 +25,7 @@ import { StarterStacksModal } from "./StarterStacksModal";
 import { CommandPalette } from "./CommandPalette";
 import { RepoScanModal } from "./RepoScanModal";
 import { StackSearchModal } from "./StackSearchModal";
+import { AskModal } from "./AskModal";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
@@ -53,6 +54,7 @@ export function HangarApp() {
   const [showTour, setShowTour] = useState(false);
   const [showRepoScan, setShowRepoScan] = useState(false);
   const [showStackSearch, setShowStackSearch] = useState(false);
+  const [showAsk, setShowAsk] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -121,6 +123,7 @@ export function HangarApp() {
 
   // ⌘K / Ctrl+K opens the command palette from anywhere.
   // ⌘⇧F / Ctrl+Shift+F opens the stack-wide search from anywhere.
+  // ⌘⇧A / Ctrl+Shift+A opens "Ask your stack" from anywhere.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -133,6 +136,13 @@ export function HangarApp() {
       ) {
         e.preventDefault();
         setShowStackSearch((s) => !s);
+      } else if (
+        (e.key === "a" || e.key === "A") &&
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey
+      ) {
+        e.preventDefault();
+        setShowAsk((s) => !s);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -260,6 +270,7 @@ export function HangarApp() {
         }}
         onOpenShare={() => setShowShare(true)}
         onOpenRepoScan={() => setShowRepoScan(true)}
+        onOpenAsk={() => setShowAsk(true)}
       />
 
       <div className="layout">
@@ -563,6 +574,21 @@ export function HangarApp() {
           allTools={allTools}
           secrets={secrets}
           onClose={() => setShowStackSearch(false)}
+        />
+      )}
+
+      {showAsk && (
+        <AskModal
+          allTools={allTools}
+          stackTools={stackTools}
+          toolMeta={toolMeta}
+          secrets={secrets}
+          onClose={() => setShowAsk(false)}
+          onAddAnthropicKey={() => {
+            setKeysFocusToolId("anthropic");
+            setShowKeys(true);
+            setShowAsk(false);
+          }}
         />
       )}
     </div>
