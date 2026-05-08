@@ -70,13 +70,18 @@ The **Keys** button in the top bar opens a vault for API tokens. Per-tool, multi
 Add a GitHub Personal Access Token to the vault, then open the GitHub drawer. Hangar fetches your **user profile + 6 most recently pushed repos** straight from `api.github.com`. Skeleton loaders while fetching, real GitHub error messages when the token is wrong.
 
 ### Theming
-The top-bar **cog** opens a settings popover with:
+The **cog** at the bottom of the sidebar opens a settings popover with:
 
 - 5 accent colours (Neon green, Ember orange, Violet, Ice blue, Paper monochrome)
 - 2 densities (Comfy, Compact)
 - 3 card styles (Minimal, Bordered, Glow)
 
-Plus the dark/light toggle next to it. All choices persist to `localStorage`.
+Plus the dark/light toggle next to it. All choices persist to `localStorage`. The popover is portal-rendered into `document.body` so it cleanly escapes the sidebar's overflow context.
+
+### Ask your stack
+Hit **⌘⇧A** (or click **✦ Ask** in the topbar) to open a premium chat surface. Claude reaches into your stack via tool-use over your stored vault tokens — read your pinned tools, list recent Vercel deploys, list unresolved Sentry issues, list assigned Linear issues, list GitHub PRs awaiting your review, list recent repos. Browser-direct using your own Anthropic key; no proxy.
+
+Premium UX details: clickable suggested-prompt cards on empty state, tool-call chips above each turn, citations rendered as Stack-Search-style hit cards under each answer, cumulative token + cost meter (Sonnet 4.5 pricing), auto-resizing compose, history persisted in workspace-scoped `localStorage`.
 
 ### Stack-wide search
 Hit **⌘⇧F** (or click **Search stack** in the footer). One input fans the query out to **GitHub, Vercel, and Linear** in parallel using your stored vault tokens. Results stream in per-provider as each one settles, ranked by recency. ↑↓ to navigate, **Enter** to open the hit in its native dashboard. Each provider self-skips when its token is missing; errors are surfaced inline so a slow or rate-limited tool doesn't block the rest.
@@ -139,10 +144,10 @@ The build is a static folder — host it on any CDN, GitHub Pages, Vercel, Netli
 
 ### Store an API key
 
-1. Click **Keys** in the top bar. The vault modal opens.
+1. Click the **key icon** at the bottom of the sidebar. The vault modal opens.
 2. Switch the segmented filter to **All tools** to find the tool you need.
 3. Click **Add a key**, enter a label (e.g. "Personal Access Token"), paste the value, **Save**.
-4. The Keys pill in the top bar updates with the count.
+4. The corner badge on the key icon updates with the count.
 
 ### Connect GitHub for live insights
 
@@ -156,7 +161,18 @@ The token is held in your browser's `localStorage` only. It is sent directly fro
 
 ### Customize the look
 
-Click the **cog** in the top bar (right of the theme toggle). Pick an accent colour, density, and card style. The dark/light toggle is the sun/moon icon next to the cog.
+The bottom of the sidebar holds three icons: the **moon/sun** toggles dark/light mode, the **cog** opens the settings popover (accent colour · density · card style · sync · backup · MCP export · share · scan repo), and the **key** opens the API keys vault. Stays sticky to the bottom of the sidebar's visible scroll viewport.
+
+### Ask your stack
+
+1. Press **⌘⇧A** (Mac) or **Ctrl+Shift+A** (Windows/Linux), or click **✦ Ask** in the topbar.
+2. On first open, click one of the four suggested prompt cards — *"What's broken right now?"*, *"What's on my plate?"*, *"How's the deploy looking?"*, *"What does my stack cost?"* — or type your own.
+3. Claude calls into your stack via tool-use: `read_stack`, `list_recent_deploys`, `list_unresolved_issues`, `list_assigned_issues`, `list_review_requests`, `list_recent_repos`. Each tool runs browser-direct using the corresponding token in your vault.
+4. The answer streams into the conversation with **bold tool names**, tool-call chips for what was queried, and clickable citation cards under each turn linking to the source dashboard.
+5. Cumulative token + USD cost meter sits in the header so you can keep an eye on spend.
+6. **⌘K** clears the conversation, **Esc** cancels an in-flight run or closes the modal. History persists in `localStorage` (workspace-scoped, 30-turn cap).
+
+Needs an Anthropic API key in the vault. Tools each self-skip when their token is missing — Ask still works, just with whatever subset is connected.
 
 ### Search across your connected stack
 
@@ -255,6 +271,8 @@ localStorage.clear(); location.reload();
 
 ### Shipped recently — beyond the original roadmap
 
+- [x] **Ask your stack** — premium chat surface (⌘⇧A) where Claude calls into your stack via tool-use: read_stack, list_recent_deploys, list_unresolved_issues, list_assigned_issues, list_review_requests, list_recent_repos. Browser-direct using your own Anthropic key. Tool-call chips, citation cards, cumulative cost meter, history persisted in localStorage
+- [x] **Sidebar tools rail** — moved theme toggle, settings cog, and Keys vault from the topbar to a sticky bottom rail in the sidebar. Settings popover portal-rendered into `<body>` to escape overflow contexts. Frees significant topbar real estate for stack-action buttons
 - [x] **Stack-wide search** — single input fans the query out to GitHub, Vercel and Linear in parallel using your vault tokens. Results stream in per-provider with a debounced + AbortSignal-cancellable orchestrator. ⌘⇧F from anywhere; per-provider dot badges; ↑↓/enter navigation
 - [x] **Repo Scanner** — File System Access API reads a project's `package.json` + `.env*` files at the root, infers which tools it uses (28 mapped via package imports + env-var patterns), and offers one-click pin + key import. Local-first, read-only, Chromium browsers only
 - [x] **Today panel** — unified incident feed across Vercel/Sentry/Linear, ranked by severity then recency

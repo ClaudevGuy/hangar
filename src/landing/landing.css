@@ -647,6 +647,77 @@ html, body { overflow-x: clip; }
   color: var(--accent);
 }
 
+/* Demo: ask your stack — chat surface with tool chips + citations */
+.lp-demo-ask {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.lp-demo-ask-user {
+  align-self: flex-end;
+  max-width: 78%;
+  padding: 8px 12px;
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--accent-bg) 70%, var(--bg-2)),
+    var(--accent-bg));
+  border: 1px solid var(--accent-line);
+  border-radius: 10px;
+  border-top-right-radius: 3px;
+  font-size: 13px;
+  color: var(--text);
+}
+.lp-demo-ask-chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.lp-demo-ask-chip {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 3px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.lp-demo-ask-prose {
+  margin: 0;
+  font-size: 13px; line-height: 1.55;
+  color: var(--text);
+}
+.lp-demo-ask-prose strong { color: var(--accent); font-weight: 600; }
+.lp-demo-ask-cites {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.lp-demo-ask-cites-label {
+  font-family: var(--font-mono); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--text-3);
+}
+.lp-demo-ask-cite {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center; gap: 10px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.lp-demo-ask-cite .lp-tool-logo { width: 22px; height: 22px; }
+.lp-demo-ask-cite-body {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+}
+.lp-demo-ask-cite-title {
+  font-size: 12px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lp-demo-ask-cite-sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3);
+}
+.lp-demo-ask-cite-type {
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--accent);
+}
+
 .lp-feature-num {
   font-family: var(--font-mono); font-size: 10.5px;
   text-transform: uppercase; letter-spacing: 0.16em;

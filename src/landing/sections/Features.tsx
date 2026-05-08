@@ -25,7 +25,7 @@ export function Features() {
             A control tower, <span className="lp-soft">not another dashboard.</span>
           </h2>
           <p className="lp-sec-sub">
-            Thirteen small things that, together, replace the chaos of bookmark folders, password
+            Fourteen small things that, together, replace the chaos of bookmark folders, password
             managers and "uhh let me find the link."
           </p>
         </div>
@@ -457,6 +457,58 @@ export function Features() {
               </div>
             </div>
           </article>
+
+          <article className="lp-feature lp-span-6">
+            <div className="lp-feature-num">14 / Ask</div>
+            <h3 className="lp-feature-title">
+              Chat with Claude over your live stack.
+            </h3>
+            <p className="lp-feature-desc">
+              <code className="lp-code">⌘⇧A</code> opens a premium chat surface where Claude
+              reaches into your stack via tool-use over your own vault tokens — read the stack,
+              list recent deploys, list unresolved errors, list assigned tickets, list PRs awaiting
+              your review. Tool-call chips, citation cards under each turn, cumulative token + cost
+              meter. Brief is one-shot; Search is keyword-only; Ask is open-ended interrogation.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-ask">
+                <div className="lp-demo-ask-user">What&apos;s broken right now?</div>
+                <div className="lp-demo-ask-chips">
+                  <span className="lp-demo-ask-chip">✓ list_recent_deploys</span>
+                  <span className="lp-demo-ask-chip">✓ list_unresolved_issues</span>
+                </div>
+                <p className="lp-demo-ask-prose">
+                  <strong>Vercel</strong> deploy <code className="lp-code">abc123</code> went prod
+                  18m before this <strong>Sentry</strong> spike. Stack trace points to{" "}
+                  <code className="lp-code">checkout.tsx:47</code>. Last 3 deploys touched that
+                  file.
+                </p>
+                <div className="lp-demo-ask-cites">
+                  <div className="lp-demo-ask-cites-label">Sources</div>
+                  {ASK_CITATIONS.map((c, i) => {
+                    const t = findTool(c.id);
+                    if (!t) return null;
+                    return (
+                      <div key={i} className="lp-demo-ask-cite">
+                        <div
+                          className="lp-tool-logo"
+                          style={{ background: t.bg, color: t.color }}
+                          dangerouslySetInnerHTML={{ __html: t.logo }}
+                        />
+                        <div className="lp-demo-ask-cite-body">
+                          <span className="lp-demo-ask-cite-title">{c.title}</span>
+                          <span className="lp-demo-ask-cite-sub">
+                            <span className="lp-demo-ask-cite-type">{c.type}</span>
+                            {" · "}{c.sub}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -476,6 +528,12 @@ const SEARCH_HITS: { id: string; type: string; title: string; time: string }[] =
   { id: "github",  type: "pr",     title: "checkout: handle 402 from Stripe",   time: "1h"  },
   { id: "vercel",  type: "deploy", title: "checkout: 3.4s prod deploy",         time: "2h"  },
   { id: "sentry",  type: "issue",  title: "TypeError in checkout.tsx",          time: "6h"  },
+];
+
+const ASK_CITATIONS: { id: string; type: string; title: string; sub: string }[] = [
+  { id: "vercel", type: "deploy", title: "checkout: 3.4s prod deploy",  sub: "abc123 · prod · 18m" },
+  { id: "sentry", type: "issue",  title: "TypeError in checkout.tsx",   sub: "checkout · 47 events · 12 users" },
+  { id: "github", type: "pr",     title: "#142 · checkout: handle 402", sub: "merged · 3h" },
 ];
 
 const TODAY_MOCK: { title: string; sev: "critical" | "warning" | "info"; time: string }[] = [
