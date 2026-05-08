@@ -2546,7 +2546,9 @@ input { font-family: inherit; }
 /* All modal frames share entrance + shadow + accent-hairline at the top edge */
 .compare-modal,
 .stack-modal,
-.keys-modal {
+.keys-modal,
+.repo-scan-modal,
+.stack-search-modal {
   width: min(960px, 100%);
   max-height: 90vh;
   background: var(--bg);
@@ -2563,7 +2565,9 @@ input { font-family: inherit; }
 /* Subtle accent-tinted highlight along the very top edge — premium feel */
 .compare-modal::before,
 .stack-modal::before,
-.keys-modal::before {
+.keys-modal::before,
+.repo-scan-modal::before,
+.stack-search-modal::before {
   content: "";
   position: absolute; top: 0; left: 24px; right: 24px;
   height: 1px;
@@ -2573,8 +2577,10 @@ input { font-family: inherit; }
     transparent);
   pointer-events: none;
 }
-.compare-modal { width: min(1100px, 100%); }
-.keys-modal    { width: min(820px, 100%); }
+.compare-modal      { width: min(1100px, 100%); }
+.keys-modal         { width: min(820px, 100%); }
+.repo-scan-modal    { width: min(720px, 100%); }
+.stack-search-modal { width: min(680px, 100%); }
 
 @keyframes modal-pop {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }
@@ -3591,6 +3597,282 @@ input { font-family: inherit; }
 .share-summary {
   font-size: 12px;
   margin-left: auto;
+}
+
+/* ----------------------------------------------------------- */
+/* Repo Scan modal — File System Access API flow                */
+/* ----------------------------------------------------------- */
+.repo-scan-body {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 22px 28px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.repo-scan-intro {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 8px 0;
+}
+.repo-scan-blurb {
+  font-size: 14px; line-height: 1.55;
+  color: var(--text-2);
+  margin: 0;
+}
+.repo-scan-blurb code {
+  font-family: var(--font-mono); font-size: 12px;
+  padding: 1px 6px; border-radius: 4px;
+  background: var(--panel-2); color: var(--text);
+}
+.repo-scan-promises {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.repo-scan-promises li {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--text-2);
+}
+.repo-scan-promises li svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.repo-scan-error {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--danger);
+  padding: 8px 12px;
+  background: color-mix(in oklab, var(--danger) 10%, transparent);
+  border-radius: var(--r-sm);
+}
+.repo-scan-empty {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.repo-scan-empty p { color: var(--text-3); font-size: 13px; line-height: 1.5; max-width: 440px; margin: 0; }
+
+.repo-scan-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.repo-scan-finding {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  background: var(--panel);
+  transition: border-color .15s;
+}
+.repo-scan-finding:hover { border-color: var(--line-2); }
+.repo-scan-finding-head {
+  display: flex; align-items: center; gap: 12px;
+}
+.repo-scan-finding-meta { flex: 1; min-width: 0; }
+.repo-scan-finding-name {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 600;
+  letter-spacing: -0.01em;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.repo-scan-finding-reasons {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--text-3); letter-spacing: 0.06em;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.repo-scan-pill {
+  font-family: var(--font-mono); font-size: 9.5px;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  padding: 3px 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 999px;
+}
+.repo-scan-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.repo-scan-toggle input { cursor: pointer; }
+.repo-scan-toggle input:disabled { cursor: not-allowed; opacity: 0.5; }
+.repo-scan-envs {
+  list-style: none; margin: 12px 0 0; padding: 12px 0 0;
+  border-top: 1px dashed var(--line);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.repo-scan-envs li { display: flex; }
+.repo-scan-env-name {
+  font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--text);
+  flex: 1;
+}
+.repo-scan-env-mask {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-3); letter-spacing: 0.05em;
+}
+.repo-scan-unknown {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--panel-2); color: var(--text-2);
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  flex-shrink: 0;
+}
+.repo-scan-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 30%, var(--bg));
+}
+.repo-scan-foot-actions { display: flex; gap: 8px; }
+
+/* ----------------------------------------------------------- */
+/* Stack Search modal — single input, fans out to providers     */
+/* ----------------------------------------------------------- */
+.stack-search-modal { max-height: 76vh; }
+.stack-search-input-wrap {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+.stack-search-input-wrap > svg {
+  flex-shrink: 0;
+  color: var(--text-3);
+  width: 20px; height: 20px;
+}
+.stack-search-input {
+  flex: 1; min-width: 0;
+  background: transparent;
+  border: none; outline: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.stack-search-input::placeholder { color: var(--text-4); }
+.stack-search-esc {
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-3);
+  padding: 3px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.stack-search-meta {
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 20%, var(--bg));
+}
+.stack-search-badges {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.stack-search-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-mono); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-3);
+}
+.stack-search-badge::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-4);
+  flex-shrink: 0;
+}
+.stack-search-badge.dot-pending::before {
+  background: var(--accent);
+  animation: stack-search-pulse 1s ease-in-out infinite;
+}
+.stack-search-badge.dot-ok::before { background: var(--accent); }
+.stack-search-badge.dot-empty::before { background: var(--text-4); }
+.stack-search-badge.dot-error::before { background: var(--danger); }
+.stack-search-badge-count {
+  font-size: 10px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+@keyframes stack-search-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+.stack-search-body {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+}
+.stack-search-empty {
+  padding: 60px 22px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.stack-search-empty p {
+  color: var(--text-3);
+  font-size: 13px; line-height: 1.55;
+  max-width: 380px; margin: 0;
+}
+.stack-search-results {
+  list-style: none; margin: 0; padding: 6px 0;
+  display: flex; flex-direction: column;
+}
+.stack-search-hit {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 22px;
+  cursor: pointer;
+  transition: background .12s;
+  border-left: 2px solid transparent;
+}
+.stack-search-hit.is-active {
+  background: var(--accent-bg);
+  border-left-color: var(--accent);
+}
+.stack-search-hit > svg:last-child {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.stack-search-hit-body { flex: 1; min-width: 0; }
+.stack-search-hit-title {
+  font-size: 13.5px; font-weight: 500;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: -0.005em;
+}
+.stack-search-hit-sub {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--text-3);
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stack-search-hit-type {
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.stack-search-error {
+  margin: 4px 22px;
+  padding: 6px 10px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+  border-radius: var(--r-sm);
+}
+.stack-search-foot {
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 22px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--text-3);
+  background: color-mix(in oklab, var(--panel) 30%, var(--bg));
+}
+.stack-search-foot kbd {
+  font-family: var(--font-mono); font-size: 10px;
+  padding: 2px 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--text-2);
 }
 
 /* ----------------------------------------------------------- */

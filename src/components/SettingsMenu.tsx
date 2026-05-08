@@ -52,6 +52,8 @@ interface Props {
   toolMeta: ToolMetaMap;
   // Opens the Share modal at the app level. Closes the settings popover.
   onOpenShare: () => void;
+  // Opens the Repo Scan modal at the app level. Closes the settings popover.
+  onOpenRepoScan: () => void;
 }
 
 type SettingsTab = "look" | "security" | "data";
@@ -59,7 +61,7 @@ type SettingsTab = "look" | "security" | "data";
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta, onOpenShare,
+  stackTools, toolMeta, onOpenShare, onOpenRepoScan,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("look");
@@ -224,6 +226,28 @@ export function SettingsMenu({
           </>)}
 
           {tab === "data" && (<>
+          <div className="settings-section">
+            <div className="settings-label">Scan repo</div>
+            <div className="settings-row settings-row-vert">
+              <div className="muted settings-blurb">
+                Point Hangar at a project folder and it reads <code>package.json</code> +{" "}
+                <code>.env</code> to suggest tools to pin and keys to import. Local-first,
+                read-only, Chromium browsers.
+              </div>
+              <button
+                type="button"
+                className="ghost-btn small settings-export"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenRepoScan();
+                }}
+                title="Scan a local repo for tools + keys"
+              >
+                Scan a repo
+              </button>
+            </div>
+          </div>
+
           <div className="settings-section">
             <div className="settings-label">Backup</div>
             <div className="settings-row">

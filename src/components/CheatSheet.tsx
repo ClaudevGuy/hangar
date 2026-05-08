@@ -30,7 +30,9 @@ export function CheatSheet({ open, onClose }: Props) {
         <div className="cheat-body">
           <Section title="Navigation">
             <Row keys={["?"]} desc="Open this cheat sheet" />
-            <Row keys={["/"]} desc="Focus search" />
+            <Row keys={["/"]} desc="Focus catalog search" />
+            <Row keys={["⌘", "K"]} desc="Command palette" />
+            <Row keys={["⌘", "⇧", "F"]} desc="Stack-wide search (every connected tool)" />
             <Row keys={["Esc"]} desc="Close popovers, blur inputs" />
           </Section>
           <Section title="Go to">

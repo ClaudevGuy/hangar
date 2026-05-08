@@ -40,6 +40,7 @@ interface Props {
   secrets: SecretsMap;
   onOpenAnthropicKey: () => void;
   onOpenShare: () => void;
+  onOpenRepoScan: () => void;
 }
 
 export function TopBar({
@@ -51,7 +52,7 @@ export function TopBar({
   onOpenStack, onOpenCompare, onOpenKeys,
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenShare,
+  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenShare, onOpenRepoScan,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -155,6 +156,7 @@ export function TopBar({
           stackTools={stackTools}
           toolMeta={toolMeta}
           onOpenShare={onOpenShare}
+          onOpenRepoScan={onOpenRepoScan}
         />
       </div>
     </header>

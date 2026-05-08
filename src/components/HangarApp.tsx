@@ -23,6 +23,8 @@ import { StackModal } from "./StackModal";
 import { AddToolModal } from "./AddToolModal";
 import { StarterStacksModal } from "./StarterStacksModal";
 import { CommandPalette } from "./CommandPalette";
+import { RepoScanModal } from "./RepoScanModal";
+import { StackSearchModal } from "./StackSearchModal";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
@@ -49,6 +51,8 @@ export function HangarApp() {
   const [showShare, setShowShare] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [showRepoScan, setShowRepoScan] = useState(false);
+  const [showStackSearch, setShowStackSearch] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -116,11 +120,19 @@ export function HangarApp() {
   );
 
   // ⌘K / Ctrl+K opens the command palette from anywhere.
+  // ⌘⇧F / Ctrl+Shift+F opens the stack-wide search from anywhere.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setShowPalette((s) => !s);
+      } else if (
+        (e.key === "f" || e.key === "F") &&
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey
+      ) {
+        e.preventDefault();
+        setShowStackSearch((s) => !s);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -247,6 +259,7 @@ export function HangarApp() {
           setShowKeys(true);
         }}
         onOpenShare={() => setShowShare(true)}
+        onOpenRepoScan={() => setShowRepoScan(true)}
       />
 
       <div className="layout">
@@ -366,6 +379,15 @@ export function HangarApp() {
           <footer className="foot">
             <div>Hangar · the dev's control tower · v0.4 (preview)</div>
             <div className="foot-actions">
+              <button
+                type="button"
+                className="foot-help-btn"
+                onClick={() => setShowStackSearch(true)}
+                title="Search across your connected stack"
+              >
+                <span className="foot-help-spark">⌕</span> Search stack
+                <kbd>⌘⇧F</kbd>
+              </button>
               <button
                 type="button"
                 className="foot-help-btn"
@@ -521,6 +543,26 @@ export function HangarApp() {
         <TourModal
           onClose={() => setShowTour(false)}
           onOpenStarters={() => setShowStarters(true)}
+        />
+      )}
+
+      {showRepoScan && (
+        <RepoScanModal
+          allTools={allTools}
+          stack={stack}
+          onPin={(toolId) =>
+            setStack((s) => (s.includes(toolId) ? s : [...s, toolId]))
+          }
+          onImportKey={(toolId, entry) => upsertKey(toolId, entry)}
+          onClose={() => setShowRepoScan(false)}
+        />
+      )}
+
+      {showStackSearch && (
+        <StackSearchModal
+          allTools={allTools}
+          secrets={secrets}
+          onClose={() => setShowStackSearch(false)}
         />
       )}
     </div>
