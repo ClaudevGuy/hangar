@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
 import type { VaultState } from "../hooks/useVault";
 import { Icon } from "../lib/icons";
 import { downloadConfig, importConfigFromFile } from "../lib/config";
 import { downloadMcpConfig } from "../lib/mcpExport";
 import type { Accent, CardStyle, Density, Prefs, Tool } from "../types";
+
+// Where this SettingsMenu is mounted. Drives the popover's portal-rendered
+// position. "topbar" anchors top-right of the topbar trigger; "sidebar"
+// anchors bottom-left, flying out from the sidebar's bottom rail.
+type Placement = "topbar" | "sidebar";
 
 const ACCENT_OPTIONS: { value: Accent; label: string; swatch: string }[] = [
   { value: "neon", label: "Neon", swatch: "#00e599" },
@@ -54,6 +60,8 @@ interface Props {
   onOpenShare: () => void;
   // Opens the Repo Scan modal at the app level. Closes the settings popover.
   onOpenRepoScan: () => void;
+  // Where the trigger lives. Affects how the portal-rendered popover anchors.
+  placement?: Placement;
 }
 
 type SettingsTab = "look" | "security" | "data";
@@ -62,10 +70,16 @@ export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
   stackTools, toolMeta, onOpenShare, onOpenRepoScan,
+  placement = "topbar",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("look");
   const wrapRef = useRef<HTMLDivElement>(null);
+  // The popover is portal-rendered into document.body to escape the
+  // sidebar's overflow context + any backdrop-filter containing blocks.
+  // We track its DOM ref so outside-click detection can include it
+  // (otherwise a click on the menu itself would close the menu).
+  const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ kind: "idle" | "ok" | "err"; msg?: string }>({
     kind: "idle",
@@ -86,11 +100,16 @@ export function SettingsMenu({
     }
   };
 
-  // Close on outside click + Escape.
+  // Close on outside click + Escape. The popover is portal-rendered, so a
+  // click on the menu itself isn't a descendant of `wrapRef` — we have to
+  // also exempt clicks inside `menuRef`.
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const inWrap = wrapRef.current?.contains(target) ?? false;
+      const inMenu = menuRef.current?.contains(target) ?? false;
+      if (!inWrap && !inMenu) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -115,8 +134,13 @@ export function SettingsMenu({
       >
         <Icon.cog />
       </button>
-      {open && (
-        <div className="settings-menu" role="menu">
+      {open && createPortal(
+        <div
+          className="settings-menu"
+          role="menu"
+          ref={menuRef}
+          data-placement={placement}
+        >
           <div className="settings-tabs" role="tablist">
             <button
               type="button"
@@ -325,7 +349,8 @@ export function SettingsMenu({
             </div>
           </div>
           </>)}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

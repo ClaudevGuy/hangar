@@ -194,6 +194,7 @@ export function Sidebar({
             toolMeta={toolMeta}
             onOpenShare={onOpenShare}
             onOpenRepoScan={onOpenRepoScan}
+            placement="sidebar"
           />
           <button
             type="button"

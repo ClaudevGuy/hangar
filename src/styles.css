@@ -391,17 +391,12 @@ input { font-family: inherit; }
 [data-theme="light"] .side-tool-count { color: #fff; }
 [data-accent="paper"] .side-tool-count { color: var(--bg); }
 
-/* When the SettingsMenu is mounted inside the sticky tools rail, its
-   `.settings-wrap` trigger inherits side-tool-btn styling. The popover is
-   normally `position: absolute` relative to the trigger — but that gets
-   clipped by the sidebar's `overflow-y: auto`. Override to `position: fixed`
-   so the popover floats above the page, anchored just outside the sidebar's
-   right edge near its bottom. */
+/* When the SettingsMenu is mounted inside the sticky tools rail, the cog
+   trigger reuses the side-tool-btn look so all three icons match. */
 .side-tools .settings-wrap {
   display: inline-flex;
 }
 .side-tools .settings-wrap > button {
-  /* Reuse the side-tool-btn look so all three icons match. */
   width: 34px; height: 34px;
   padding: 0;
   background: var(--panel);
@@ -418,14 +413,17 @@ input { font-family: inherit; }
   background: var(--panel-2);
   transform: translateY(-1px);
 }
-.side-tools .settings-menu {
-  /* Escape the sidebar's overflow context. */
+
+/* The popover is portal-rendered into <body>, so the sidebar's overflow
+   context doesn't clip it and no ancestor's backdrop-filter creates a
+   surprise containing block. We position it via a [data-placement] hook. */
+.settings-menu[data-placement="sidebar"] {
   position: fixed;
   top: auto;
   right: auto;
   bottom: 16px;
   left: 280px;          /* sidebar width 268 + 12px clearance */
-  /* Soft entrance so the menu doesn't snap. */
+  z-index: 100;         /* above .topbar (z:50), below .modal-overlay (z:110) */
   animation: side-tools-menu-pop .18s cubic-bezier(.2, .9, .25, 1);
 }
 @keyframes side-tools-menu-pop {
@@ -435,7 +433,10 @@ input { font-family: inherit; }
 @media (max-width: 1100px) {
   /* When the layout grid narrows the sidebar to 220px (per the responsive
      rule in this file), shift the popover anchor accordingly. */
-  .side-tools .settings-menu { left: 232px; }
+  .settings-menu[data-placement="sidebar"] { left: 232px; }
+}
+@media (max-width: 800px) {
+  /* Sidebar is hidden at this breakpoint; no need to reposition. */
 }
 .side-label {
   font-family: var(--font-mono); font-size: 10px;
