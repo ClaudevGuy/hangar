@@ -8,11 +8,11 @@ export function Showcase() {
         <div className="lp-sec-head">
           <div className="lp-sec-eyebrow">Watch it work</div>
           <h2 className="lp-sec-title">
-            Forty seconds. <span className="lp-soft">Your whole stack.</span>
+            Fifty-two seconds. <span className="lp-soft">Your whole stack.</span>
           </h2>
         </div>
         <div className="lp-showcase-frame">
-          <Stage width={1920} height={1080} duration={40} loop autoplay>
+          <Stage width={1920} height={1080} duration={52} background="#07080a" loop autoplay>
             <HangarShowcase />
           </Stage>
         </div>
