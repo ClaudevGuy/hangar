@@ -25,7 +25,7 @@ export function Features() {
             A control tower, <span className="lp-soft">not another dashboard.</span>
           </h2>
           <p className="lp-sec-sub">
-            Eleven small things that, together, replace the chaos of bookmark folders, password
+            Thirteen small things that, together, replace the chaos of bookmark folders, password
             managers and "uhh let me find the link."
           </p>
         </div>
@@ -378,11 +378,105 @@ export function Features() {
               </div>
             </div>
           </article>
+
+          <article className="lp-feature lp-span-3">
+            <div className="lp-feature-num">12 / Scan</div>
+            <h3 className="lp-feature-title">
+              Hangar reads your repo and builds your stack.
+            </h3>
+            <p className="lp-feature-desc">
+              Pick a project folder. Hangar parses <code className="lp-code">package.json</code>{" "}
+              and <code className="lp-code">.env</code>, infers which tools you're already using,
+              and offers one-click pin + key import. Local-first, read-only, browser only. The
+              fastest first-day onboarding in any dashboard.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-scan">
+                <div className="lp-demo-scan-path">~/projects/acme-saas</div>
+                <div className="lp-demo-scan-list">
+                  {SCAN_DETECTED.map(({ id, evidence }) => {
+                    const t = findTool(id);
+                    if (!t) return null;
+                    return (
+                      <div key={id} className="lp-demo-scan-row">
+                        <div
+                          className="lp-tool-logo"
+                          style={{ background: t.bg, color: t.color }}
+                          dangerouslySetInnerHTML={{ __html: t.logo }}
+                        />
+                        <span className="lp-demo-scan-name">{t.name}</span>
+                        <span className="lp-demo-scan-evidence">{evidence}</span>
+                        <span className="lp-demo-scan-check">✓</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article className="lp-feature lp-span-3">
+            <div className="lp-feature-num">13 / Search</div>
+            <h3 className="lp-feature-title">
+              One input. Every connected tool.
+            </h3>
+            <p className="lp-feature-desc">
+              <code className="lp-code">⌘⇧F</code> from anywhere. Hangar fans your query out to
+              GitHub, Vercel and Linear in parallel using your vault tokens. Results stream in by
+              recency. Stop remembering which tool the thing lived in.
+            </p>
+            <div className="lp-feature-visual">
+              <div className="lp-demo-search">
+                <div className="lp-demo-search-input">
+                  <span className="lp-demo-search-icon">⌕</span>
+                  <span className="lp-demo-search-q">checkout</span>
+                  <span className="lp-cursor" />
+                </div>
+                <div className="lp-demo-search-results">
+                  {SEARCH_HITS.map((hit, i) => {
+                    const t = findTool(hit.id);
+                    if (!t) return null;
+                    return (
+                      <div key={i} className="lp-demo-search-row">
+                        <div
+                          className="lp-tool-logo"
+                          style={{ background: t.bg, color: t.color }}
+                          dangerouslySetInnerHTML={{ __html: t.logo }}
+                        />
+                        <div className="lp-demo-search-body">
+                          <span className="lp-demo-search-title">{hit.title}</span>
+                          <span className="lp-demo-search-sub">
+                            <span className="lp-demo-search-type">{hit.type}</span>
+                            {" · "}{hit.time}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
   );
 }
+
+const SCAN_DETECTED: { id: string; evidence: string }[] = [
+  { id: "anthropic", evidence: "pkg @anthropic-ai/sdk" },
+  { id: "stripe",    evidence: "env STRIPE_SECRET_KEY" },
+  { id: "neon",      evidence: "env DATABASE_URL · neon.tech" },
+  { id: "resend",    evidence: "pkg resend" },
+  { id: "sentry",    evidence: "pkg @sentry/nextjs" },
+];
+
+const SEARCH_HITS: { id: string; type: string; title: string; time: string }[] = [
+  { id: "linear",  type: "issue",  title: "HAN-87 · Fix checkout retry loop",   time: "12m" },
+  { id: "github",  type: "pr",     title: "checkout: handle 402 from Stripe",   time: "1h"  },
+  { id: "vercel",  type: "deploy", title: "checkout: 3.4s prod deploy",         time: "2h"  },
+  { id: "sentry",  type: "issue",  title: "TypeError in checkout.tsx",          time: "6h"  },
+];
 
 const TODAY_MOCK: { title: string; sev: "critical" | "warning" | "info"; time: string }[] = [
   { title: "hangar · deploy failed", sev: "critical", time: "12m" },
