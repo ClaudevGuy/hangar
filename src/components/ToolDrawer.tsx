@@ -1,12 +1,14 @@
 import type { CSSProperties } from "react";
 import { ACTIVITY, TOOLS } from "../data/tools";
 import { QUICK_ACTIONS } from "../data/quickActions";
+import { useNotes } from "../hooks/useNotes";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { parsePricingTiers, type PricingTier } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
 import { GitHubInsights } from "./GitHubInsights";
 import { LinearInsights } from "./LinearInsights";
+import { NotesSection } from "./NotesSection";
 import { ResendInsights } from "./ResendInsights";
 import { SentryInsights } from "./SentryInsights";
 import { TokenPrompt } from "./TokenPrompt";
@@ -38,6 +40,10 @@ export function ToolDrawer({
   tool, pinned, secrets, toolMeta, onClose, onPin, onLaunch, onSetPlan, onOpenKeys, onAddKeyForTool,
   onEditCustomTool, onRemoveCustomTool,
 }: Props) {
+  // Hooks must run on every render — call before the early null return.
+  const notes = useNotes();
+  const toolNotes = tool ? notes.notesForTool(tool.id) : [];
+
   if (!tool) return null;
 
   const effectivePlan = toolMeta[tool.id]?.plan ?? tool.plan ?? "";
@@ -252,6 +258,22 @@ export function ToolDrawer({
             </ul>
           </div>
         )}
+
+        <div className="drawer-section">
+          <div className="drawer-section-title">
+            Notes
+            {toolNotes.length > 0 && (
+              <span className="drawer-section-count">{toolNotes.length}</span>
+            )}
+          </div>
+          <NotesSection
+            notes={toolNotes}
+            onAdd={(text) => notes.addNote(text, { kind: "tool", toolId: tool.id })}
+            onUpdate={notes.updateNote}
+            onRemove={notes.removeNote}
+            placeholder={`Anything worth remembering about ${tool.name}…`}
+          />
+        </div>
 
         <div className="drawer-section">
           <div className="drawer-section-title">Recent</div>

@@ -2,7 +2,9 @@ import { useCallback, useState } from "react";
 import { TOOLS } from "../data/tools";
 import { useDismissedIncidents } from "../hooks/useDismissedIncidents";
 import { useIncidents, type Incident } from "../hooks/useIncidents";
+import { useNotes } from "../hooks/useNotes";
 import { Icon } from "../lib/icons";
+import { NotesSection } from "./NotesSection";
 import {
   buildInvestigateInput,
   generateInvestigation,
@@ -42,9 +44,14 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const stackPinnedIds = useStackIds(secrets);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Notes expansion is tracked separately so it can coexist with the AI
+  // investigate panel — only one inline panel per row at a time. When the
+  // user opens one, the other closes.
+  const [notesExpandedId, setNotesExpandedId] = useState<string | null>(null);
   const [investigations, setInvestigations] = useState<Map<string, InvestigationState>>(
     () => new Map(),
   );
+  const notes = useNotes();
 
   // Dismissal state — persisted across sessions so manually-hidden items
   // (and stale Vercel failures the user has acknowledged) stay hidden.
@@ -129,6 +136,8 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
         return;
       }
       setExpandedId(incident.id);
+      // One inline panel at a time — close any open notes editor.
+      setNotesExpandedId((cur) => (cur === incident.id ? null : cur));
       const existing = investigations.get(incident.id);
       // Auto-fetch on first expand. Re-running is via the explicit Refresh
       // button inside the expanded panel.
@@ -138,6 +147,12 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
     },
     [expandedId, investigations, runInvestigation],
   );
+
+  const toggleNotes = useCallback((incident: Incident) => {
+    setNotesExpandedId((cur) => (cur === incident.id ? null : incident.id));
+    // Close investigation if it's open on the same row.
+    setExpandedId((cur) => (cur === incident.id ? null : cur));
+  }, []);
 
   if (!hasAnyToken) return null;
 
@@ -293,6 +308,32 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
                         failed
                       </span>
                     )}
+                    {(() => {
+                      const incidentNotes = notes.notesForIncident(inc.id);
+                      const notesOpen = notesExpandedId === inc.id;
+                      return (
+                        <button
+                          type="button"
+                          className={`feed-note-btn${notesOpen ? " is-on" : ""}${incidentNotes.length > 0 ? " has-notes" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleNotes(inc);
+                          }}
+                          aria-expanded={notesOpen}
+                          title={
+                            incidentNotes.length > 0
+                              ? `${incidentNotes.length} note${incidentNotes.length === 1 ? "" : "s"} on this incident`
+                              : "Add a note about this incident"
+                          }
+                          aria-label="Notes"
+                        >
+                          <Icon.note />
+                          {incidentNotes.length > 0 && (
+                            <span className="feed-note-count">{incidentNotes.length}</span>
+                          )}
+                        </button>
+                      );
+                    })()}
                     <button
                       type="button"
                       className="feed-dismiss"
@@ -323,6 +364,34 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
                       onRefresh={() => runInvestigation(inc)}
                       onClose={() => setExpandedId(null)}
                     />
+                  )}
+                  {notesExpandedId === inc.id && (
+                    <div className="feed-notes-panel">
+                      <div className="feed-notes-head">
+                        <span className="feed-notes-label">
+                          <Icon.note /> Notes
+                        </span>
+                        <button
+                          type="button"
+                          className="feed-investigation-close"
+                          onClick={() => setNotesExpandedId(null)}
+                          aria-label="Close notes"
+                        >
+                          <Icon.close />
+                        </button>
+                      </div>
+                      <NotesSection
+                        compact
+                        notes={notes.notesForIncident(inc.id)}
+                        onAdd={(text) =>
+                          notes.addNote(text, { kind: "incident", incidentId: inc.id })
+                        }
+                        onUpdate={notes.updateNote}
+                        onRemove={notes.removeNote}
+                        placeholder="Why did this happen? How did you fix it last time?"
+                        startInAdd
+                      />
+                    </div>
                   )}
                 </li>
               );

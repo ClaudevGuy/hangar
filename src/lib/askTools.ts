@@ -368,6 +368,73 @@ const LIST_RECENT_REPOS: ToolDefinition = {
   },
 };
 
+const LIST_MY_NOTES: ToolDefinition = {
+  name: "list_my_notes",
+  description:
+    "List the user's contextual notes — short text snippets they've attached to tools or incidents in Hangar. Powerful for institutional memory: 'have I seen this before?', 'did I write down how to fix X?', 'what did I note about Vercel last month?'. Optional toolId filters to one tool's notes; optional query is a case-insensitive text match.",
+  input_schema: {
+    type: "object",
+    properties: {
+      toolId: {
+        type: "string",
+        description: "Filter to notes attached to this tool ID (e.g. 'vercel', 'sentry')",
+      },
+      query: {
+        type: "string",
+        description: "Case-insensitive substring match against note text",
+      },
+      limit: { type: "number", description: "Max notes to return (1-20, default 8)" },
+    },
+    required: [],
+  },
+  async run(input) {
+    // Read directly from localStorage so the tool doesn't need to be plumbed
+    // through the React tree. Workspace-scoped key, same as the useNotes hook.
+    try {
+      const active = localStorage.getItem("hangar-active-workspace") ?? "default";
+      const raw = localStorage.getItem(`hangar-notes-${active}`);
+      if (!raw) return { summary: { count: 0, notes: [] }, citations: [] };
+      const all = JSON.parse(raw) as Array<{
+        id: string;
+        text: string;
+        scope: { kind: string; toolId?: string; incidentId?: string };
+        updatedAt: number;
+        createdAt: number;
+      }>;
+      let filtered = all;
+      if (typeof input.toolId === "string") {
+        filtered = filtered.filter(
+          (n) => n.scope?.kind === "tool" && n.scope.toolId === input.toolId,
+        );
+      }
+      if (typeof input.query === "string" && input.query.trim().length > 0) {
+        const q = input.query.toLowerCase();
+        filtered = filtered.filter((n) => n.text.toLowerCase().includes(q));
+      }
+      filtered.sort((a, b) => b.updatedAt - a.updatedAt);
+      const limit = clampLimit(input.limit, 8, 20);
+      const top = filtered.slice(0, limit);
+      return {
+        summary: {
+          totalMatching: filtered.length,
+          notes: top.map((n) => ({
+            text: n.text,
+            scope: n.scope,
+            updatedAtIso: new Date(n.updatedAt).toISOString(),
+            ageDays: Math.round((Date.now() - n.updatedAt) / 86_400_000),
+          })),
+        },
+        citations: [],
+      };
+    } catch {
+      return {
+        summary: { notes: [], note: "Couldn't read notes from local storage." },
+        citations: [],
+      };
+    }
+  },
+};
+
 // ─────────────────────────────────────────────────────────────────────────
 // Public registry
 // ─────────────────────────────────────────────────────────────────────────
@@ -379,6 +446,7 @@ export const ASK_TOOLS: ToolDefinition[] = [
   LIST_ASSIGNED_ISSUES,
   LIST_REVIEW_REQUESTS,
   LIST_RECENT_REPOS,
+  LIST_MY_NOTES,
 ];
 
 // Used by the system prompt: enumerate which integrations have tokens so

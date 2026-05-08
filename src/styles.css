@@ -4465,6 +4465,216 @@ input { font-family: inherit; }
 }
 
 /* ----------------------------------------------------------- */
+/* Notes — contextual notes attached to a tool or incident      */
+/* ----------------------------------------------------------- */
+.notes-section {
+  display: flex; flex-direction: column;
+  gap: 10px;
+}
+.notes-empty {
+  font-size: 12.5px; line-height: 1.5;
+  margin: 0;
+  padding: 4px 0;
+}
+.notes-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+
+.note-card {
+  position: relative;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  transition: border-color .15s, box-shadow .15s;
+}
+.note-card:hover { border-color: var(--line-2); }
+.note-card.is-editing {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 8%, transparent);
+}
+.note-text {
+  margin: 0;
+  font-size: 13px; line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.note-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.note-time {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.06em;
+}
+.note-actions {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.note-action {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.note-action:hover {
+  color: var(--text);
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+.note-action-danger {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  padding: 0;
+}
+.note-action-danger:hover {
+  color: var(--danger);
+  border-color: color-mix(in oklab, var(--danger) 40%, var(--line));
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+}
+
+.note-textarea {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px; line-height: 1.5;
+  color: var(--text);
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.note-textarea:focus {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 10%, transparent);
+}
+
+.note-card-actions {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 6px;
+}
+.note-hint {
+  font-family: var(--font-mono); font-size: 9.5px;
+  color: var(--text-4);
+  letter-spacing: 0.04em;
+  margin-right: auto;
+}
+
+.note-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--text-2);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--r-sm);
+  font-family: inherit; font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.note-add-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+
+/* Compact variant — inline within the Today panel's incident expansion */
+.notes-section.is-compact { gap: 8px; }
+.notes-section.is-compact .note-card { padding: 10px 12px; }
+.notes-section.is-compact .note-text { font-size: 12.5px; }
+
+/* Section-title count chip (used by ToolDrawer's Notes header) */
+.drawer-section-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: 0.14em;
+  padding: 2px 7px;
+  margin-left: 8px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  color: var(--accent);
+}
+
+/* Per-incident note toggle on the Today feed */
+.feed-note-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  position: relative;
+  width: 28px; height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-4);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s, color .12s, background .12s, border-color .12s;
+  flex-shrink: 0;
+}
+.feed-item:hover .feed-note-btn { opacity: 1; }
+/* Always-visible when the row already has notes — they're a real artifact,
+   not just a possible affordance. */
+.feed-note-btn.has-notes { opacity: 1; color: var(--accent); }
+.feed-note-btn:hover {
+  color: var(--text-2);
+  background: var(--panel);
+  border-color: var(--line);
+}
+.feed-note-btn.has-notes:hover { color: var(--accent); }
+.feed-note-btn.is-on {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+}
+.feed-note-btn svg { width: 14px; height: 14px; }
+.feed-note-count {
+  position: absolute;
+  top: -4px; right: -4px;
+  min-width: 14px; height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--accent-fg, #000);
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  letter-spacing: 0;
+  box-shadow: 0 0 0 1.5px var(--bg);
+}
+[data-theme="light"] .feed-note-count { color: #fff; }
+[data-accent="paper"] .feed-note-count { color: var(--bg); }
+
+/* Inline notes panel beneath the incident row */
+.feed-notes-panel {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 2px;
+  padding: 14px 16px 16px;
+  background: color-mix(in oklab, var(--panel) 30%, var(--bg));
+  border-top: 1px dashed var(--line);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.feed-notes-head {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.feed-notes-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--text-3);
+}
+.feed-notes-label svg { color: var(--accent); }
+
+/* ----------------------------------------------------------- */
 /* Share preview — standalone /share page                       */
 /* (most styling lives in landing.css since it's marketing-ish) */
 /* ----------------------------------------------------------- */

@@ -8,6 +8,7 @@ import { Icon } from "../lib/icons";
 import {
   makeGitHubProvider,
   makeLinearProvider,
+  makeNotesProvider,
   makeVercelProvider,
   runSearch,
   type ProviderResult,
@@ -47,13 +48,23 @@ export function StackSearchModal({ allTools, secrets, onClose }: Props) {
     };
   }, [secrets]);
 
+  // Map of toolId → accountUrl, fed to the notes provider so a note hit
+  // can deep-link to its parent tool's actual dashboard.
+  const accountUrls = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const t of allTools) m[t.id] = t.accountUrl;
+    return m;
+  }, [allTools]);
+
   const providers = useMemo<SearchProvider[]>(
     () => [
       makeGitHubProvider(tokens.github),
       makeVercelProvider(tokens.vercel),
       makeLinearProvider(tokens.linear),
+      // Local-only — always enabled (no token required).
+      makeNotesProvider(accountUrls),
     ],
-    [tokens],
+    [tokens, accountUrls],
   );
 
   // Auto-focus the input on open.
@@ -150,6 +161,8 @@ export function StackSearchModal({ allTools, secrets, onClose }: Props) {
   }, [allTools]);
 
   const enabledProviders = providers.filter((p) => {
+    // Notes are local-only, always enabled regardless of tokens.
+    if (p.toolId === "notes") return true;
     const tok = tokens[p.toolId as keyof typeof tokens];
     return Boolean(tok);
   });

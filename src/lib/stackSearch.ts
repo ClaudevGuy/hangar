@@ -13,7 +13,8 @@ export type SearchHitType =
   | "repo"
   | "event"
   | "customer"
-  | "charge";
+  | "charge"
+  | "note";
 
 export interface SearchHit {
   toolId: string;
@@ -317,6 +318,71 @@ export function makeLinearProvider(token: string | null): SearchProvider {
           error: err instanceof Error ? err.message : "fetch failed",
         };
       }
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Notes provider — local-only. Searches the user's contextual notes
+// (per-tool only for v1, since they have a clean parent-tool to anchor a
+// click). Reads directly from localStorage so it doesn't need React state.
+// ─────────────────────────────────────────────────────────────────────────
+
+interface StoredNoteScope {
+  kind: "tool" | "incident";
+  toolId?: string;
+  incidentId?: string;
+}
+interface StoredNote {
+  id: string;
+  text: string;
+  scope: StoredNoteScope;
+  updatedAt: number;
+}
+
+function loadAllNotes(): StoredNote[] {
+  try {
+    const active = localStorage.getItem("hangar-active-workspace") ?? "default";
+    const raw = localStorage.getItem(`hangar-notes-${active}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed as StoredNote[];
+  } catch {
+    return [];
+  }
+}
+
+export function makeNotesProvider(allToolAccountUrls: Record<string, string>): SearchProvider {
+  return {
+    toolId: "notes",
+    async search(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) return { toolId: "notes", status: "ok", hits: [] };
+      const allNotes = loadAllNotes();
+      const matched = allNotes
+        .filter(
+          (n) =>
+            n.scope.kind === "tool" &&
+            typeof n.scope.toolId === "string" &&
+            n.text.toLowerCase().includes(q),
+        )
+        .sort((a, b) => b.updatedAt - a.updatedAt)
+        .slice(0, 6);
+      const hits: SearchHit[] = matched.map((n) => {
+        const toolId = n.scope.toolId!;
+        // Truncate to a single-line preview; the card title can't wrap nicely.
+        const preview = n.text.replace(/\s+/g, " ").slice(0, 80);
+        return {
+          toolId,
+          type: "note" as const,
+          title: preview,
+          subtitle: "your note",
+          url: allToolAccountUrls[toolId] ?? "#",
+          timestamp: n.updatedAt,
+        };
+      });
+      return { toolId: "notes", status: "ok", hits };
     },
   };
 }
