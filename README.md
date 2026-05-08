@@ -4,7 +4,7 @@
 
 **Live site:** <https://hangar-silk.vercel.app/>
 
-Hangar is a single-page React app that ships with a 29-tool catalogue across 11 categories — Vercel, Neon, Stripe, Anthropic, Sentry, Linear, Figma, and friends — and lets you **add any tool that isn't on the list yourself**. Pin the ones you use, store API keys per tool, and over time get live data straight from each provider (GitHub repos already, more to come).
+Hangar is a single-page React app that ships with a 29-tool catalogue across 11 categories — Vercel, Neon, Stripe, Anthropic, Sentry, Linear, Figma, and friends — and lets you **add any tool that isn't on the list yourself**. Pin the ones you use, store API keys per tool, search across every connected tool from one input, and pull live data straight from each provider (GitHub, Vercel, Linear, Sentry, and Resend wired up today).
 
 It runs entirely in your browser. No backend, no telemetry, no analytics. Your stack and your keys live in `localStorage` only.
 
@@ -78,6 +78,19 @@ The top-bar **cog** opens a settings popover with:
 
 Plus the dark/light toggle next to it. All choices persist to `localStorage`.
 
+### Stack-wide search
+Hit **⌘⇧F** (or click **Search stack** in the footer). One input fans the query out to **GitHub, Vercel, and Linear** in parallel using your stored vault tokens. Results stream in per-provider as each one settles, ranked by recency. ↑↓ to navigate, **Enter** to open the hit in its native dashboard. Each provider self-skips when its token is missing; errors are surfaced inline so a slow or rate-limited tool doesn't block the rest.
+
+### Scan a repo
+Open **Settings → Data → Scan a repo**, pick a project folder, and Hangar reads its `package.json` and any `.env` / `.env.local` / `.env.development.local` / `.env.example` files at the root. It maps known package names + env-var patterns to tools in the catalog and shows a checklist:
+
+- Per finding: pin the tool to your stack
+- Per env value: import into the vault as a labelled key (skipped for `.env.example` placeholders)
+
+Rules cover ~28 tools — Stripe, Anthropic, OpenAI, Resend, Postmark, Clerk, Auth0, WorkOS, Sentry, PostHog, Datadog, GitHub, Vercel, Linear, Inngest, Trigger, Upstash, Neon, Supabase, MongoDB, PlanetScale, Figma, Sanity, Lemon Squeezy, Cloudflare, Netlify, Fly. `DATABASE_URL` is refined by host (`neon.tech` → Neon, `supabase.` → Supabase, etc.).
+
+Local-first guarantees: read-only handle, no upload, per-pick permission. Uses the **File System Access API**, which today means **Chromium-based browsers** (Chrome, Edge, Brave, Arc, Opera). Firefox and Safari see a graceful fallback.
+
 ---
 
 ## Quick start
@@ -144,6 +157,24 @@ The token is held in your browser's `localStorage` only. It is sent directly fro
 ### Customize the look
 
 Click the **cog** in the top bar (right of the theme toggle). Pick an accent colour, density, and card style. The dark/light toggle is the sun/moon icon next to the cog.
+
+### Search across your connected stack
+
+1. Press **⌘⇧F** (Mac) or **Ctrl+Shift+F** (Windows/Linux), or click **Search stack** in the footer.
+2. Type at least 2 characters. The query fires (debounced) against every connected tool.
+3. Hits from GitHub (issues, PRs, repos), Vercel (deployments, projects), and Linear (issues) appear together, ranked by recency.
+4. Use **↑** / **↓** to highlight a result and **Enter** to open it. Click works too. **Esc** closes.
+
+Each provider only contributes hits if its token is in the vault. Errors are non-fatal — if Linear is unreachable, the GitHub and Vercel results still come through.
+
+### Scan a project repo
+
+1. Click the **cog** in the top bar → switch to the **Data** tab → **Scan a repo**.
+2. Pick a project directory. The browser asks for read permission once, for this scan only.
+3. Hangar reads `package.json` deps and any `.env*` files at the root, then shows a checklist of detected tools.
+4. Toggle which tools to pin and which env values to import into the vault. Click **Adopt selection**.
+
+Read-only and entirely local. No upload, no recursion into subdirectories. The directory handle is held only for this scan. Available in Chromium-based browsers (Chrome, Edge, Brave, Arc, Opera).
 
 ---
 
@@ -224,13 +255,16 @@ localStorage.clear(); location.reload();
 
 ### Shipped recently — beyond the original roadmap
 
+- [x] **Stack-wide search** — single input fans the query out to GitHub, Vercel and Linear in parallel using your vault tokens. Results stream in per-provider with a debounced + AbortSignal-cancellable orchestrator. ⌘⇧F from anywhere; per-provider dot badges; ↑↓/enter navigation
+- [x] **Repo Scanner** — File System Access API reads a project's `package.json` + `.env*` files at the root, infers which tools it uses (28 mapped via package imports + env-var patterns), and offers one-click pin + key import. Local-first, read-only, Chromium browsers only
 - [x] **Today panel** — unified incident feed across Vercel/Sentry/Linear, ranked by severity then recency
 - [x] **AI Brief** — Claude-powered stack summary in a topbar dropdown. Structured output (status badge, headline, observations, recommended action). Browser-direct, your own Anthropic key
 - [x] **AI Action / Investigate** — per-incident `✦` button on Today rows. Claude diagnoses with cross-tool correlation and offers concrete actions (open URL / copy drafted ticket)
+- [x] **Quick Actions** — per-incident write-back from the Today panel: resolve / ignore Sentry issues, snooze Linear tickets. Optimistic UI, browser-direct, your own tokens
 - [x] **Stack Share** — encode your stack into a URL hash and share publicly. Recipients adopt with one click. Zero-infra: data lives in the URL fragment, never sent to a server
-- [x] **Stack Health Radar** — public StatusPage.io endpoints aggregated for pinned providers (Vercel, GitHub, Stripe, Sentry, Linear, Cloudflare, Supabase, Clerk, Auth0, Anthropic, Inngest, Resend). Compact pill in the topbar; popover for details
+- [x] **Stack Health Radar** — public StatusPage.io endpoints aggregated for pinned providers (26 tools across Hosting/DB/Auth/Code/Jobs/Monitoring/Email/Payments/AI/Design). Compact pill in the topbar; popover for details
 - [x] **MCP server** — `mcp/` package with 6 tools so Claude Desktop / Cursor / any MCP client can query your stack (`read_stack`, `list_unresolved_issues`, `list_recent_deploys`, `list_assigned_issues`, `list_review_requests`, `get_recent_revenue`)
-- [x] **Keyboard shortcuts** — Linear-style chord system: `g 1-9` to launch pinned tool, `g g` top, `g t` Today, `?` cheat sheet, `/` focus search
+- [x] **Keyboard shortcuts** — Linear-style chord system: `g 1-9` to launch pinned tool, `g g` top, `g t` Today, `?` cheat sheet, `/` focus search, `⌘K` command palette, `⌘⇧F` stack search
 - [x] **Privacy Policy + Terms of Service** — honest, specific, non-boilerplate. `/privacy` and `/terms`
 - [x] **Stack share page at `/share`** — preview + adopt flow with localhost-only adoption to keep data local-first
 
