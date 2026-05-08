@@ -1020,12 +1020,44 @@ input { font-family: inherit; }
   margin-bottom: 8px;
 }
 .feed-head-meta {
+  display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-3);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+.feed-clear-all {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 3px 9px;
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.feed-clear-all:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: var(--panel);
+}
+.feed-restore {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text-4);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .12s;
+}
+.feed-restore:hover { color: var(--accent); }
 
 .feed-list {
   list-style: none;
@@ -1189,6 +1221,29 @@ input { font-family: inherit; }
   line-height: 1;
   font-family: var(--font-mono);
 }
+/* Per-item local dismiss — separate from Sentry resolve / Linear snooze
+   above. Doesn't write back to the source tool; just hides the row. */
+.feed-dismiss {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-4);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s, color .12s, background .12s, border-color .12s;
+  flex-shrink: 0;
+}
+.feed-item:hover .feed-dismiss { opacity: 1; }
+.feed-dismiss:hover {
+  color: var(--text-2);
+  background: var(--panel);
+  border-color: var(--line);
+}
+.feed-dismiss svg { width: 14px; height: 14px; }
+
 .feed-action-error {
   display: inline-flex; align-items: center;
   padding: 2px 8px;

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { TOOLS } from "../data/tools";
+import { useDismissedIncidents } from "../hooks/useDismissedIncidents";
 import { useIncidents, type Incident } from "../hooks/useIncidents";
 import { Icon } from "../lib/icons";
 import {
@@ -45,10 +46,11 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
     () => new Map(),
   );
 
-  // Quick Actions — optimistic dismissal of incidents the user has acted on.
-  // Underlying provider data may still include the row until the next page
-  // load; the local Set keeps the view in sync with the user's intent.
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
+  // Dismissal state — persisted across sessions so manually-hidden items
+  // (and stale Vercel failures the user has acknowledged) stay hidden.
+  // Quick Actions also use this for optimistic UI: dismiss → call API →
+  // undismiss + show error on failure.
+  const { dismissedIds, dismiss, undismiss, dismissMany, restoreAll } = useDismissedIncidents();
   const [actionError, setActionError] = useState<{ incidentId: string; message: string } | null>(
     null,
   );
@@ -59,21 +61,13 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const runQuickAction = useCallback(
     async (incident: Incident, exec: () => Promise<void>) => {
       // Optimistic dismiss — fade out the row immediately.
-      setDismissedIds((prev) => {
-        const next = new Set(prev);
-        next.add(incident.id);
-        return next;
-      });
+      dismiss(incident.id);
       setActionError((cur) => (cur?.incidentId === incident.id ? null : cur));
       try {
         await exec();
       } catch (err) {
         // Restore the row and show the error briefly.
-        setDismissedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(incident.id);
-          return next;
-        });
+        undismiss(incident.id);
         const message = err instanceof Error ? err.message : "Action failed";
         setActionError({ incidentId: incident.id, message });
         window.setTimeout(() => {
@@ -81,7 +75,7 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
         }, 4500);
       }
     },
-    [],
+    [dismiss, undismiss],
   );
 
   const runInvestigation = useCallback(
@@ -151,6 +145,14 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const visibleIncidents = incidents.filter((inc) => !dismissedIds.has(inc.id));
   const visible = visibleIncidents.slice(0, MAX_VISIBLE);
   const hidden = Math.max(0, visibleIncidents.length - MAX_VISIBLE);
+  // How many of the live incidents the user has manually hidden — anchors
+  // the "Restore" affordance so dismissals aren't a one-way trap.
+  const dismissedCount = incidents.filter((inc) => dismissedIds.has(inc.id)).length;
+
+  const handleClearAll = () => {
+    if (visibleIncidents.length === 0) return;
+    dismissMany(visibleIncidents.map((inc) => inc.id));
+  };
 
   return (
     <section className="today-panel">
@@ -162,6 +164,26 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
             : visibleIncidents.length === 0
               ? "all clear"
               : `${visibleIncidents.length} ${visibleIncidents.length === 1 ? "item" : "items"} to look at`}
+          {dismissedCount > 0 && (
+            <button
+              type="button"
+              className="feed-restore"
+              onClick={restoreAll}
+              title="Restore all dismissed items"
+            >
+              · {dismissedCount} hidden · restore
+            </button>
+          )}
+          {visibleIncidents.length > 0 && !showSkeleton && (
+            <button
+              type="button"
+              className="feed-clear-all"
+              onClick={handleClearAll}
+              title="Hide every item below"
+            >
+              Clear all
+            </button>
+          )}
         </div>
       </div>
 
@@ -271,6 +293,18 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
                         failed
                       </span>
                     )}
+                    <button
+                      type="button"
+                      className="feed-dismiss"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dismiss(inc.id);
+                      }}
+                      title="Hide locally (won't change the source tool)"
+                      aria-label="Dismiss"
+                    >
+                      <Icon.close />
+                    </button>
                     {anthropicKey && (
                       <button
                         type="button"

@@ -61,8 +61,25 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
   const incidents: Incident[] = [];
   const cutoff = Date.now() - SEVEN_DAYS_MS;
 
+  // Auto-resolve old Vercel failures: a failed deploy isn't an "issue to look
+  // at" once a newer successful deploy of the same project + target has gone
+  // out. Build a (project + target) → latest-success-time map first, then skip
+  // any ERROR/CANCELED whose created < that map's value for the same key.
+  const latestSuccess = new Map<string, number>();
+  for (const d of vercel.deployments) {
+    if (d.state !== "READY") continue;
+    const key = `${d.name}::${d.target ?? "preview"}`;
+    const cur = latestSuccess.get(key) ?? 0;
+    if (d.created > cur) latestSuccess.set(key, d.created);
+  }
+
   for (const d of vercel.deployments) {
     if (d.created < cutoff) continue;
+    if (d.state === "ERROR" || d.state === "CANCELED") {
+      const key = `${d.name}::${d.target ?? "preview"}`;
+      const supersededAt = latestSuccess.get(key) ?? 0;
+      if (d.created < supersededAt) continue; // a later success exists — drop
+    }
     if (d.state === "ERROR") {
       incidents.push({
         id: `vercel-${d.uid}`,
