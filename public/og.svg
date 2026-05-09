@@ -1,17 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!--
+    Hangar OG card — 1200x630.
+    Renders cleanly in social-media scrapers (Twitter, Discord, Slack,
+    LinkedIn, Facebook, OG-tag readers). Fonts use the system stack —
+    Google Fonts don't load in scrapers and would fall back to a default
+    sans-serif anyway, so we use system-ui directly for consistency.
+  -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0c0e12"/>
       <stop offset="100%" stop-color="#07080a"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.18" cy="0.12" r="0.5">
-      <stop offset="0%" stop-color="rgba(0,229,153,0.18)"/>
-      <stop offset="100%" stop-color="rgba(0,229,153,0)"/>
+    <radialGradient id="glow" cx="0.18" cy="0.18" r="0.55">
+      <stop offset="0%" stop-color="rgba(158,255,100,0.22)"/>
+      <stop offset="100%" stop-color="rgba(158,255,100,0)"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.85" cy="0.92" r="0.5">
+      <stop offset="0%" stop-color="rgba(158,255,100,0.10)"/>
+      <stop offset="100%" stop-color="rgba(158,255,100,0)"/>
     </radialGradient>
     <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
       <path d="M56 0 H0 V56" fill="none" stroke="#1d2127" stroke-width="1"/>
     </pattern>
-    <radialGradient id="gridmask" cx="0.5" cy="0.5" r="0.55">
+    <radialGradient id="gridmask" cx="0.5" cy="0.5" r="0.6">
       <stop offset="0%" stop-color="white" stop-opacity="1"/>
       <stop offset="100%" stop-color="white" stop-opacity="0"/>
     </radialGradient>
@@ -20,52 +31,124 @@
     </mask>
   </defs>
 
+  <!-- Layered background: gradient base + soft grid + two accent glows -->
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect width="1200" height="630" fill="url(#grid)" mask="url(#gridfade)" opacity="0.6"/>
+  <rect width="1200" height="630" fill="url(#grid)" mask="url(#gridfade)" opacity="0.7"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
 
-  <!-- Logo + brand -->
+  <!-- Accent hairline along the top edge -->
+  <line x1="80" y1="0" x2="1120" y2="0" stroke="#9eff64" stroke-width="2" opacity="0.4"/>
+
+  <!-- Brand mark + name (top-left) -->
   <g transform="translate(80, 80)">
-    <path
-      d="M4 24 16 6l12 18M4 24h24M9 24v-6h14v6"
-      fill="none"
-      stroke="#00e599"
-      stroke-width="2.6"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      transform="scale(1.4)"
-    />
-    <text x="60" y="34" font-family="'Geist', system-ui, sans-serif" font-size="28" font-weight="600" fill="#e7eaef" letter-spacing="-0.02em">
-      Hangar
+    <g transform="scale(1.7)">
+      <path
+        d="M4 24 16 6l12 18M4 24h24M9 24v-6h14v6"
+        fill="none"
+        stroke="#9eff64"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </g>
+    <text x="74" y="38" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+          font-size="34" font-weight="700" fill="#f6f4ef" letter-spacing="-0.025em">
+      Hangar<tspan fill="#9eff64">.</tspan>
     </text>
-    <text x="158" y="32" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6b7280" letter-spacing="0.12em" text-transform="uppercase">
-      CONTROL TOWER
-    </text>
+    <g transform="translate(214, 16)">
+      <rect width="120" height="22" rx="4" fill="none" stroke="#2a2e36" stroke-width="1"/>
+      <text x="60" y="16" font-family="ui-monospace, 'SF Mono', monospace"
+            font-size="11" fill="#9aa0a8" letter-spacing="0.16em" text-anchor="middle">
+        CONTROL TOWER
+      </text>
+    </g>
   </g>
 
   <!-- Headline -->
-  <g transform="translate(80, 240)">
-    <text font-family="'Bricolage Grotesque', 'Geist', system-ui, sans-serif" font-size="84" font-weight="700" fill="#e7eaef" letter-spacing="-0.04em">
+  <g transform="translate(80, 230)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+          font-size="84" font-weight="700" fill="#f6f4ef" letter-spacing="-0.045em">
       <tspan x="0" y="0">Every dev tool you ship with.</tspan>
-      <tspan x="0" y="100" fill="#a8aeb8">One quiet hangar.</tspan>
+      <tspan x="0" y="98">
+        <tspan fill="#9eff64">One</tspan>
+        <tspan> quiet </tspan>
+        <tspan fill="#a8aeb8">hangar.</tspan>
+      </tspan>
     </text>
   </g>
 
   <!-- Tagline -->
-  <g transform="translate(80, 480)">
-    <text font-family="'Geist', system-ui, sans-serif" font-size="22" fill="#a8aeb8" letter-spacing="-0.005em">
-      Pin your stack. Vault your tokens. Watch what's broken.
-    </text>
-    <text y="36" font-family="'Geist', system-ui, sans-serif" font-size="22" fill="#6b7280" letter-spacing="-0.005em">
-      Local-first. Open source. No accounts.
+  <g transform="translate(80, 470)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+          font-size="22" fill="#a8aeb8" letter-spacing="-0.005em">
+      Pin your stack · Vault your tokens · Watch what's broken
     </text>
   </g>
 
-  <!-- URL stamp bottom-right -->
-  <g transform="translate(80, 564)">
-    <rect width="10" height="10" rx="2" fill="#00e599"/>
-    <text x="22" y="10" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="14" fill="#a8aeb8" letter-spacing="0.06em">
-      hangar-silk.vercel.app
+  <!-- Tool tiles row (visual anchor; reads as "this is a dev-tool dashboard") -->
+  <g transform="translate(80, 530)">
+    <!-- Vercel -->
+    <g transform="translate(0, 0)">
+      <rect width="48" height="48" rx="9" fill="#000"/>
+      <path d="M24 14 38 38H10z" fill="#ffffff"/>
+    </g>
+    <!-- GitHub -->
+    <g transform="translate(58, 0)">
+      <rect width="48" height="48" rx="9" fill="#0d1117"/>
+      <circle cx="24" cy="24" r="14" fill="#ffffff"/>
+      <circle cx="24" cy="24" r="6" fill="#0d1117"/>
+    </g>
+    <!-- Neon -->
+    <g transform="translate(116, 0)">
+      <rect width="48" height="48" rx="9" fill="#001a0d"/>
+      <path d="M14 12h4l16 18V12h6v24h-6L18 18v18h-4z" fill="#00e599"/>
+    </g>
+    <!-- Stripe -->
+    <g transform="translate(174, 0)">
+      <rect width="48" height="48" rx="9" fill="#0e0d26"/>
+      <path d="M24 13c-4 0-7 2-7 6 0 6 11 4 11 10 0 4-3 6-7 6-3 0-6-1-8-3l1-4c2 1 4 2 6 2 2 0 3-1 3-2 0-3-11-2-11-9 0-4 3-6 7-6 3 0 5 1 7 2l-2 4c-1-1-3-2-5-2 0 0 0 0 0 0z" fill="#635bff"/>
+    </g>
+    <!-- Sentry -->
+    <g transform="translate(232, 0)">
+      <rect width="48" height="48" rx="9" fill="#1a0820"/>
+      <path d="M24 14l11 22h-5c-1-6-5-10-10-10v-3c8 0 14 6 16 16H17l5-9 1.5 2.5c2.5 1 4.5 3 5.5 6.5h2L24 27 14 36h-2z" fill="#a737b4"/>
+    </g>
+    <!-- Linear -->
+    <g transform="translate(290, 0)">
+      <rect width="48" height="48" rx="9" fill="#0e1126"/>
+      <path d="M11 28L20 37A18 18 0 0111 28zm0-3L23 37A19 19 0 0110 26zm.7-3L26 37A19 19 0 019 23zm1.6-2.5L28 37A19 19 0 019 22zm2.4-1.7A19 19 0 0130 36z" fill="#5e6ad2"/>
+    </g>
+    <!-- Anthropic -->
+    <g transform="translate(348, 0)">
+      <rect width="48" height="48" rx="9" fill="#1f0e08"/>
+      <path d="M22 12h4v15.5l8-8 2 2-7 7H39v3h-10l8 8-2 2-8-8V36h-4v-9.5l-8 8-2-2 7-7H10v-3h10l-8-8 2-2 8 8z" fill="#d97757"/>
+    </g>
+    <!-- Resend (white tile, white R) -->
+    <g transform="translate(406, 0)">
+      <rect width="48" height="48" rx="9" fill="#000"/>
+      <path d="M14 12h13c5 0 8 3 8 7 0 3-2 5-4 6l5 11h-5l-4-9h-9v9h-4V12zm4 4v6h8c2 0 4-1 4-3s-2-3-4-3h-8z" fill="#ffffff"/>
+    </g>
+    <!-- "+22 more" pill -->
+    <g transform="translate(470, 6)">
+      <rect width="84" height="36" rx="18" fill="none" stroke="#2a2e36" stroke-width="1"/>
+      <text x="42" y="22" font-family="ui-monospace, 'SF Mono', monospace"
+            font-size="12" fill="#9aa0a8" letter-spacing="0.08em" text-anchor="middle">
+        +22 MORE
+      </text>
+    </g>
+  </g>
+
+  <!-- URL + license stamp (bottom-right) -->
+  <g transform="translate(1120, 588)" text-anchor="end">
+    <text font-family="ui-monospace, 'SF Mono', monospace"
+          font-size="13" fill="#9aa0a8" letter-spacing="0.06em">
+      hangar-silk.vercel.app · MIT · local-first
     </text>
+  </g>
+
+  <!-- Tiny pulsing dot near brand -->
+  <g transform="translate(60, 92)">
+    <circle r="4" fill="#9eff64"/>
   </g>
 </svg>
