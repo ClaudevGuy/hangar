@@ -8,11 +8,11 @@ interface Props {
   onOpenStarters: () => void;
 }
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 // First-run guided tour. Two-column premium card layout: a styled mock visual
-// on the left, explainer copy on the right. Six steps total — Welcome, Pin,
-// Vault, Watch, AI, then a Get Started action card.
+// on the left, explainer copy on the right. Seven steps — Welcome, Pin,
+// Vault, Watch, AI (Brief + Ask), Search + Notes, then a Get Started action.
 export function TourModal({ onClose, onOpenStarters }: Props) {
   const [step, setStep] = useState(0);
 
@@ -126,6 +126,8 @@ function Visual({ step }: { step: number }) {
     case 4:
       return <AiVisual />;
     case 5:
+      return <SearchVisual />;
+    case 6:
       return <ReadyVisual />;
     default:
       return null;
@@ -262,6 +264,50 @@ function AiVisual() {
   );
 }
 
+function SearchVisual() {
+  // Mock of the stack-search modal: input, then ranked hits across tools.
+  const hits: { id: string; type: string; title: string; time: string }[] = [
+    { id: "linear", type: "ISSUE",  title: "HAN-87 · Fix checkout retry loop", time: "12m" },
+    { id: "github", type: "PR",     title: "checkout: handle 402 from Stripe", time: "1h"  },
+    { id: "vercel", type: "DEPLOY", title: "checkout: 3.4s prod deploy",       time: "2h"  },
+    { id: "sentry", type: "ISSUE",  title: "TypeError in checkout.tsx",        time: "6h"  },
+  ];
+  return (
+    <div className="tour-vis tour-vis-search">
+      <div className="tour-mock-search">
+        <div className="tour-mock-search-input">
+          <span className="tour-mock-search-icon">⌕</span>
+          <span className="tour-mock-search-q">checkout</span>
+          <span className="tour-mock-search-cursor" />
+          <span className="tour-mock-search-kbd">⌘⇧F</span>
+        </div>
+        <div className="tour-mock-search-meta">
+          <span className="tour-mock-search-badge ok">github · 2</span>
+          <span className="tour-mock-search-badge ok">vercel · 1</span>
+          <span className="tour-mock-search-badge ok">linear · 1</span>
+        </div>
+        <ul className="tour-mock-search-list">
+          {hits.map((h) => {
+            const t = TOOLS.find((x) => x.id === h.id);
+            return (
+              <li key={h.title} className="tour-mock-search-row">
+                {t && <ToolLogo tool={t} size={20} />}
+                <div className="tour-mock-search-body">
+                  <div className="tour-mock-search-title">{h.title}</div>
+                  <div className="tour-mock-search-sub">
+                    <span className="tour-mock-search-type">{h.type}</span>
+                    {" · "}{h.time}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function ReadyVisual() {
   return (
     <div className="tour-vis tour-vis-ready">
@@ -311,7 +357,9 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
           actually use. Pinned tools live at the top of the dashboard for one-click access.
         </p>
         <p className="tour-desc tour-desc-muted">
-          Tip: try a starter stack at the end of this tour to skip the pinning step.
+          Already shipping? <strong>Settings → Data → Scan a repo</strong> reads your project&apos;s{" "}
+          <code>package.json</code> + <code>.env</code> and auto-detects which tools to pin (and
+          which keys to import).
         </p>
       </>
     );
@@ -323,13 +371,13 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
         <div className="tour-eyebrow">Step 2 · Vault</div>
         <h2 className="tour-title">Connect your tokens.</h2>
         <p className="tour-desc">
-          Open <strong>Keys</strong> in the topbar (or any tool drawer&apos;s{" "}
-          <strong>Add key</strong>). Drop in API tokens for the providers you use — they live in
-          your browser&apos;s localStorage, never sent to a Hangar server.
+          Click the <strong>key icon</strong> at the bottom of the sidebar (or any tool
+          drawer&apos;s <strong>Add key</strong>). Drop in API tokens for the providers you use —
+          they live in your browser&apos;s localStorage, never sent to a Hangar server.
         </p>
         <p className="tour-desc tour-desc-muted">
           Optionally lock the vault with a master passphrase. AES-GCM via the Web Crypto API,
-          auto-locks after 15 minutes.
+          auto-locks after 15 minutes. Hangar warns when a token&apos;s near expiry.
         </p>
       </>
     );
@@ -343,11 +391,11 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
         <p className="tour-desc">
           Once tokens are connected, the <strong>Today</strong> panel surfaces what&apos;s broken
           across your stack — failed Vercel deploys, unresolved Sentry issues, urgent Linear
-          tickets — ranked by severity.
+          tickets — ranked by severity. Resolve, ignore, or hide locally with one click.
         </p>
         <p className="tour-desc tour-desc-muted">
-          The <strong>Stack health</strong> pill in the topbar tracks public status pages so you
-          know if it&apos;s your problem or your provider&apos;s.
+          Pin a <strong>note</strong> on any incident (📝 button on the row) to remember how you
+          fixed it last time — Ask reads those notes back to you.
         </p>
       </>
     );
@@ -359,20 +407,39 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
         <div className="tour-eyebrow">Step 4 · AI</div>
         <h2 className="tour-title">Claude knows your stack.</h2>
         <p className="tour-desc">
-          Drop an Anthropic key into the vault and click <strong>✦ Brief</strong> in the topbar
-          for an instant synthesis of what&apos;s happening — with cross-tool correlations and a
-          recommended action. Click <strong>✦</strong> on any Today incident to investigate it
-          with full context.
+          Drop an Anthropic key into the vault. <strong>✦ Brief</strong> gives an instant
+          synthesis of what&apos;s happening with cross-tool correlations and a recommended
+          action. <strong>✦ Ask</strong> (<kbd>⌘⇧A</kbd>) opens a chat where Claude calls your
+          tools directly — *&ldquo;What&apos;s broken right now?&rdquo;* returns answers with
+          clickable citations.
         </p>
         <p className="tour-desc tour-desc-muted">
-          Bonus: plug the bundled MCP server into Claude Desktop or Cursor so AI agents query
-          your stack directly.
+          Bonus: plug the bundled MCP server into Claude Desktop or Cursor so AI agents on your
+          machine query the same stack.
         </p>
       </>
     );
   }
 
-  // step 5 — Get started
+  if (step === 5) {
+    return (
+      <>
+        <div className="tour-eyebrow">Step 5 · Search</div>
+        <h2 className="tour-title">One input. Every connected tool.</h2>
+        <p className="tour-desc">
+          Hit <kbd>⌘⇧F</kbd> from anywhere. Hangar fans your query out to GitHub, Vercel, and
+          Linear in parallel, plus your own contextual notes — results stream in by recency. Stop
+          remembering which tool the thing lived in.
+        </p>
+        <p className="tour-desc tour-desc-muted">
+          Also useful: <kbd>⌘K</kbd> opens the command palette, <kbd>g</kbd> + <kbd>1–9</kbd>{" "}
+          launches your nth pinned tool, <kbd>?</kbd> shows the full keyboard cheat sheet.
+        </p>
+      </>
+    );
+  }
+
+  // step 6 — Get started
   return (
     <>
       <div className="tour-eyebrow">Ready?</div>
