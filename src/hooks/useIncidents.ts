@@ -8,17 +8,30 @@ import type { SecretsMap } from "../types";
 
 export type IncidentSeverity = "critical" | "warning" | "info";
 
-// Discriminated union of the original provider record that produced this
+// Discriminated union of the original record that produced this
 // incident — used by the AI Action ("Investigate") flow to feed Claude the
 // full structured detail without re-fetching.
 export type IncidentRaw =
   | { kind: "vercel-deploy"; data: VercelDeployment }
   | { kind: "sentry-issue"; data: SentryIssue }
-  | { kind: "linear-issue"; data: LinearIssue };
+  | { kind: "linear-issue"; data: LinearIssue }
+  | {
+      kind: "token-expiry";
+      data: {
+        toolId: string;
+        keyId: string;
+        label: string;
+        expiresAt: number;
+        daysLeft: number;
+      };
+    };
 
 export interface Incident {
   id: string;
-  source: "vercel" | "sentry" | "linear";
+  // Tool id this incident is attached to. The Today panel uses this to look
+  // up + render the right tool logo on the row. Token-expiry incidents use
+  // the affected tool's id (e.g. "github" for an expiring GitHub PAT).
+  source: string;
   severity: IncidentSeverity;
   title: string;
   context?: string;
@@ -45,6 +58,8 @@ const SEVERITY_RANK: Record<IncidentSeverity, number> = {
   info: 2,
 };
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 // Aggregates "things that need attention" from the connected providers into
 // a single ordered feed. Each per-tool data hook short-circuits to IDLE when
@@ -142,6 +157,54 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
       occurredAt: new Date(issue.updatedAt).getTime(),
       raw: { kind: "linear-issue", data: issue },
     });
+  }
+
+  // ── Token expiry — surface vault keys nearing expiration so they get
+  // rotated before they 401. Iterate every stored secret across all tools;
+  // emit an incident if expiresAt is within the alert window (14 days) or
+  // already past. Severity scales with how close (or how overdue) it is.
+  const now = Date.now();
+  const expiryAlertWindow = now + FOURTEEN_DAYS_MS;
+  for (const [toolId, entries] of Object.entries(secrets)) {
+    if (!Array.isArray(entries)) continue;
+    for (const entry of entries) {
+      if (typeof entry.expiresAt !== "number") continue;
+      if (entry.expiresAt > expiryAlertWindow) continue;
+      // Skip very old expirations (>30 days past) — user has clearly
+      // moved on; no point keeping a forever-stale row.
+      if (entry.expiresAt < now - 30 * ONE_DAY_MS) continue;
+
+      const daysLeft = Math.round((entry.expiresAt - now) / ONE_DAY_MS);
+      const expired = daysLeft < 0;
+      const severity: IncidentSeverity =
+        expired || daysLeft <= 1 ? "critical"
+        : daysLeft <= 7 ? "warning"
+        : "info";
+
+      const friendly = toolId === "github" ? "GitHub"
+        : toolId === "anthropic" ? "Anthropic"
+        : toolId.charAt(0).toUpperCase() + toolId.slice(1);
+      const title = expired
+        ? `${friendly} token expired ${Math.abs(daysLeft)}d ago`
+        : daysLeft === 0
+          ? `${friendly} token expires today`
+          : `${friendly} token expires in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`;
+
+      incidents.push({
+        id: `expiry-${toolId}-${entry.id}`,
+        source: toolId,
+        severity,
+        title,
+        context: joinContext([entry.label, expired ? "rotate now" : "vault"]),
+        // No URL — clicking the row falls through to opening the tool's
+        // drawer, which has an "Add key" / "Manage keys" entry point.
+        occurredAt: entry.expiresAt,
+        raw: {
+          kind: "token-expiry",
+          data: { toolId, keyId: entry.id, label: entry.label, expiresAt: entry.expiresAt, daysLeft },
+        },
+      });
+    }
   }
 
   incidents.sort((a, b) => {

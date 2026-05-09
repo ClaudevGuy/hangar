@@ -59,6 +59,10 @@ export interface SecretEntry {
   id: string;
   label: string;
   value: string;
+  // Optional unix-ms timestamp. When set + within 14 days, Hangar surfaces
+  // a token-expiry incident in Today so you rotate before getting locked
+  // out. Date-only precision is fine (UI uses an HTML <input type="date">).
+  expiresAt?: number;
 }
 
 // Linkboard — context items pinned across tools while you work on something.

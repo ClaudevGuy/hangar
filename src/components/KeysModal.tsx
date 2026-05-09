@@ -201,7 +201,9 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
             <KeyEntryRow
               key={entry.id}
               entry={entry}
-              onChange={(label, value) => upsertKey(tool.id, { id: entry.id, label, value })}
+              onPatch={(patch) =>
+                upsertKey(tool.id, { ...entry, ...patch })
+              }
               onRemove={() => removeKey(tool.id, entry.id)}
             />
           ))}
@@ -224,8 +226,8 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
       {adding ? (
         <NewKeyRow
           onCancel={() => setAdding(false)}
-          onSave={(label, value) => {
-            upsertKey(tool.id, { label, value });
+          onSave={(label, value, expiresAt) => {
+            upsertKey(tool.id, { label, value, expiresAt });
             setAdding(false);
           }}
         />
@@ -238,15 +240,48 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
   );
 });
 
+// ── expires-at helpers ─────────────────────────────────────────────
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
+function toDateInput(ms?: number): string {
+  if (!ms) return "";
+  // YYYY-MM-DD in local time so the input doesn't drift by a day
+  const d = new Date(ms);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function fromDateInput(s: string): number | undefined {
+  if (!s) return undefined;
+  // Treat the input as end-of-day local time so "expires today" doesn't
+  // immediately read as "expired" the moment you save.
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return undefined;
+  const dt = new Date(y, m - 1, d, 23, 59, 59);
+  return dt.getTime();
+}
+function formatExpiry(ms: number): { label: string; tone: "ok" | "warn" | "danger" } {
+  const days = Math.round((ms - Date.now()) / ONE_DAY);
+  const dateStr = new Date(ms).toLocaleDateString(undefined, {
+    month: "short", day: "numeric", year: "numeric",
+  });
+  if (days < 0) return { label: `Expired ${Math.abs(days)}d ago · ${dateStr}`, tone: "danger" };
+  if (days === 0) return { label: `Expires today · ${dateStr}`, tone: "danger" };
+  if (days <= 7) return { label: `Expires in ${days} ${days === 1 ? "day" : "days"} · ${dateStr}`, tone: "danger" };
+  if (days <= 14) return { label: `Expires in ${days} days · ${dateStr}`, tone: "warn" };
+  return { label: `Expires ${dateStr} (${days}d)`, tone: "ok" };
+}
+
 interface EntryRowProps {
   entry: SecretEntry;
-  onChange: (label: string, value: string) => void;
+  onPatch: (patch: Partial<Pick<SecretEntry, "label" | "value" | "expiresAt">>) => void;
   onRemove: () => void;
 }
 
-function KeyEntryRow({ entry, onChange, onRemove }: EntryRowProps) {
+function KeyEntryRow({ entry, onPatch, onRemove }: EntryRowProps) {
   const [reveal, setReveal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editingExpiry, setEditingExpiry] = useState(false);
+  const [draftExpiry, setDraftExpiry] = useState(toDateInput(entry.expiresAt));
   const copyTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(copyTimer.current), []);
@@ -263,56 +298,114 @@ function KeyEntryRow({ entry, onChange, onRemove }: EntryRowProps) {
     }
   };
 
+  const saveExpiry = () => {
+    onPatch({ expiresAt: fromDateInput(draftExpiry) });
+    setEditingExpiry(false);
+  };
+  const clearExpiry = () => {
+    setDraftExpiry("");
+    onPatch({ expiresAt: undefined });
+    setEditingExpiry(false);
+  };
+
+  const expiryInfo = entry.expiresAt ? formatExpiry(entry.expiresAt) : null;
+
   return (
-    <li className="keys-entry">
-      <input
-        type="text"
-        className="keys-input keys-label"
-        placeholder="Label (e.g. Personal Access Token)"
-        value={entry.label}
-        onChange={(e) => onChange(e.target.value, entry.value)}
-      />
-      <input
-        type={reveal ? "text" : "password"}
-        className="keys-input keys-value"
-        placeholder="Paste key…"
-        value={entry.value}
-        onChange={(e) => onChange(entry.label, e.target.value)}
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <button
-        type="button"
-        className="chip-btn"
-        onClick={() => setReveal((s) => !s)}
-        title={reveal ? "Hide" : "Reveal"}
-      >
-        {reveal ? <Icon.eyeOff /> : <Icon.eye />}
-      </button>
-      <button
-        type="button"
-        className={`chip-btn ${copied ? "on" : ""}`}
-        onClick={onCopy}
-        title={copied ? "Copied" : "Copy"}
-        disabled={!entry.value}
-      >
-        {copied ? <Icon.check /> : <Icon.copy />}
-      </button>
-      <button type="button" className="chip-btn keys-trash" onClick={onRemove} title="Delete key">
-        <Icon.trash />
-      </button>
+    <li className="keys-entry-wrap">
+      <div className="keys-entry">
+        <input
+          type="text"
+          className="keys-input keys-label"
+          placeholder="Label (e.g. Personal Access Token)"
+          value={entry.label}
+          onChange={(e) => onPatch({ label: e.target.value })}
+        />
+        <input
+          type={reveal ? "text" : "password"}
+          className="keys-input keys-value"
+          placeholder="Paste key…"
+          value={entry.value}
+          onChange={(e) => onPatch({ value: e.target.value })}
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <button
+          type="button"
+          className="chip-btn"
+          onClick={() => setReveal((s) => !s)}
+          title={reveal ? "Hide" : "Reveal"}
+        >
+          {reveal ? <Icon.eyeOff /> : <Icon.eye />}
+        </button>
+        <button
+          type="button"
+          className={`chip-btn ${copied ? "on" : ""}`}
+          onClick={onCopy}
+          title={copied ? "Copied" : "Copy"}
+          disabled={!entry.value}
+        >
+          {copied ? <Icon.check /> : <Icon.copy />}
+        </button>
+        <button type="button" className="chip-btn keys-trash" onClick={onRemove} title="Delete key">
+          <Icon.trash />
+        </button>
+      </div>
+
+      {/* Expiry sub-line — display + inline edit. Surfaces in Today as
+          a warning incident when within 14 days. */}
+      <div className="keys-expiry-row">
+        {editingExpiry ? (
+          <>
+            <input
+              type="date"
+              className="keys-input keys-expiry-input"
+              value={draftExpiry}
+              onChange={(e) => setDraftExpiry(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveExpiry();
+                if (e.key === "Escape") setEditingExpiry(false);
+              }}
+            />
+            <button type="button" className="primary-btn small" onClick={saveExpiry}>
+              Save
+            </button>
+            <button type="button" className="ghost-btn small" onClick={() => setEditingExpiry(false)}>
+              Cancel
+            </button>
+            {entry.expiresAt && (
+              <button type="button" className="keys-expiry-clear" onClick={clearExpiry} title="Remove expiry date">
+                Clear
+              </button>
+            )}
+          </>
+        ) : expiryInfo ? (
+          <>
+            <span className={`keys-expiry-badge tone-${expiryInfo.tone}`}>
+              {expiryInfo.label}
+            </span>
+            <button type="button" className="keys-expiry-edit" onClick={() => setEditingExpiry(true)}>
+              Edit
+            </button>
+          </>
+        ) : (
+          <button type="button" className="keys-expiry-add" onClick={() => setEditingExpiry(true)}>
+            + Set expiry
+          </button>
+        )}
+      </div>
     </li>
   );
 }
 
 interface NewKeyRowProps {
-  onSave: (label: string, value: string) => void;
+  onSave: (label: string, value: string, expiresAt?: number) => void;
   onCancel: () => void;
 }
 
 function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
   const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
+  const [expires, setExpires] = useState("");
   const [reveal, setReveal] = useState(false);
   const labelRef = useRef<HTMLInputElement>(null);
 
@@ -322,42 +415,62 @@ function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
 
   const canSave = label.trim().length > 0 && value.length > 0;
 
+  const submit = () => {
+    if (!canSave) return;
+    onSave(label.trim(), value, fromDateInput(expires));
+  };
+
   return (
-    <div className="keys-entry keys-entry-new">
-      <input
-        ref={labelRef}
-        type="text"
-        className="keys-input keys-label"
-        placeholder="Label (e.g. API key)"
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && canSave) onSave(label.trim(), value);
-          if (e.key === "Escape") onCancel();
-        }}
-      />
-      <input
-        type={reveal ? "text" : "password"}
-        className="keys-input keys-value"
-        placeholder="Paste key…"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && canSave) onSave(label.trim(), value);
-          if (e.key === "Escape") onCancel();
-        }}
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <button type="button" className="chip-btn" onClick={() => setReveal((s) => !s)} title={reveal ? "Hide" : "Reveal"}>
-        {reveal ? <Icon.eyeOff /> : <Icon.eye />}
-      </button>
-      <button type="button" className="primary-btn small" disabled={!canSave} onClick={() => onSave(label.trim(), value)}>
-        Save
-      </button>
-      <button type="button" className="ghost-btn small" onClick={onCancel}>
-        Cancel
-      </button>
+    <div className="keys-entry-wrap">
+      <div className="keys-entry keys-entry-new">
+        <input
+          ref={labelRef}
+          type="text"
+          className="keys-input keys-label"
+          placeholder="Label (e.g. API key)"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canSave) submit();
+            if (e.key === "Escape") onCancel();
+          }}
+        />
+        <input
+          type={reveal ? "text" : "password"}
+          className="keys-input keys-value"
+          placeholder="Paste key…"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canSave) submit();
+            if (e.key === "Escape") onCancel();
+          }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <button type="button" className="chip-btn" onClick={() => setReveal((s) => !s)} title={reveal ? "Hide" : "Reveal"}>
+          {reveal ? <Icon.eyeOff /> : <Icon.eye />}
+        </button>
+        <button type="button" className="primary-btn small" disabled={!canSave} onClick={submit}>
+          Save
+        </button>
+        <button type="button" className="ghost-btn small" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+
+      {/* Optional expiry date — Hangar warns in Today when within 14 days. */}
+      <div className="keys-expiry-row">
+        <label className="keys-expiry-label">
+          Expires <span className="muted">(optional)</span>
+        </label>
+        <input
+          type="date"
+          className="keys-input keys-expiry-input"
+          value={expires}
+          onChange={(e) => setExpires(e.target.value)}
+        />
+      </div>
     </div>
   );
 }
