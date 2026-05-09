@@ -55,6 +55,9 @@ export function HangarApp() {
   const [showRepoScan, setShowRepoScan] = useState(false);
   const [showStackSearch, setShowStackSearch] = useState(false);
   const [showAsk, setShowAsk] = useState(false);
+  // Mobile-only: the sidebar slides in from the left when this is true.
+  // No effect on desktop (>800px), where the sidebar is always visible.
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -124,6 +127,7 @@ export function HangarApp() {
   // ⌘K / Ctrl+K opens the command palette from anywhere.
   // ⌘⇧F / Ctrl+Shift+F opens the stack-wide search from anywhere.
   // ⌘⇧A / Ctrl+Shift+A opens "Ask your stack" from anywhere.
+  // Esc on mobile closes the sidebar drawer.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -143,11 +147,25 @@ export function HangarApp() {
       ) {
         e.preventDefault();
         setShowAsk((s) => !s);
+      } else if (e.key === "Escape" && mobileSidebarOpen) {
+        setMobileSidebarOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [mobileSidebarOpen]);
+
+  // Body scroll lock while the mobile sidebar drawer is open — prevents the
+  // background page from scrolling under the user's finger when scrolling
+  // sidebar contents.
+  useEffect(() => {
+    if (!mobileSidebarOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileSidebarOpen]);
 
   // First-run guided tour. Replaces an earlier auto-Starter-Stacks behavior;
   // the tour itself ends with a "Try a starter stack" CTA so the entry point
@@ -254,6 +272,7 @@ export function HangarApp() {
           setShowKeys(true);
         }}
         onOpenAsk={() => setShowAsk(true)}
+        onToggleMobileSidebar={() => setMobileSidebarOpen((s) => !s)}
       />
 
       <div className="layout">
@@ -288,7 +307,16 @@ export function HangarApp() {
           onSyncDisconnect={sync.disconnect}
           onOpenShare={() => setShowShare(true)}
           onOpenRepoScan={() => setShowRepoScan(true)}
+          isMobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
         />
+        {mobileSidebarOpen && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
         <main className="main">
           <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />

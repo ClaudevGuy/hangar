@@ -2906,12 +2906,112 @@ input { font-family: inherit; }
   .grid, .list, .cat-strip-inner, .result-bar, .foot { padding-left: 24px; padding-right: 24px; }
 }
 @media (max-width: 800px) {
-  .topbar { grid-template-columns: 1fr auto; padding: 10px 16px; gap: 12px; }
+  .topbar { grid-template-columns: 1fr auto; padding: 10px 12px; gap: 8px; }
+  .topbar-left { gap: 8px; }
   .topbar-center { grid-column: 1 / -1; order: 3; }
+  .topbar-right { gap: 4px; }
   .topbar-right .ghost-btn span:not(.pill) { display: none; }
+  /* Brief and Ask aren't .ghost-btn, so the rule above misses them — collapse
+     to icon-only by hiding their label spans (the spark spans stay). */
+  .brief-trigger > span:not(.brief-trigger-spark),
+  .ask-trigger > span:not(.ask-trigger-spark) { display: none; }
+  .brief-trigger, .ask-trigger { padding: 0 10px; }
+  /* Workspace switcher takes too much room on phone — hide; users can
+     switch via Settings. */
+  .topbar-left .workspace-switcher,
+  .topbar-left .workspace-wrap { display: none; }
   .layout { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
   .deck-stats { grid-template-columns: repeat(2, 1fr); }
+
+  /* Sidebar becomes a slide-out drawer on the left, opened by the
+     hamburger in the topbar. The desktop "always visible" sidebar would
+     swallow the screen on mobile, so we hide it by default and slide in
+     on demand. */
+  .sidebar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0;
+    width: min(300px, 88vw);
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.2, .9, .25, 1);
+    border-right: 1px solid var(--line);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+    padding-top: 16px;
+  }
+  .sidebar.is-mobile-open { transform: translateX(0); }
+
+  .sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 99;
+    animation: fade .2s ease-out;
+  }
+
+  /* Topbar hamburger — hidden on desktop, shown on phone */
+  .topbar-mobile-toggle {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--text-2);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .topbar-mobile-toggle:hover {
+    color: var(--text);
+    border-color: var(--line-2);
+    background: var(--panel);
+  }
+
+  /* Settings popover when triggered from inside the (mobile) sidebar
+     drawer — the desktop fly-out positioning (fixed left:280) would land
+     mostly off-screen on a 320px phone. Anchor as a bottom sheet instead. */
+  .settings-menu[data-placement="sidebar"] {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    max-height: 70vh;
+    z-index: 101; /* above the sidebar drawer */
+  }
+
+  /* Today panel — pull tighter on phone, no longer needs to align with the
+     desktop deck's 40px gutter. */
+  .today-panel { margin: 14px 16px 16px; }
+
+  /* Stack launcher rows + catalog cards naturally collapse to single
+     column via auto-fill; no override needed. Tighten the deck padding. */
+  .deck { padding: 18px 16px 22px; }
+
+  /* Catalog list/grid edges */
+  .grid, .list, .cat-strip-inner, .result-bar, .foot {
+    padding-left: 16px; padding-right: 16px;
+  }
+
+  /* Footer help-buttons row wraps cleanly */
+  .foot { flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 16px; }
+  .foot-actions { flex-wrap: wrap; gap: 8px; }
+}
+
+/* Hamburger button is hidden on desktop by default. The mobile rule
+   above shows it. */
+.topbar-mobile-toggle { display: none; }
+
+/* Below 500px (small phones) the deck-stats stop fitting in two columns. */
+@media (max-width: 500px) {
+  .deck-stats { grid-template-columns: 1fr; gap: 12px; }
+  .topbar-center .searchbox kbd { display: none; }
+  .stack-launcher-head .ghost-btn { padding: 4px 9px; font-size: 11px; }
 }
 
 /* ----------------------------------------------------------- */

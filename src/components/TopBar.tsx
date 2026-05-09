@@ -21,6 +21,8 @@ interface Props {
   secrets: SecretsMap;
   onOpenAnthropicKey: () => void;
   onOpenAsk: () => void;
+  // Mobile-only — toggles the slide-out sidebar drawer. Hidden via CSS on desktop.
+  onToggleMobileSidebar: () => void;
 }
 
 export function TopBar({
@@ -28,7 +30,7 @@ export function TopBar({
   view, setView,
   stackCount, compareCount,
   onOpenStack, onOpenCompare,
-  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenAsk,
+  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenAsk, onToggleMobileSidebar,
 }: Props) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +42,14 @@ export function TopBar({
   return (
     <header className="topbar">
       <div className="topbar-left">
+        <button
+          type="button"
+          className="topbar-mobile-toggle"
+          onClick={onToggleMobileSidebar}
+          aria-label="Open sidebar menu"
+        >
+          <Icon.menu />
+        </button>
         <div className="logo">
           <svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2}>
             <path d="M4 24 16 6l12 18M4 24h24M9 24v-6h14v6" />

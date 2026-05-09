@@ -49,6 +49,11 @@ interface Props {
   // SettingsMenu drilled-through props (Data tab)
   onOpenShare: () => void;
   onOpenRepoScan: () => void;
+  // Mobile drawer state. On desktop the sidebar is always visible; on
+  // mobile it slides in from the left when isMobileOpen flips true,
+  // and any nav action (category click, tool click) closes it.
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
 }
 
 export function Sidebar({
@@ -58,11 +63,24 @@ export function Sidebar({
   onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
   onOpenShare, onOpenRepoScan,
+  isMobileOpen, onCloseMobile,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
 
+  // On mobile, any navigation action collapses the drawer so the user
+  // sees the result immediately. On desktop these helpers are no-ops
+  // because onCloseMobile() does nothing when isMobileOpen is false.
+  const pickCategory = (id: CategoryId) => {
+    setActive(id);
+    onCloseMobile();
+  };
+  const openTool = (tool: Tool) => {
+    onOpenTool(tool);
+    onCloseMobile();
+  };
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isMobileOpen ? " is-mobile-open" : ""}`}>
       <Linkboard
         links={links}
         builtInTools={TOOLS}
@@ -80,7 +98,7 @@ export function Sidebar({
               type="button"
               key={c.id}
               className={`cat-btn ${active === c.id ? "active" : ""}`}
-              onClick={() => setActive(c.id)}
+              onClick={() => pickCategory(c.id)}
             >
               <span className="cat-icon">{c.icon}</span>
               <span className="cat-name">{c.name}</span>
@@ -114,7 +132,7 @@ export function Sidebar({
               if (lastOpenedAt) metaParts.push(timeAgo(lastOpenedAt));
               return (
               <li key={t.id} className="stack-item">
-                <button type="button" className="stack-main" onClick={() => onOpenTool(t)}>
+                <button type="button" className="stack-main" onClick={() => openTool(t)}>
                   <ToolLogo tool={t} size={26} />
                   <div className="stack-meta">
                     <div className="stack-name">{t.name}</div>
