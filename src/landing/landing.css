@@ -16,19 +16,24 @@ html, body { overflow-x: clip; }
   min-height: 100vh;
   /* Belt-and-braces against horizontal overflow on mobile: any descendant
      that misbehaves (long token, fixed-width grid track) gets clipped at
-     the landing root rather than producing a page-wide horizontal scroll. */
-  overflow-x: hidden;
+     the landing root rather than producing a page-wide horizontal scroll.
+     IMPORTANT: must be `clip`, NOT `hidden`. `overflow: hidden` creates a
+     new scroll container, which breaks `position: sticky` for descendants
+     (the sticky nav stops engaging). `clip` does the same visual clipping
+     without creating a scroll container. */
+  overflow-x: clip;
   max-width: 100vw;
   /* Foreground colour for text/icons that sit on top of var(--accent).
      Dark mode: bright neon green bg → black text. Light mode: forest
      green bg → white text (set in the override below). */
   --accent-fg: #000;
 }
-/* Same on every section so an interior overflow can't push its parent. */
+/* Same on every section so an interior overflow can't push its parent.
+   Note: NOT applied to .lp-nav — sticky elements need their ancestors to
+   not be a scroll container, and `clip` is fine here too. */
 .landing > section,
 .landing > header,
-.landing > footer,
-.landing > nav { max-width: 100vw; overflow-x: hidden; }
+.landing > footer { max-width: 100vw; overflow-x: clip; }
 [data-theme="light"] .landing { --accent-fg: #fff; }
 .landing a { color: inherit; text-decoration: none; }
 .landing button { font-family: inherit; }
