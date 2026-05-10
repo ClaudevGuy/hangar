@@ -1301,19 +1301,20 @@ input { font-family: inherit; }
 /* ----------------------------------------------------------- */
 /* Quick Actions — five-card action shelf below the inbox      */
 /* ----------------------------------------------------------- */
-/* Wrapper matches the brew/inbox horizontal margins so all the dashboard
-   panels share a consistent left edge. Header is just a small label —
-   the action cards do the work. */
-.quick-actions {
+/* Wrapper matches the brew/inbox horizontal margins for the OUTER edge,
+   then adds 20px of internal padding so the cards' left/right edges line
+   up with the brew panel's CONTENT edge (brew has 20px padding inside its
+   border). Otherwise the leftmost card hugs the sidebar 20px tighter than
+   everything else and the row feels misaligned.
+   NOTE: class is .dash-actions (not .quick-actions) — there's an unrelated
+   pre-existing .quick-actions selector used inside the tool drawer for its
+   own action list. Same name would collide and zero out our padding. */
+.dash-actions {
   margin: 18px 40px 0;
+  padding: 0 20px;
   max-width: 1100px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-.qa-head {
-  display: flex;
-  align-items: center;
 }
 .qa-grid {
   display: grid;
@@ -1428,7 +1429,9 @@ input { font-family: inherit; }
   .qa-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 900px) {
-  .quick-actions { margin: 14px 20px 0; }
+  /* Brew uses 16px internal padding at this breakpoint; mirror it so the
+     leftmost QA card stays vertically aligned with the brew narrative. */
+  .dash-actions { margin: 14px 20px 0; padding: 0 16px; }
   .qa-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .qa-desc { display: none; }
 }

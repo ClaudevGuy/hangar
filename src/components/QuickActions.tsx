@@ -87,10 +87,12 @@ export function QuickActions({
   ];
 
   return (
-    <section className="quick-actions" aria-label="Quick actions">
-      <div className="qa-head">
-        <span className="strip-label">Do</span>
-      </div>
+    <section className="dash-actions" aria-label="Quick actions">
+      {/* No section label — the cards' own labels are self-explanatory and
+          a tiny "Quick actions" / "Do" header was dead visual weight that
+          read as random noise rather than navigation. NOTE: class is
+          .dash-actions (not .quick-actions) to avoid colliding with the
+          pre-existing .quick-actions selector used inside the ToolDrawer. */}
       <div className="qa-grid">
         {actions.map((a) => (
           <button
