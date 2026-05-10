@@ -1,12 +1,17 @@
-// Morning Brew state — caches a generated narrative per (workspace, day).
+// Morning Brew state — caches a generated briefing per (workspace, day).
 //
 // Deliberately does NOT auto-fetch on mount. The first brew is always opt-in
 // (the user clicks "Brew now") so we never silently spend their Anthropic
 // budget. Once generated, today's brew lives in localStorage until the day
 // rolls over; manual "Refresh" overwrites the cache.
+//
+// State carries BOTH a structured object (status / headline / observations
+// / recommendation — same shape as the topbar Brief) AND the raw text. The
+// component prefers structured when present; raw is the fallback for
+// pre-structured caches and the rare malformed-JSON response.
 
 import { useCallback, useEffect, useState } from "react";
-import { generateBrew } from "../lib/brew";
+import { generateBrew, type BrewStructured } from "../lib/brew";
 import { workspaceKey } from "../lib/workspaces";
 import type { Incident } from "./useIncidents";
 import type { PulseTrack } from "./useStackPulse";
@@ -17,7 +22,13 @@ export type BrewStatus = "idle" | "loading" | "ready" | "error";
 
 export interface BrewState {
   status: BrewStatus;
+  // Raw text from Claude — present for back-compat with pre-structured
+  // caches and as the fallback when structured parsing fails.
   text: string | null;
+  // Parsed structured object — when present, the panel renders the rich
+  // status/headline/observations/recommendation layout. When null,
+  // falls back to rendering `text` as a single headline paragraph.
+  structured: BrewStructured | null;
   generatedAt: number | null;
   // True when the cached text was generated on a previous calendar day —
   // the panel uses this to nudge "refresh for today's briefing".
@@ -27,6 +38,9 @@ export interface BrewState {
 
 interface CachedBrew {
   text: string;
+  // Optional — older caches (pre this commit) only have text, so the
+  // hook tolerates its absence and falls back to plain rendering.
+  structured?: BrewStructured | null;
   generatedAt: number;
   // YYYY-MM-DD in the user's local timezone — invalidates daily.
   dayKey: string;
@@ -67,12 +81,20 @@ function writeCache(b: CachedBrew): void {
 function buildInitialState(): BrewState {
   const cached = readCache();
   if (!cached) {
-    return { status: "idle", text: null, generatedAt: null, isStale: false, error: null };
+    return {
+      status: "idle",
+      text: null,
+      structured: null,
+      generatedAt: null,
+      isStale: false,
+      error: null,
+    };
   }
   const today = dayKey();
   return {
     status: "ready",
     text: cached.text,
+    structured: cached.structured ?? null,
     generatedAt: cached.generatedAt,
     isStale: cached.dayKey !== today,
     error: null,
@@ -110,6 +132,7 @@ export function useMorningBrew({
         setState({
           status: "error",
           text: null,
+          structured: null,
           generatedAt: null,
           isStale: false,
           error: "Add an Anthropic key to brew today's briefing.",
@@ -118,15 +141,27 @@ export function useMorningBrew({
       }
       setState((prev) => ({ ...prev, status: "loading", error: null }));
       try {
-        const text = await generateBrew(
+        const result = await generateBrew(
           { stackTools, toolMeta, incidents, pulse },
           apiKey,
           signal,
         );
         const generatedAt = Date.now();
         const dk = dayKey();
-        writeCache({ text, generatedAt, dayKey: dk });
-        setState({ status: "ready", text, generatedAt, isStale: false, error: null });
+        writeCache({
+          text: result.raw,
+          structured: result.structured,
+          generatedAt,
+          dayKey: dk,
+        });
+        setState({
+          status: "ready",
+          text: result.raw,
+          structured: result.structured,
+          generatedAt,
+          isStale: false,
+          error: null,
+        });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         const message = err instanceof Error ? err.message : "Unknown error";

@@ -9,10 +9,25 @@ import { useIncidents } from "../hooks/useIncidents";
 import { useMorningBrew } from "../hooks/useMorningBrew";
 import { useStackPulse } from "../hooks/useStackPulse";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
+import type { BrewStatus, BrewStructured } from "../lib/brew";
 import { Icon } from "../lib/icons";
 import { timeAgo } from "../lib/timeAgo";
 import type { SecretsMap, Tool } from "../types";
 import { StackPulse } from "./StackPulse";
+
+// Mirrors the Brief popover's status-pill mapping so green/yellow/red
+// reads identically across both surfaces.
+const STATUS_LABEL: Record<BrewStatus, string> = {
+  green: "all clear",
+  yellow: "watch",
+  red: "needs attention",
+};
+
+const STATUS_SEV: Record<BrewStatus, "ok" | "warning" | "critical"> = {
+  green: "ok",
+  yellow: "warning",
+  red: "critical",
+};
 
 interface Props {
   stackTools: Tool[];
@@ -90,6 +105,7 @@ export function MorningBrew({
             apiKey={apiKey}
             status={brew.status}
             text={brew.text}
+            structured={brew.structured}
             error={brew.error}
             onAddKey={onAddAnthropicKey}
             onBrew={() => void brew.refresh()}
@@ -126,6 +142,11 @@ interface NarrativeProps {
   apiKey: string | null;
   status: "idle" | "loading" | "ready" | "error";
   text: string | null;
+  // When present, render the rich structured layout (status pill +
+  // headline + observations + recommendation). Falls back to `text` as
+  // a single headline paragraph when the parser couldn't recover JSON
+  // from the response, OR when reading a pre-structured cached brew.
+  structured: BrewStructured | null;
   error: string | null;
   onAddKey: () => void;
   onBrew: () => void;
@@ -135,6 +156,7 @@ function BrewNarrative({
   apiKey,
   status,
   text,
+  structured,
   error,
   onAddKey,
   onBrew,
@@ -183,8 +205,38 @@ function BrewNarrative({
     );
   }
 
+  if (status === "ready" && structured) {
+    // Rich structured layout — mirrors the Brief popover's composition
+    // so the two AI surfaces share visual language.
+    return (
+      <div className="brew-structured">
+        <div className={`brew-status sev-${STATUS_SEV[structured.status]}`}>
+          <span className="brew-status-dot" />
+          <span>{STATUS_LABEL[structured.status]}</span>
+        </div>
+        <p className="brew-headline">{renderWithBold(structured.headline)}</p>
+        {structured.observations.length > 0 && (
+          <ul className="brew-observations">
+            {structured.observations.map((o, i) => (
+              <li key={i}>{renderWithBold(o)}</li>
+            ))}
+          </ul>
+        )}
+        {structured.recommendation && (
+          <div className="brew-rec">
+            <div className="brew-rec-label">Recommended action</div>
+            <p className="brew-rec-body">{renderWithBold(structured.recommendation)}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (status === "ready" && text) {
-    return <p className="brew-text">{renderWithBold(text)}</p>;
+    // Fallback: structured parsing failed (rare) OR we're reading a
+    // pre-structured cached brew. Render the raw text as a headline so
+    // it still reads in the same typographic register.
+    return <p className="brew-headline">{renderWithBold(text)}</p>;
   }
 
   // status === "idle" — key present, never brewed.

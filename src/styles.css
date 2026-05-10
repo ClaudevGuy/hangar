@@ -1693,23 +1693,140 @@ input { font-family: inherit; }
 }
 
 .brew-narrative { min-height: 80px; }
-/* Headline treatment matches the Brief popover (.brief-headline): display
-   font, slightly larger size, tight letter-spacing, accent color for bold
-   tool names. Reads like an editorial summary instead of a regular
-   paragraph — which is what Brew is. */
-.brew-text {
+
+/* ── Structured Brew layout ────────────────────────────────────────
+   Mirrors the topbar Brief popover (.brief-status / .brief-headline /
+   .brief-observations / .brief-rec) so the two AI surfaces share a
+   single visual language. Slightly looser spacing here because Brew
+   sits inside the dashboard's hero panel, not a 320-px popover. */
+
+.brew-structured {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 2px 0;
+}
+
+/* Status pill — green/yellow/red severity tint, same dot + chip
+   chrome as the Brief popover. */
+.brew-status {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+.brew-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.brew-status.sev-ok {
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.brew-status.sev-ok .brew-status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+.brew-status.sev-warning {
+  background: color-mix(in oklab, var(--warn) 12%, transparent);
+  border-color: color-mix(in oklab, var(--warn) 45%, transparent);
+  color: var(--warn);
+}
+.brew-status.sev-warning .brew-status-dot {
+  background: var(--warn);
+  box-shadow: 0 0 6px var(--warn);
+}
+.brew-status.sev-critical {
+  background: color-mix(in oklab, var(--danger) 12%, transparent);
+  border-color: color-mix(in oklab, var(--danger) 45%, transparent);
+  color: var(--danger);
+}
+.brew-status.sev-critical .brew-status-dot {
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+}
+
+/* Headline — display font, the executive read. Same recipe as
+   .brief-headline but with brew-tuned size for the wider container. */
+.brew-headline {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.4;
   letter-spacing: -0.012em;
   color: var(--text);
   font-weight: 500;
   text-wrap: pretty;
 }
-.brew-text strong {
+.brew-headline strong,
+.brew-observations strong,
+.brew-rec-body strong {
   color: var(--accent);
   font-weight: 600;
+}
+
+/* Observation list — divider above (visually separates it from the
+   headline) + ▸ accent triangles per row. */
+.brew-observations {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+}
+.brew-observations li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-2);
+  text-wrap: pretty;
+}
+.brew-observations li::before {
+  content: "▸";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Recommended action — accent-tinted box anchoring the bottom of the
+   structured layout. */
+.brew-rec {
+  padding: 12px 14px;
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--line));
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.brew-rec-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.brew-rec-body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text);
 }
 
 .brew-loading {

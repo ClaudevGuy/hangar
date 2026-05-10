@@ -1,8 +1,12 @@
-// Morning Brew — single-shot Anthropic call that produces a one-paragraph
-// briefing of the user's stack state. Browser-direct to the Messages API
-// (same dangerous-direct-browser-access flag the Investigate / Ask flows use).
+// Morning Brew — single-shot Anthropic call that produces a structured
+// briefing of the user's stack state, mirroring the topbar Brief shape:
+// status pill + headline + 2-4 observation bullets + recommended action.
+// Browser-direct to the Messages API (same dangerous-direct-browser-access
+// flag the Investigate / Ask flows use).
 //
-// Caller is responsible for caching. We just take the input and return text.
+// Caller is responsible for caching. We take the input and return the
+// parsed structured object PLUS the raw text (so we can fall back to
+// rendering as prose if Claude returns malformed JSON one day).
 
 import { recordAnthropicCall } from "./anthropicLog";
 import type { Incident, IncidentSeverity } from "../hooks/useIncidents";
@@ -24,26 +28,91 @@ export interface BrewInput {
   pulse: PulseTrack[];
 }
 
+// Same status enum the Brief popover uses — keeps the visual language
+// (green/yellow/red status pills) consistent across both surfaces.
+export type BrewStatus = "green" | "yellow" | "red";
+
+export interface BrewStructured {
+  status: BrewStatus;
+  headline: string;
+  observations: string[];
+  recommendation: string;
+}
+
+export interface BrewResult {
+  // Parsed structured object when Claude returned valid JSON. The UI
+  // prefers this and renders the rich layout (status pill / observations
+  // / recommendation). Null when JSON parsing failed.
+  structured: BrewStructured | null;
+  // Raw text from Claude — kept for two reasons: (a) fallback display
+  // when structured is null, (b) backward-compat with prior cached brews
+  // that were stored as plain strings.
+  raw: string;
+}
+
 const SYSTEM = `You are "Hangar Brew" — the morning briefing voice for a developer's tool dashboard.
 
-You read the user's stack state and write a single short paragraph (2–4 sentences, 60–90 words) summarizing what's happening across their connected tools and what to focus on today.
+You read the user's stack state and output strict JSON in exactly this shape — no other text:
 
-Tone: a sharp, calm engineering colleague briefing the user over coffee. Specific, not generic. Reference exact tool names, counts, and identifiers from the input.
+{"status":"green"|"yellow"|"red","headline":"...","observations":["...","..."],"recommendation":"..."}
 
-Style:
-- One paragraph only. No lists, headers, or markdown beyond inline **bold**.
-- Use **bold** sparingly for tool names (e.g. **Vercel**, **Sentry**) and identifiers (e.g. **HAN-87**).
-- Lead with the most pressing issue if there is one; otherwise lead with momentum or a useful observation.
-- Present tense, active voice.
-- Don't open with "Today" or "Good morning". Open with the most important fact.
-- If nothing's wrong, say so plainly — don't manufacture urgency.
-- Don't mention this is AI-generated. Don't sign off.`;
+Field rules:
+- status: green = all clear; yellow = something noteworthy to watch; red = active failure or urgent issue
+- headline: ONE sentence, 12-22 words. Lead with the most important fact. Use **bold** for tool names. This is the executive read.
+- observations: 2 to 4 items. Each one is a single specific data point from the snapshot, ~10-25 words. Use **bold** for tool names and identifiers. No padding, no filler.
+- recommendation: ONE sentence with a concrete next action. Use "No action needed." when status is green and nothing's noteworthy.
+- Don't mention providers absent from the snapshot — write around gaps, never say "I can't see X."
+- Don't open the headline with "Today" or "Good morning". Open with the most important fact.
+- No preamble, no markdown fences, no trailing text. JSON object only.
+
+Example:
+{"status":"yellow","headline":"**GitHub** is running hot with 18 events while your inbox is clear.","observations":["**GitHub** logged 18 push/PR events in the last 24h, 4 days since you last opened the dashboard","**Vercel** shipped 5 production deploys yesterday, all READY","**Anthropic**, **Inngest**, **Neon** are quiet — no AI calls, no jobs queued, no DB load"],"recommendation":"Check the GitHub queue — likely PRs piling up while you've been heads-down."}`;
+
+// Mirrors parseBriefStructured in lib/brief.ts. Strips optional ```json
+// code fences (Claude sometimes emits them despite the prompt) before
+// parsing. Returns null when the response isn't valid JSON OR doesn't
+// match the expected shape — caller falls back to rendering raw text.
+export function parseBrewStructured(text: string): BrewStructured | null {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/, "")
+    .trim();
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  const obj = parsed as Record<string, unknown>;
+  const headline = obj.headline;
+  const observations = obj.observations;
+  const recommendation = obj.recommendation;
+  const status = obj.status;
+  if (
+    typeof headline !== "string" ||
+    !Array.isArray(observations) ||
+    !observations.every((o): o is string => typeof o === "string") ||
+    typeof recommendation !== "string"
+  ) {
+    return null;
+  }
+  const validStatus: BrewStatus =
+    status === "green" || status === "yellow" || status === "red" ? status : "yellow";
+  return {
+    status: validStatus,
+    headline,
+    observations,
+    recommendation,
+  };
+}
 
 export async function generateBrew(
   input: BrewInput,
   apiKey: string,
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<BrewResult> {
   const userPrompt = formatUserPrompt(input);
   const res = await fetch(ANTHROPIC_URL, {
     method: "POST",
@@ -84,11 +153,12 @@ export async function generateBrew(
     outputTokens: body.usage?.output_tokens,
     label: `Morning Brew · ${input.stackTools.length} pinned tools`,
   });
-  return body.content
+  const raw = body.content
     .filter((b): b is { type: string; text: string } => b.type === "text" && typeof b.text === "string")
     .map((b) => b.text)
     .join("\n\n")
     .trim();
+  return { structured: parseBrewStructured(raw), raw };
 }
 
 // Formats the structured stack snapshot into a compact textual prompt. We
