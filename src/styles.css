@@ -320,13 +320,24 @@ input { font-family: inherit; }
    The dashboard panels (.brew, .today-panel, .inbox-chip, .dash-actions,
    .dash-stats) all use `margin: ... 40px ...` + `max-width: 1100px`,
    which leaves them anchored to the LEFT of main with a giant empty
-   gutter on the right. Center them instead and bump the cap to 1280px
-   so they actually use the freed horizontal space without making line
-   lengths painful. The min(1280px, 100% - 80px) keeps a 40px gutter
-   on each side at any viewport width.
+   gutter on the right. Center them in the freed space and let them
+   grow up to 1280px (comfortable cap before line lengths hurt).
+
+   Critical detail: .main is `display: flex; flex-direction: column`
+   so each panel is a flex item. Flex items with `margin-inline: auto`
+   SHRINK TO CONTENT instead of stretching — auto margins consume the
+   cross-axis space. Brew gets away with `max-width` alone because its
+   inner grid forces it wide; the chip / quick-actions / dash-stats
+   have small intrinsic content and collapsed to ~300px in the centre.
+   Setting an explicit `width` short-circuits that: the element takes
+   the requested width, then auto margins centre what's left.
+
+   `min(1280px, calc(100% - 80px))` keeps a 40px gutter on each side
+   at any viewport (1280px max, but never wider than viewport-80px).
+
    Catalog content (.cat-strip-inner, .grid, .list, .foot, .result-bar)
    uses padding-based gutters so it already flows full-width — visual
-   transition from "centered panels" to "full-width tool grid" reads
+   transition from "centred panels" to "full-width tool grid" reads
    as a natural shift in content density. */
 .layout.is-sidebar-collapsed .brew,
 .layout.is-sidebar-collapsed .today-panel,
@@ -334,7 +345,8 @@ input { font-family: inherit; }
 .layout.is-sidebar-collapsed .dash-actions,
 .layout.is-sidebar-collapsed .dash-stats {
   margin-inline: auto;
-  max-width: min(1280px, calc(100% - 80px));
+  width: min(1280px, calc(100% - 80px));
+  max-width: none;
 }
 
 .sidebar {
