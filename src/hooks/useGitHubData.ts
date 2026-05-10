@@ -7,15 +7,14 @@ import {
   type GitHubRepo,
   type GitHubUser,
 } from "../lib/github";
+import { createSyncLoop } from "../lib/realtimeSync";
 
 interface State {
   user: GitHubUser | null;
   repos: GitHubRepo[];
-  // Per-event activity feed — used by Stack Pulse to draw real
-  // commit-by-commit / PR-by-PR waveform bars instead of collapsing
-  // everything to a single repo-level pushed_at. Empty when the events
-  // fetch fails (we don't want one failed sub-request to nuke the whole
-  // hook — repos still render in the drawer).
+  // Per-event activity feed — used by Stack Pulse + Logs to draw real
+  // commit-by-commit / PR-by-PR records instead of collapsing everything
+  // to a single repo-level pushed_at.
   events: GitHubEvent[];
   loading: boolean;
   error: string | null;
@@ -23,14 +22,44 @@ interface State {
 
 const IDLE: State = { user: null, repos: [], events: [], loading: false, error: null };
 
-// Per-token in-memory cache lives for the page's lifetime — reopen the drawer
-// without burning rate limit. The vault stores the token, not us.
-const cache = new Map<string, State>();
+// Single sync loop shared across every consumer of useGitHubData. The
+// helper handles polling, refcount, cancel, tab-focus refresh, and
+// broadcasting cache updates. We just supply the fetch + a unique event
+// name. Errors get shaped INTO the State so subscribers see the failure
+// instead of an unhandled throw.
+const sync = createSyncLoop<State>({
+  eventName: "hangar-sync-github",
+  fetch: async (token, signal) => {
+    try {
+      const [user, repos] = await Promise.all([
+        fetchGitHubUser(token, signal),
+        fetchGitHubRepos(token, signal),
+      ]);
+      // Events are best-effort: a 403 (token lacking the right scope) or
+      // 422 shouldn't blank the drawer. Empty events array → Stack Pulse
+      // falls back to repo pushed_at signal.
+      let events: GitHubEvent[] = [];
+      try {
+        events = await fetchGitHubEvents(user.login, token, signal);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") throw err;
+        console.warn("github events fetch failed", err);
+      }
+      return { user, repos, events, loading: false, error: null };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return { user: null, repos: [], events: [], loading: false, error: msg };
+    }
+  },
+});
 
 export function useGitHubData(token: string | null): State {
   const [state, setState] = useState<State>(() => {
     if (!token) return IDLE;
-    return cache.get(token) ?? { ...IDLE, loading: true };
+    // If another consumer already populated the cache, jump straight to
+    // it. Otherwise show loading until the first fetch lands.
+    return sync.peek(token) ?? { ...IDLE, loading: true };
   });
 
   useEffect(() => {
@@ -38,44 +67,8 @@ export function useGitHubData(token: string | null): State {
       setState(IDLE);
       return;
     }
-    const cached = cache.get(token);
-    if (cached) {
-      setState(cached);
-      return;
-    }
-    const ac = new AbortController();
-    setState({ ...IDLE, loading: true });
-    // First fetch user + repos in parallel — both needed for the drawer.
-    // Events come from /users/:username/events so we can't fire it until
-    // we know the username; chain it after user resolves.
-    Promise.all([
-      fetchGitHubUser(token, ac.signal),
-      fetchGitHubRepos(token, ac.signal),
-    ])
-      .then(async ([user, repos]) => {
-        // Events are best-effort — swallow failures so a /events 403 (rare
-        // but possible on tokens lacking the right scope) doesn't blank
-        // the whole drawer. Empty events array just means the Pulse
-        // sparkline falls back to the repo pushed_at signal (still 0–N
-        // bars depending on how many repos were pushed in the window).
-        let events: GitHubEvent[] = [];
-        try {
-          events = await fetchGitHubEvents(user.login, token, ac.signal);
-        } catch (err) {
-          if (err instanceof DOMException && err.name === "AbortError") throw err;
-          // log + continue
-          console.warn("github events fetch failed", err);
-        }
-        const next: State = { user, repos, events, loading: false, error: null };
-        cache.set(token, next);
-        setState(next);
-      })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        const msg = err instanceof Error ? err.message : "Unknown error";
-        setState({ user: null, repos: [], events: [], loading: false, error: msg });
-      });
-    return () => ac.abort();
+    const unsubscribe = sync.subscribe(token, setState);
+    return unsubscribe;
   }, [token]);
 
   return state;

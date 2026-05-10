@@ -5,6 +5,7 @@ import {
   type LinearIssue,
   type LinearViewer,
 } from "../lib/linear";
+import { createSyncLoop } from "../lib/realtimeSync";
 
 interface State {
   viewer: LinearViewer | null;
@@ -14,12 +15,31 @@ interface State {
 }
 
 const IDLE: State = { viewer: null, issues: [], loading: false, error: null };
-const cache = new Map<string, State>();
+
+// Real-time sync loop for Linear. Polls every 60s, refetches on tab
+// focus, broadcasts cache updates to all consumers — see realtimeSync.ts
+// for the full mechanism.
+const sync = createSyncLoop<State>({
+  eventName: "hangar-sync-linear",
+  fetch: async (token, signal) => {
+    try {
+      const [viewer, issues] = await Promise.all([
+        fetchLinearViewer(token, signal),
+        fetchLinearIssues(token, signal),
+      ]);
+      return { viewer, issues, loading: false, error: null };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      return { ...IDLE, error: msg };
+    }
+  },
+});
 
 export function useLinearData(token: string | null): State {
   const [state, setState] = useState<State>(() => {
     if (!token) return IDLE;
-    return cache.get(token) ?? { ...IDLE, loading: true };
+    return sync.peek(token) ?? { ...IDLE, loading: true };
   });
 
   useEffect(() => {
@@ -27,25 +47,8 @@ export function useLinearData(token: string | null): State {
       setState(IDLE);
       return;
     }
-    const cached = cache.get(token);
-    if (cached) {
-      setState(cached);
-      return;
-    }
-    const ac = new AbortController();
-    setState({ ...IDLE, loading: true });
-    Promise.all([fetchLinearViewer(token, ac.signal), fetchLinearIssues(token, ac.signal)])
-      .then(([viewer, issues]) => {
-        const next: State = { viewer, issues, loading: false, error: null };
-        cache.set(token, next);
-        setState(next);
-      })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        const msg = err instanceof Error ? err.message : "Unknown error";
-        setState({ viewer: null, issues: [], loading: false, error: msg });
-      });
-    return () => ac.abort();
+    const unsubscribe = sync.subscribe(token, setState);
+    return unsubscribe;
   }, [token]);
 
   return state;
