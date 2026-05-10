@@ -2,7 +2,7 @@ import { useGitHubData } from "./useGitHubData";
 import { useLinearData } from "./useLinearData";
 import { useSentryData } from "./useSentryData";
 import { useVercelData } from "./useVercelData";
-import type { GitHubRepo } from "../lib/github";
+import type { GitHubEvent, GitHubRepo } from "../lib/github";
 import type { LinearIssue } from "../lib/linear";
 import type { SentryIssue } from "../lib/sentry";
 import type { VercelDeployment } from "../lib/vercel";
@@ -52,11 +52,14 @@ export interface IncidentFeed {
   vercelDeployments: VercelDeployment[];
   sentryIssues: SentryIssue[];
   linearIssues: LinearIssue[];
-  // GitHub repos sorted by recent push — the Pulse hook reads each repo's
-  // pushed_at to bucket commit pushes into the 24h waveform. We don't
-  // emit GitHub incidents into the inbox (PRs/reviews would belong
-  // there but are out of scope here); the data only feeds the Pulse.
+  // GitHub repos sorted by recent push — used by the drawer's "Recent
+  // repos" section.
   githubRepos: GitHubRepo[];
+  // Per-event activity feed (push / PR / issue events) with second-level
+  // timestamps. The Pulse hook prefers this over githubRepos because
+  // /user/repos collapses every push on a repo into a single pushed_at
+  // and hides intra-day activity bursts.
+  githubEvents: GitHubEvent[];
 }
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
@@ -243,6 +246,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     sentryIssues: sentry.issues,
     linearIssues: linear.issues,
     githubRepos: github.repos,
+    githubEvents: github.events,
   };
 }
 

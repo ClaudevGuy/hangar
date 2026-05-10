@@ -59,3 +59,39 @@ export function fetchGitHubRepos(token: string, signal?: AbortSignal): Promise<G
   const url = `${BASE}/user/repos?sort=pushed&direction=desc&per_page=8&affiliation=owner,collaborator`;
   return getJson<GitHubRepo[]>(url, token, signal);
 }
+
+// Per-event activity record from /users/:user/events. We only model the
+// fields we actually consume — the full payload is enormous and varies by
+// event type. Each event has a created_at that's accurate to the second,
+// which is what makes this endpoint useful for the Stack Pulse waveform
+// (versus /user/repos which collapses every push on a repo into a single
+// pushed_at timestamp).
+export interface GitHubEvent {
+  id: string;
+  // PushEvent | PullRequestEvent | IssuesEvent | IssueCommentEvent | etc.
+  // We don't restrict to a closed union — GitHub adds new event types
+  // periodically and we only key off `type` for display weighting.
+  type: string;
+  created_at: string;
+  repo: { id: number; name: string; url: string };
+  payload?: {
+    // PushEvent: list of commits in this push. Often >1 — a single push
+    // counts as 1 waveform bar regardless, since we treat the push as
+    // the atomic activity unit.
+    commits?: Array<{ sha: string; message: string }>;
+    // PullRequestEvent: opened / closed / reopened / etc.
+    action?: string;
+  };
+}
+
+export function fetchGitHubEvents(
+  username: string,
+  token: string,
+  signal?: AbortSignal,
+): Promise<GitHubEvent[]> {
+  // Up to 100 most recent events for the user (max page size). 24h-old
+  // events very rarely exceed 100 unless the user is hyper-active, and
+  // we only keep events inside the 24h window anyway.
+  const url = `${BASE}/users/${encodeURIComponent(username)}/events?per_page=100`;
+  return getJson<GitHubEvent[]>(url, token, signal);
+}
