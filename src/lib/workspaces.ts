@@ -26,6 +26,8 @@ const WORKSPACE_KEYS = [
   "hangar-ask-history",
   "hangar-today-dismissed",
   "hangar-notes",
+  // Cached Morning Brew narrative (one per day, per workspace).
+  "hangar-brew",
 ] as const;
 
 function readList(): Workspace[] {

@@ -1162,6 +1162,407 @@ input { font-family: inherit; }
 .feed-empty svg { color: var(--accent); }
 
 /* ----------------------------------------------------------- */
+/* Inbox Zero — counter, progress meter, zero-state celebrate  */
+/* ----------------------------------------------------------- */
+/* Wraps "Inbox" label + the X→0 counter so they live as a single
+   left-aligned cluster in the panel header. */
+.inbox-head-titles {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+}
+/* The headline counter — big "12 → 0" so the user sees the goal at a
+   glance. The big number is what's left, the small zero is the target. */
+.inbox-counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+}
+.inbox-counter-now {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+.inbox-counter-arrow {
+  font-size: 12px;
+  color: var(--text-4);
+}
+.inbox-counter-zero {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* Slim 2px bar showing how much of today's inbox the user has already
+   cleared. Lights up at 100% to celebrate hitting zero. */
+.inbox-progress {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 4px 0 12px;
+}
+.inbox-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width .25s ease;
+}
+.inbox-progress.is-zero .inbox-progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    color-mix(in oklab, var(--accent) 70%, var(--text))
+  );
+  box-shadow: 0 0 12px color-mix(in oklab, var(--accent) 55%, transparent);
+}
+
+/* Zero-state — drawn in the place where the feed list would render. Big
+   accent badge, headline, and a "Restore" affordance so it's not a dead
+   end. Reuses .feed-empty's container pattern but with celebratory chrome. */
+.inbox-zero-celebrate {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px;
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--line));
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--bg) 88%, var(--accent-bg));
+}
+.inbox-zero-badge {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-fg);
+  flex-shrink: 0;
+  box-shadow: 0 0 14px color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.inbox-zero-text {
+  flex: 1;
+  min-width: 0;
+}
+.inbox-zero-headline {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.inbox-zero-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ----------------------------------------------------------- */
+/* Morning Brew — daily AI briefing + Stack Pulse waveform     */
+/* ----------------------------------------------------------- */
+/* Hero panel sits above the Inbox. Mirrors .today-panel's chrome so the
+   two read as a coherent stack of "what's happening" surfaces. */
+.brew {
+  margin: 18px 40px 0;
+  padding: 16px 20px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.brew-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brew-head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.brew-stamp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.brew-stamp.is-stale { color: var(--warn); }
+
+.brew-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s, box-shadow .2s;
+}
+.brew-refresh:hover {
+  color: var(--text);
+  border-color: var(--accent-line);
+  background: color-mix(in oklab, var(--bg) 70%, var(--accent-bg));
+  box-shadow: 0 0 10px -4px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.brew-refresh-spark {
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+
+/* 2-column body: narrative paragraph on the left, Stack Pulse strip on
+   the right. Collapses to a single column on narrow viewports. */
+.brew-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.brew-narrative { min-height: 80px; }
+.brew-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+  margin: 0;
+}
+.brew-text strong { color: var(--text); font-weight: 600; }
+
+.brew-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.brew-loading-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.brew-error {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in oklab, var(--danger) 40%, var(--line));
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--bg) 86%, var(--danger) 8%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.brew-error-head {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+.brew-error-msg {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--danger);
+  word-break: break-word;
+  background: transparent;
+  padding: 0;
+}
+
+.brew-stub {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 4px 0;
+}
+.brew-stub-headline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.brew-stub-headline svg { color: var(--accent); }
+.brew-stub-copy {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-3);
+  margin: 0;
+  max-width: 56ch;
+}
+/* Brew now / Add key buttons get their accent spark inline. */
+.brew-stub .primary-btn .brew-refresh-spark {
+  color: var(--accent-fg);
+  filter: none;
+}
+
+/* Pulse strip — header + grid of mini sparkline cards. */
+.brew-pulse-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.brew-pulse-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.brew-pulse-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.brew-pulse-spark {
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 1;
+}
+.brew-pulse-stat {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+.brew-pulse-err { color: var(--danger); }
+
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 6px;
+}
+.pulse-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px 7px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .1s;
+  text-align: left;
+  color: var(--text-2);
+}
+.pulse-cell:hover {
+  background: color-mix(in oklab, var(--bg) 80%, var(--accent-bg));
+  border-color: var(--line-2);
+}
+.pulse-cell.has-errors {
+  border-color: color-mix(in oklab, var(--danger) 45%, var(--line));
+}
+.pulse-cell.is-quiet { opacity: 0.72; }
+.pulse-cell.is-quiet:hover { opacity: 1; }
+
+.pulse-cell-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+}
+.pulse-cell-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.pulse-cell-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--danger) 50%, transparent);
+  flex-shrink: 0;
+}
+
+.pulse-spark {
+  width: 100%;
+  height: 26px;
+  display: block;
+}
+.pulse-bar {
+  fill: var(--accent);
+  opacity: 0.78;
+}
+.pulse-bar-err {
+  fill: var(--danger);
+  opacity: 0.92;
+}
+.pulse-bar-empty {
+  fill: var(--line-2);
+  opacity: 0.55;
+}
+.pulse-spark-quiet line {
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+
+.pulse-cell-foot {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+.pulse-cell-count {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.pulse-cell-quiet-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-4);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Narrow viewports — stack narrative on top of pulse, drop horizontal
+   margin so the panel fills the column. Matches the today-panel behavior
+   on small screens. */
+@media (max-width: 900px) {
+  .brew {
+    margin: 14px 20px 0;
+    padding: 14px 16px;
+  }
+  .brew-body {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .pulse-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+/* ----------------------------------------------------------- */
 /* AI Action — per-incident "Investigate" button + panel       */
 /* ----------------------------------------------------------- */
 .feed-item-row {

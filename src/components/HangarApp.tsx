@@ -11,6 +11,7 @@ import { ShareModal } from "./ShareModal";
 import { TodayPanel } from "./TodayPanel";
 import { TourModal } from "./TourModal";
 import { ControlDeck } from "./ControlDeck";
+import { MorningBrew } from "./MorningBrew";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { CategoryStrip } from "./CategoryStrip";
 import { ResultBar } from "./ResultBar";
@@ -319,6 +320,17 @@ export function HangarApp() {
         )}
 
         <main className="main">
+          <MorningBrew
+            stackTools={stackTools}
+            toolMeta={toolMeta}
+            secrets={secrets}
+            onOpenTool={setOpenTool}
+            onAddAnthropicKey={() => {
+              setKeysFocusToolId("anthropic");
+              setShowKeys(true);
+            }}
+          />
+
           <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />
 
           <ControlDeck

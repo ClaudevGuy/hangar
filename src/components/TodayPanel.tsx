@@ -161,8 +161,17 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const visible = visibleIncidents.slice(0, MAX_VISIBLE);
   const hidden = Math.max(0, visibleIncidents.length - MAX_VISIBLE);
   // How many of the live incidents the user has manually hidden — anchors
-  // the "Restore" affordance so dismissals aren't a one-way trap.
+  // the "Restore" affordance so dismissals aren't a one-way trap, and feeds
+  // the inbox progress meter ("you cleared 8 of 20 today").
   const dismissedCount = incidents.filter((inc) => dismissedIds.has(inc.id)).length;
+  const inboxTotal = incidents.length;
+  const remaining = visibleIncidents.length;
+  // Progress percent = how much of today's inbox the user has cleared.
+  // Falls back to 0 when the inbox is empty (or already at zero, in which
+  // case we render the celebration state instead of a meter).
+  const clearedPct =
+    inboxTotal > 0 ? Math.min(100, Math.round((dismissedCount / inboxTotal) * 100)) : 0;
+  const isInboxZero = !showSkeleton && inboxTotal > 0 && remaining === 0;
 
   const handleClearAll = () => {
     if (visibleIncidents.length === 0) return;
@@ -170,15 +179,26 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   };
 
   return (
-    <section className="today-panel">
+    <section className="today-panel inbox-panel">
       <div className="feed-head">
-        <div className="strip-label">Today</div>
+        <div className="inbox-head-titles">
+          <div className="strip-label">Inbox</div>
+          {!showSkeleton && inboxTotal > 0 && (
+            <div className="inbox-counter" aria-live="polite">
+              <span className="inbox-counter-now">{remaining}</span>
+              <span className="inbox-counter-arrow" aria-hidden="true">→</span>
+              <span className="inbox-counter-zero">0</span>
+            </div>
+          )}
+        </div>
         <div className="feed-head-meta">
           {showSkeleton
             ? "checking…"
-            : visibleIncidents.length === 0
+            : inboxTotal === 0
               ? "all clear"
-              : `${visibleIncidents.length} ${visibleIncidents.length === 1 ? "item" : "items"} to look at`}
+              : remaining === 0
+                ? `cleared ${dismissedCount}`
+                : `${remaining} to triage`}
           {dismissedCount > 0 && (
             <button
               type="button"
@@ -202,6 +222,19 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
         </div>
       </div>
 
+      {!showSkeleton && inboxTotal > 0 && (
+        <div
+          className={`inbox-progress${isInboxZero ? " is-zero" : ""}`}
+          role="progressbar"
+          aria-valuenow={clearedPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Inbox cleared progress"
+        >
+          <div className="inbox-progress-fill" style={{ width: `${clearedPct}%` }} />
+        </div>
+      )}
+
       {showSkeleton ? (
         <div className="feed-list">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -210,6 +243,26 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
               <div className="skeleton-line w-60" />
             </div>
           ))}
+        </div>
+      ) : isInboxZero ? (
+        <div className="feed-empty inbox-zero-celebrate">
+          <span className="inbox-zero-badge" aria-hidden="true">
+            <Icon.check />
+          </span>
+          <div className="inbox-zero-text">
+            <div className="inbox-zero-headline">Inbox Zero</div>
+            <div className="inbox-zero-sub">
+              You cleared {dismissedCount} {dismissedCount === 1 ? "item" : "items"} today. Nothing left to triage.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="ghost-btn small"
+            onClick={restoreAll}
+            title="Bring back everything you dismissed"
+          >
+            Restore
+          </button>
         </div>
       ) : visibleIncidents.length === 0 ? (
         <div className="feed-empty">
