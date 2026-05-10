@@ -335,6 +335,9 @@ localStorage.clear(); location.reload();
 
 ### Shipped recently — beyond the original roadmap
 
+- [x] **Privacy / screensharing mode** — `⌘⇧P` (or Settings → Security → Privacy). Blurs API key values, repo + project names, issue titles, workspace name, and AI-generated headlines so you can demo Hangar or share your screen without leaking real identifiers. Brand colours, tool names, counts stay readable. A pulsing amber pill in the topbar makes the mode visible so it's hard to forget after a screen recording. Cross-tab synced
+- [x] **Per-tool tags** — user-defined labels ("api-stack", "marketing", "experimental") orthogonal to the built-in category. Editable in the tool drawer with a chip input + quick-add suggestion chips from the workspace's existing vocabulary. Sidebar "Tags" section appears once you have one; clicking a chip narrows both the catalog and the My Stack list (the underlying stack array stays full so Pulse / Brew / DashStats numbers don't lie)
+- [x] **Snippets vault per tool** — stash curl commands, deploy scripts, SQL fragments under each tool. Lives in the tool drawer above Notes. Title + optional language chip + preformatted code block, one-click copy with feedback, inline edit (`Cmd+Enter` saves, Esc cancels). Gives the drawer a coherent "your stuff" stack: Tags (how you group it), Snippets (what you run with it), Notes (what you remember about it)
 - [x] **Real-time sync** — all four live providers (GitHub, Vercel, Sentry, Linear) auto-refresh every 60s while the tab is focused, and refetch immediately on tab regain. Refcount-aware pub-sub layer (`lib/realtimeSync.ts`) ensures one fetch per token regardless of how many components are subscribed; in-flight cancel prevents stale results from clobbering newer ones
 - [x] **Compact dashboard** — dropped the legacy ControlDeck (5 inert stat tiles + redundant launcher row) and replaced with a six-card Quick Actions shelf + a one-line stats strip. Whole dashboard fits above the fold on a 14" laptop
 - [x] **Morning Brew** — Anthropic-powered one-paragraph daily briefing of your stack at the top of `/app`. Cached daily, manually refreshable. Prompt grounds Claude in real per-tool 24h activity counts so it doesn't hallucinate "GitHub hasn't been touched" from a stale lastOpened
@@ -380,6 +383,7 @@ localStorage.clear(); location.reload();
 - [ ] Stripe revenue in the web app (currently MCP only)
 - [ ] AI cost optimizer — recommend plan changes based on usage patterns
 - [ ] Daily Brief auto-generation + email digest via the user's Resend key
+- [ ] **Inbound webhooks (deliberately deferred for v1)** — true real-time would mean pointing provider webhooks at a Hangar-hosted endpoint, which forces a server-side store (e.g. Vercel KV) for buffering events between page loads. That would break the README's "no Hangar server ever sees your data" promise: webhook payloads carry real commit messages / issue bodies / deploy details and they'd transit our infra to be useful. Polling (60s + tab-focus refetch) already catches the deploys, issues, PRs, and commits users actually act on. Rev plan when there's user demand for the long-tail events polling misses (PR comments, custom Stripe events, etc.) — the cleanest path is "user-bring-your-own-relay" (Pipedream / webhook.site), so Hangar generates the integration recipe but doesn't run the receiver
 
 ---
 
