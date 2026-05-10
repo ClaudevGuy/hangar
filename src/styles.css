@@ -827,52 +827,39 @@ input { font-family: inherit; }
 /* ----------------------------------------------------------- */
 .brief-wrap { position: relative; display: inline-flex; }
 
+/* Brief now mirrors the StatusRadar pill (.status-pill-trigger) — same
+   neutral panel background, hairline border, muted text. Ask is the
+   prominent AI affordance; Brief reads as a quiet sibling that lives
+   in the topbar's metadata layer alongside the status pill. The spark
+   glyph keeps its accent colour so the button still telegraphs "AI"
+   without the glow / animation. */
 .brief-trigger {
   display: inline-flex; align-items: center; gap: 7px;
   height: 32px;
-  padding: 0 14px 0 12px;
-  background: linear-gradient(135deg,
-    color-mix(in oklab, var(--accent-bg) 90%, transparent) 0%,
-    color-mix(in oklab, var(--accent-bg) 35%, var(--panel)) 100%);
-  border: 1px solid var(--accent-line);
+  padding: 0 12px 0 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  color: var(--accent);
+  color: var(--text-2);
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  /* No resting halo — Ask is the prominent AI affordance now (it's the
-     interactive entry point), so Brief reads as the quieter sibling.
-     Hover + open states still get a glow so the button stays interactive. */
-  transition: box-shadow .25s ease, background .2s ease, border-color .2s ease;
+  transition: background .15s, border-color .15s, color .15s;
 }
 .brief-trigger:hover {
-  background: var(--accent-bg);
-  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
-    0 0 22px -2px color-mix(in oklab, var(--accent) 55%, transparent);
+  border-color: var(--line-2);
+  color: var(--text);
 }
 .brief-trigger.is-open {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-  box-shadow:
-    0 0 0 1px var(--accent-line),
-    0 0 22px -2px color-mix(in oklab, var(--accent) 55%, transparent);
+  border-color: var(--accent-line);
+  color: var(--text);
 }
 .brief-trigger-spark {
+  color: var(--accent);
   font-size: 14px;
   line-height: 1;
-  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 60%, transparent));
-  animation: brief-spark-twinkle 2.6s ease-in-out infinite;
-}
-@keyframes brief-spark-twinkle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.72; transform: scale(0.9); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .brief-trigger-spark { animation: none; }
 }
 
 /* Ask trigger — the prominent AI affordance in the topbar. Carries the
