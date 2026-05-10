@@ -5,6 +5,7 @@
 // Caller is responsible for caching. We just take the input and return text.
 
 import type { Incident, IncidentSeverity } from "../hooks/useIncidents";
+import type { PulseTrack } from "../hooks/useStackPulse";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
 import type { Tool } from "../types";
 
@@ -15,6 +16,11 @@ export interface BrewInput {
   stackTools: Tool[];
   toolMeta: ToolMetaMap;
   incidents: Incident[];
+  // Per-tool 24h activity tracks. Without this Claude only sees stack
+  // composition + incidents + lastOpenedAt and ends up inventing
+  // narratives like "GitHub hasn't been touched in four days" from the
+  // last-clicked timestamp — which doesn't reflect actual repo activity.
+  pulse: PulseTrack[];
 }
 
 const SYSTEM = `You are "Hangar Brew" — the morning briefing voice for a developer's tool dashboard.
@@ -78,16 +84,48 @@ export async function generateBrew(
 // keep it short (each incident gets one line) so total input tokens stay
 // under ~600 even with a busy stack.
 function formatUserPrompt(input: BrewInput): string {
-  const { stackTools, toolMeta, incidents } = input;
+  const { stackTools, toolMeta, incidents, pulse } = input;
   const lines: string[] = [];
+
+  // Build a quick lookup: toolId → 24h event count. Used both for the
+  // stack listing (so each tool line carries its activity inline) and for
+  // the dedicated "what was hot" callout below.
+  const activityByTool = new Map<string, number>();
+  for (const track of pulse) activityByTool.set(track.toolId, track.totalActivity);
 
   lines.push(`Stack (${stackTools.length} pinned):`);
   for (const t of stackTools) {
     const m = toolMeta[t.id];
     const plan = m?.plan ?? t.plan ?? "—";
     const ago = m?.lastOpenedAt ? formatAgo(m.lastOpenedAt) : null;
-    const tail = ago ? `, last opened ${ago}` : "";
-    lines.push(`- ${t.name} (${t.category}, plan: ${plan}${tail})`);
+    const lastOpenTail = ago ? `, last opened by user ${ago}` : "";
+    // 24h activity is the SOURCE OF TRUTH for "is this tool active". The
+    // last-opened timestamp is just when the human clicked through to the
+    // dashboard — Claude was confusing the two before this addition.
+    const events = activityByTool.get(t.id) ?? 0;
+    const activityTail = events === 0
+      ? ", 24h activity: none"
+      : `, 24h activity: ${events} ${events === 1 ? "event" : "events"}`;
+    lines.push(`- ${t.name} (${t.category}, plan: ${plan}${activityTail}${lastOpenTail})`);
+  }
+
+  // Quick "what was hot" summary so Claude can lead with the busiest
+  // tool when there are no incidents to lead with. Sorted desc by event
+  // count; tools with zero activity aren't worth a callout.
+  const ranked = [...pulse]
+    .filter((p) => p.totalActivity > 0)
+    .sort((a, b) => b.totalActivity - a.totalActivity);
+  if (ranked.length > 0) {
+    const top = ranked.slice(0, 3).map((p) => {
+      const tool = stackTools.find((s) => s.id === p.toolId);
+      const name = tool?.name ?? p.toolId;
+      return `${name} (${p.totalActivity})`;
+    });
+    lines.push("");
+    lines.push(`Most active in last 24h: ${top.join(", ")}.`);
+  } else {
+    lines.push("");
+    lines.push(`No tool activity in the last 24h — every connected provider is quiet.`);
   }
 
   if (incidents.length === 0) {

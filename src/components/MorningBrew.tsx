@@ -37,6 +37,9 @@ export function MorningBrew({
     stackTools,
     toolMeta,
     incidents: feed.incidents,
+    // Pulse tracks feed the brew prompt — the narrative now reflects
+    // real per-tool event counts instead of guessing from lastOpenedAt.
+    pulse: tracks,
   });
 
   const totalActivity24h = useMemo(

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { ACTIVITY, TOOLS } from "../data/tools";
+import { TOOLS } from "../data/tools";
 import { QUICK_ACTIONS } from "../data/quickActions";
 import { useNotes } from "../hooks/useNotes";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
@@ -50,7 +50,6 @@ export function ToolDrawer({
   const tiers = parsePricingTiers(tool.pricing);
   const planInTiers = tiers.some((t) => t.name.toLowerCase() === effectivePlan.toLowerCase());
 
-  const recent = ACTIVITY.filter((a) => a.tool === tool.id);
   const pairs = TOOLS.filter((t) => t.id !== tool.id).slice(0, 6);
 
   // Per-tool brand color hooks for `.drawer-cat` accent.
@@ -275,22 +274,11 @@ export function ToolDrawer({
           />
         </div>
 
-        <div className="drawer-section">
-          <div className="drawer-section-title">Recent</div>
-          <ul className="drawer-activity">
-            {recent.map((a, i) => (
-              <li key={i}>
-                <span className="act-line">{a.text}</span>
-                <span className="act-time">{a.time}</span>
-              </li>
-            ))}
-            {recent.length === 0 && (
-              <li className="muted">
-                No activity surfaced yet. Hangar will pick up events once connected.
-              </li>
-            )}
-          </ul>
-        </div>
+        {/* Removed the static "Recent" section that always rendered
+            "No activity surfaced yet" — its data source (ACTIVITY in
+            data/tools.ts) is intentionally an empty array, and the per-
+            tool insights panels above (GitHubInsights, VercelInsights,
+            etc.) already show real recent activity from live tokens. */}
 
         <div className="drawer-section">
           <div className="drawer-section-title">Pairs well with</div>

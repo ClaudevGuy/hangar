@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { generateBrew } from "../lib/brew";
 import { workspaceKey } from "../lib/workspaces";
 import type { Incident } from "./useIncidents";
+import type { PulseTrack } from "./useStackPulse";
 import type { ToolMetaMap } from "./useToolMeta";
 import type { Tool } from "../types";
 
@@ -83,6 +84,11 @@ export interface UseMorningBrewArgs {
   stackTools: Tool[];
   toolMeta: ToolMetaMap;
   incidents: Incident[];
+  // Per-tool 24h activity tracks. Forwarded straight to the prompt so
+  // Claude has real per-tool event counts to anchor its narrative on
+  // (without this it ends up making up activity stories from
+  // lastOpenedAt — see brew.ts comment for the full rationale).
+  pulse: PulseTrack[];
 }
 
 export interface UseMorningBrewReturn extends BrewState {
@@ -94,6 +100,7 @@ export function useMorningBrew({
   stackTools,
   toolMeta,
   incidents,
+  pulse,
 }: UseMorningBrewArgs): UseMorningBrewReturn {
   const [state, setState] = useState<BrewState>(buildInitialState);
 
@@ -112,7 +119,7 @@ export function useMorningBrew({
       setState((prev) => ({ ...prev, status: "loading", error: null }));
       try {
         const text = await generateBrew(
-          { stackTools, toolMeta, incidents },
+          { stackTools, toolMeta, incidents, pulse },
           apiKey,
           signal,
         );
@@ -130,7 +137,7 @@ export function useMorningBrew({
         }));
       }
     },
-    [apiKey, stackTools, toolMeta, incidents],
+    [apiKey, stackTools, toolMeta, incidents, pulse],
   );
 
   // Re-evaluate isStale when the day rolls over while the tab is open.
