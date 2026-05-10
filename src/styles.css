@@ -1261,6 +1261,266 @@ input { font-family: inherit; }
   margin-top: 2px;
 }
 
+/* Slim "all clear" chip — the dashboard's quietest state. Renders in place
+   of the full inbox panel when there are zero incidents to show, so the
+   page stays compact. Same horizontal margins as the panels above + below
+   so it visually replaces the panel without a hard alignment shift. */
+.inbox-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 40px 0;
+  padding: 9px 14px;
+  background: color-mix(in oklab, var(--bg) 88%, var(--accent-bg));
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--line));
+  border-radius: 999px;
+  max-width: 1100px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.inbox-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-fg);
+  flex-shrink: 0;
+}
+.inbox-chip-badge svg { width: 11px; height: 11px; }
+.inbox-chip-text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .inbox-chip { margin: 12px 20px 0; }
+}
+
+/* ----------------------------------------------------------- */
+/* Quick Actions — five-card action shelf below the inbox      */
+/* ----------------------------------------------------------- */
+/* Wrapper matches the brew/inbox horizontal margins so all the dashboard
+   panels share a consistent left edge. Header is just a small label —
+   the action cards do the work. */
+.quick-actions {
+  margin: 18px 40px 0;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qa-head {
+  display: flex;
+  align-items: center;
+}
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+/* Cards are flat by default and lift on hover/focus. Smart cards (AI-
+   powered) get an accent-tinted glyph so they read as "these run model
+   calls" without separate chrome. */
+.qa-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .12s, box-shadow .2s;
+}
+.qa-card:hover {
+  background: color-mix(in oklab, var(--panel) 80%, var(--accent-bg));
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+}
+.qa-card:focus-visible {
+  outline: none;
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 1px var(--accent-line);
+}
+.qa-card.is-pressed {
+  background: color-mix(in oklab, var(--panel) 70%, var(--accent-bg));
+  border-color: var(--accent-line);
+}
+.qa-card.is-smart .qa-glyph,
+.qa-card.is-smart .qa-spark {
+  color: var(--accent);
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+}
+.qa-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+}
+.qa-card:hover .qa-glyph {
+  border-color: var(--line-2);
+  color: var(--text);
+}
+.qa-glyph-emoji {
+  font-size: 13px;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+.qa-spark {
+  font-size: 13px;
+  line-height: 1;
+}
+.qa-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.qa-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qa-desc {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qa-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  padding: 2px 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.qa-hint {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding: 2px 7px;
+  background: var(--bg);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Below 1100px the 5-card row gets cramped. Drop to 3 then 2 columns at
+   the same breakpoints the rest of the dashboard already uses. */
+@media (max-width: 1100px) {
+  .qa-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .quick-actions { margin: 14px 20px 0; }
+  .qa-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .qa-desc { display: none; }
+}
+
+/* ----------------------------------------------------------- */
+/* Dash Stats — single-line replacement for the deck-stats grid */
+/* ----------------------------------------------------------- */
+/* Five number-cells separated by hairline rules, no panel chrome. Each
+   cell is a clickable button that opens its source modal (the static
+   "in catalog" cell is a div). Sits just above the catalog area so the
+   number summary stays visible right where users used to scan it. */
+.dash-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 18px 40px 0;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  max-width: 1100px;
+  flex-wrap: wrap;
+}
+.ds-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 14px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  text-align: left;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.ds-cell:not(.ds-cell-static):hover {
+  background: color-mix(in oklab, var(--panel) 70%, var(--accent-bg));
+  color: var(--text);
+}
+.ds-cell-static { cursor: default; }
+.ds-num {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.ds-pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok, #2ecc71);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--ok, #2ecc71) 50%, transparent);
+}
+.ds-lbl {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+.ds-foot {
+  font-size: 11px;
+  color: var(--text-4);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ds-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .dash-stats { margin: 14px 20px 0; padding: 10px 8px; }
+  .ds-cell { padding: 4px 8px; }
+  .ds-num { font-size: 16px; }
+  .ds-foot { display: none; }
+}
+
+
 /* ----------------------------------------------------------- */
 /* Morning Brew — daily AI briefing + Stack Pulse waveform     */
 /* ----------------------------------------------------------- */
@@ -1331,7 +1591,10 @@ input { font-family: inherit; }
    the right. Collapses to a single column on narrow viewports. */
 .brew-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  /* Pulse gets near-equal real estate so its waveforms read as a peer
+     to the narrative, not a sidebar. The narrative still wins on glance
+     order (left-to-right) but Pulse no longer feels tucked away. */
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   gap: 22px;
   align-items: start;
 }

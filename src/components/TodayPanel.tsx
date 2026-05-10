@@ -172,11 +172,31 @@ export function TodayPanel({ secrets, onOpenTool }: Props) {
   const clearedPct =
     inboxTotal > 0 ? Math.min(100, Math.round((dismissedCount / inboxTotal) * 100)) : 0;
   const isInboxZero = !showSkeleton && inboxTotal > 0 && remaining === 0;
+  // Truly nothing to do — no incidents pending and none dismissed today
+  // either. Render as a slim chip rather than a full panel so the dashboard
+  // stays compact when the stack is calm.
+  const isAllClear = !showSkeleton && inboxTotal === 0;
 
   const handleClearAll = () => {
     if (visibleIncidents.length === 0) return;
     dismissMany(visibleIncidents.map((inc) => inc.id));
   };
+
+  // Slim "all clear" chip — the dashboard's quietest state. One line, no
+  // chrome panel, just confirmation that the stack is calm. Reclaims the
+  // ~80px the empty-state panel used to burn.
+  if (isAllClear) {
+    return (
+      <div className="inbox-chip" role="status" aria-live="polite">
+        <span className="inbox-chip-badge" aria-hidden="true">
+          <Icon.check />
+        </span>
+        <span className="inbox-chip-text">
+          <strong>Inbox clear</strong> · nothing pressing across your stack.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <section className="today-panel inbox-panel">

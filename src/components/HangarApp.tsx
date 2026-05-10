@@ -10,8 +10,9 @@ import { CheatSheet, ChordIndicator } from "./CheatSheet";
 import { ShareModal } from "./ShareModal";
 import { TodayPanel } from "./TodayPanel";
 import { TourModal } from "./TourModal";
-import { ControlDeck } from "./ControlDeck";
 import { MorningBrew } from "./MorningBrew";
+import { QuickActions } from "./QuickActions";
+import { DashStats } from "./DashStats";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { CategoryStrip } from "./CategoryStrip";
 import { ResultBar } from "./ResultBar";
@@ -182,21 +183,6 @@ export function HangarApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const reorderStack = useCallback(
-    (fromId: string, toId: string) => {
-      setStack((s) => {
-        const fromIdx = s.indexOf(fromId);
-        const toIdx = s.indexOf(toId);
-        if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return s;
-        const next = [...s];
-        const [item] = next.splice(fromIdx, 1);
-        next.splice(toIdx, 0, item);
-        return next;
-      });
-    },
-    [setStack],
-  );
-
   const toggleCompare = useCallback((tool: Tool) => {
     setCompare((c) => {
       if (c.includes(tool.id)) return c.filter((x) => x !== tool.id);
@@ -333,37 +319,30 @@ export function HangarApp() {
 
           <TodayPanel secrets={secrets} onOpenTool={setOpenTool} />
 
-          <ControlDeck
+          {/* Five-card action shelf — search · ask · scan · catalog · add.
+              Replaces the old catalog-divider button (Browse catalog moved
+              into the shelf as a stateful toggle card) and the inert
+              ControlDeck stat tiles (now a compact strip below). */}
+          <QuickActions
+            onOpenAsk={() => setShowAsk(true)}
+            onOpenSearch={() => setShowStackSearch(true)}
+            onOpenRepoScan={() => setShowRepoScan(true)}
+            onOpenAddTool={() => setShowAddTool(true)}
+            onToggleCatalog={() => setShowCatalog((s) => !s)}
+            catalogOpen={showCatalog}
+            catalogCount={allTools.length}
+          />
+
+          {/* Compact stack stats — keeps the data dense on one line so the
+              fold-line stays high. Click any cell to open its source modal. */}
+          <DashStats
             stackTools={stackTools}
             totalTools={allTools.length}
             secrets={secrets}
             toolMeta={toolMeta}
-            onOpenTool={setOpenTool}
             onOpenStack={() => setShowStack(true)}
-            onReorderStack={reorderStack}
+            onOpenKeys={() => setShowKeys(true)}
           />
-
-          <div className="catalog-divider">
-            <button
-              type="button"
-              className="catalog-toggle"
-              onClick={() => setShowCatalog((s) => !s)}
-              aria-expanded={showCatalog}
-            >
-              <span className="catalog-toggle-arrow" data-open={showCatalog}>
-                ›
-              </span>
-              Browse catalog
-              <span className="muted catalog-toggle-count">{allTools.length} tools</span>
-            </button>
-            <button
-              type="button"
-              className="ghost-btn small catalog-add"
-              onClick={() => setShowAddTool(true)}
-            >
-              + Add tool
-            </button>
-          </div>
 
           {showCatalog && (
             <>
