@@ -842,10 +842,10 @@ input { font-family: inherit; }
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  /* No resting halo — Ask is the prominent AI affordance now (it's the
+     interactive entry point), so Brief reads as the quieter sibling.
+     Hover + open states still get a glow so the button stays interactive. */
   transition: box-shadow .25s ease, background .2s ease, border-color .2s ease;
-  box-shadow:
-    0 0 0 0 color-mix(in oklab, var(--accent) 0%, transparent),
-    0 0 14px -2px color-mix(in oklab, var(--accent) 32%, transparent);
 }
 .brief-trigger:hover {
   background: var(--accent-bg);
@@ -875,34 +875,49 @@ input { font-family: inherit; }
   .brief-trigger-spark { animation: none; }
 }
 
-/* Ask trigger — sibling to Brief in the topbar. Slightly subtler treatment
-   (panel base, accent on hover) so the two AI buttons read as a pair without
-   competing for attention. */
+/* Ask trigger — the prominent AI affordance in the topbar. Carries the
+   accent halo at rest so the eye lands on it as the interactive entry
+   point ("ask Hangar anything"). Brief sits next to it as the quieter
+   one-shot sibling. */
 .ask-trigger {
   display: inline-flex; align-items: center; gap: 7px;
   height: 32px;
   padding: 0 14px 0 12px;
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid var(--accent-line);
   border-radius: var(--r-md);
-  color: var(--text-2);
+  color: var(--accent);
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: box-shadow .25s ease, background .2s ease, border-color .2s ease, color .2s ease;
+  /* Resting halo — same recipe Brief used to have. Soft outer glow
+     in the accent colour so the button reads as "alive". */
+  box-shadow: 0 0 14px -2px color-mix(in oklab, var(--accent) 32%, transparent);
 }
 .ask-trigger:hover {
-  color: var(--accent);
   background: color-mix(in oklab, var(--accent-bg) 50%, var(--panel));
-  border-color: var(--accent-line);
-  box-shadow: 0 0 18px -4px color-mix(in oklab, var(--accent) 40%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 0 22px -2px color-mix(in oklab, var(--accent) 55%, transparent);
 }
 .ask-trigger-spark {
   color: var(--accent);
   font-size: 14px; line-height: 1;
-  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, transparent));
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 60%, transparent));
+  /* Same gentle twinkle Brief's spark used to own — moves with the
+     halo so the "alive" feel is consistent. */
+  animation: ask-spark-twinkle 2.6s ease-in-out infinite;
+}
+@keyframes ask-spark-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.72; transform: scale(0.9); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ask-trigger-spark { animation: none; }
 }
 
 /* Popover */
