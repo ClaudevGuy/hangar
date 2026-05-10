@@ -206,6 +206,12 @@ function BrewNarrative({
   }
 
   if (status === "ready" && structured) {
+    // Suppress the recommendation card when there's nothing to do —
+    // the system prompt asks Claude to write "No action needed." in
+    // that case, but rendering it anyway just adds dead chrome to a
+    // green-status briefing. Catches common variants ("No action
+    // needed", "no action required.", etc.) via a normalised match.
+    const recIsNoOp = isNoActionNeeded(structured.recommendation);
     // Rich structured layout — mirrors the Brief popover's composition
     // so the two AI surfaces share visual language.
     return (
@@ -222,7 +228,7 @@ function BrewNarrative({
             ))}
           </ul>
         )}
-        {structured.recommendation && (
+        {structured.recommendation && !recIsNoOp && (
           <div className="brew-rec">
             <div className="brew-rec-label">Recommended action</div>
             <p className="brew-rec-body">{renderWithBold(structured.recommendation)}</p>
@@ -253,6 +259,21 @@ function BrewNarrative({
         <span className="brew-refresh-spark">✦</span> Brew now
       </button>
     </div>
+  );
+}
+
+// Detects the "no action needed" recommendation Claude writes when the
+// status is green. We strip punctuation and lowercase before matching
+// so trivial variants ("No action needed", "no action required.",
+// "No action needed!") all fold to true. Keeps the rendering tidy
+// without needing the prompt to be more rigid about the phrase.
+function isNoActionNeeded(rec: string): boolean {
+  const normalized = rec.trim().toLowerCase().replace(/[.!]+$/g, "");
+  return (
+    normalized === "no action needed" ||
+    normalized === "no action required" ||
+    normalized === "none" ||
+    normalized === "nothing to do"
   );
 }
 
