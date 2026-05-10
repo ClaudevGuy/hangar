@@ -41,6 +41,14 @@ const WORKSPACE_KEYS = [
   // integrations for yet (Inngest, Neon, Resend, …) so engagement
   // shows up regardless of provider.
   "hangar-launch-log",
+  // Per-tool user-defined tags ("api-stack", "marketing", "experimental")
+  // — orthogonal to category, lets the user group their stack their way.
+  // Filterable via the sidebar tag chips.
+  "hangar-tool-tags",
+  // Per-tool snippets vault — curl commands, deploy scripts, oneliners
+  // the user wants quick access to per provider. Stored together so a
+  // single localStorage write covers all snippets for a workspace.
+  "hangar-snippets",
 ] as const;
 
 function readList(): Workspace[] {

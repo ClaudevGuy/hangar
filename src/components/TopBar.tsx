@@ -29,6 +29,11 @@ interface Props {
   // they previously collapsed via the side-tools rail button.
   sidebarCollapsed: boolean;
   onExpandSidebar: () => void;
+  // Privacy / screensharing mode — when true, render a small pill in
+  // the topbar so the user can SEE that real identifiers are blurred
+  // (and click to flip it back off). Easy to forget the mode is on.
+  privacyMode: boolean;
+  onTogglePrivacyMode: () => void;
 }
 
 export function TopBar({
@@ -38,6 +43,7 @@ export function TopBar({
   onOpenStack, onOpenCompare,
   stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenAsk, onToggleMobileSidebar,
   sidebarCollapsed, onExpandSidebar,
+  privacyMode, onTogglePrivacyMode,
 }: Props) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +93,24 @@ export function TopBar({
       </div>
 
       <div className="topbar-right">
+        {/* Privacy mode indicator — only renders when active. Functions
+            as a one-click "turn off privacy mode" button so the user
+            can see at a glance that the mode is on (easy to forget after
+            a screen recording ends). Sits on the far left of topbar-right
+            so it's the first thing the user notices when scanning back
+            across the bar. */}
+        {privacyMode && (
+          <button
+            type="button"
+            className="privacy-pill"
+            onClick={onTogglePrivacyMode}
+            title="Privacy mode is on — click to turn off (⌘⇧P)"
+            aria-label="Turn off privacy mode"
+          >
+            <span className="privacy-pill-dot" aria-hidden="true" />
+            <span>Privacy</span>
+          </button>
+        )}
         <Brief
           stackTools={stackTools}
           toolMeta={toolMeta}

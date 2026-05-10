@@ -56,6 +56,12 @@ interface Props {
   // the hangar-mcp server expects at ~/.hangar/mcp.json.
   stackTools: Tool[];
   toolMeta: ToolMetaMap;
+  // Privacy / screensharing mode — blurs sensitive identifiers
+  // (vault values, repo names, issue titles, workspace name) so the
+  // user can demo / share screen without leaking real data. Toggle
+  // also bound to ⌘⇧P globally; this is the GUI affordance.
+  privacyMode: boolean;
+  onSetPrivacyMode: (on: boolean) => void;
   // Opens the Share modal at the app level. Closes the settings popover.
   onOpenShare: () => void;
   // Opens the Repo Scan modal at the app level. Closes the settings popover.
@@ -69,7 +75,7 @@ type SettingsTab = "look" | "security" | "data";
 export function SettingsMenu({
   prefs, setPref, vaultState, onSetPassphrase, onChangePassphrase, onRemovePassphrase, onLock,
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
-  stackTools, toolMeta, onOpenShare, onOpenRepoScan,
+  stackTools, toolMeta, privacyMode, onSetPrivacyMode, onOpenShare, onOpenRepoScan,
   placement = "topbar",
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -225,6 +231,32 @@ export function SettingsMenu({
           </>)}
 
           {tab === "security" && (<>
+          <div className="settings-section">
+            <div className="settings-label">Privacy</div>
+            <div className="settings-row settings-row-vert">
+              <label className="settings-toggle">
+                <input
+                  type="checkbox"
+                  checked={privacyMode}
+                  onChange={(e) => onSetPrivacyMode(e.target.checked)}
+                />
+                <span className="settings-toggle-track" aria-hidden="true">
+                  <span className="settings-toggle-knob" />
+                </span>
+                <span className="settings-toggle-label">
+                  Screensharing mode
+                  <kbd className="settings-toggle-kbd">⌘⇧P</kbd>
+                </span>
+              </label>
+              <div className="muted settings-blurb">
+                Blurs API key values, repo + project names, issue titles,
+                and your workspace name so you can demo Hangar or share
+                your screen without leaking real identifiers. Brand
+                colours, tool names, and counts stay visible.
+              </div>
+            </div>
+          </div>
+
           <div className="settings-section">
             <div className="settings-label">Security</div>
             <SecurityControls

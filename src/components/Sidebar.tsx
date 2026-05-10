@@ -59,6 +59,18 @@ interface Props {
   // hamburger, which becomes always-visible when collapsed=true.
   collapsed: boolean;
   onCollapse: () => void;
+  // Privacy mode (drilled through to SettingsMenu's Security tab).
+  // Toggle is also bound to ⌘⇧P globally — this prop is just the
+  // GUI affordance for users who don't know the shortcut.
+  privacyMode: boolean;
+  onSetPrivacyMode: (on: boolean) => void;
+  // Tag filter — list of all unique user-defined tags with counts,
+  // currently active filter (or null), and the setter. Renders as a
+  // small chip row in a sidebar section; clicking a chip filters
+  // both the catalog and the My Stack list at the HangarApp level.
+  allTags: { tag: string; count: number }[];
+  activeTag: string | null;
+  onSelectTag: (tag: string | null) => void;
 }
 
 export function Sidebar({
@@ -70,6 +82,8 @@ export function Sidebar({
   onOpenShare, onOpenRepoScan,
   isMobileOpen, onCloseMobile,
   collapsed, onCollapse,
+  privacyMode, onSetPrivacyMode,
+  allTags, activeTag, onSelectTag,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
 
@@ -116,6 +130,44 @@ export function Sidebar({
           ))}
         </nav>
       </div>
+
+      {/* Tag filter — only renders when the user has actually tagged
+          something. Empty state would just be noise; users discover
+          tags via the drawer's TagsEditor and the section appears
+          once they have one. The "all" chip clears the filter. */}
+      {allTags.length > 0 && (
+        <div className="side-section">
+          <div className="side-label">
+            Tags
+            {activeTag && (
+              <button
+                type="button"
+                className="lbl-clear"
+                onClick={() => onSelectTag(null)}
+                title="Clear tag filter"
+              >
+                clear
+              </button>
+            )}
+          </div>
+          <div className="tag-nav">
+            {allTags.map(({ tag, count }) => (
+              <button
+                type="button"
+                key={tag}
+                className={`tag-nav-chip${activeTag === tag ? " is-active" : ""}`}
+                onClick={() =>
+                  onSelectTag(activeTag === tag ? null : tag)
+                }
+                title={`Filter to ${tag} (${count})`}
+              >
+                <span className="tag-nav-name">{tag}</span>
+                <span className="tag-nav-count">{count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="side-section">
         <div className="side-label">
@@ -220,6 +272,8 @@ export function Sidebar({
           onSyncDisconnect={onSyncDisconnect}
           stackTools={stackTools}
           toolMeta={toolMeta}
+          privacyMode={privacyMode}
+          onSetPrivacyMode={onSetPrivacyMode}
           onOpenShare={onOpenShare}
           onOpenRepoScan={onOpenRepoScan}
           placement="sidebar"

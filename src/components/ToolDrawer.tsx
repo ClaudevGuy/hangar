@@ -2,7 +2,9 @@ import type { CSSProperties } from "react";
 import { TOOLS } from "../data/tools";
 import { QUICK_ACTIONS } from "../data/quickActions";
 import { useNotes } from "../hooks/useNotes";
+import { useSnippets } from "../hooks/useSnippets";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
+import { useToolTags } from "../hooks/useToolTags";
 import { parsePricingTiers, type PricingTier } from "../lib/cost";
 import { Icon } from "../lib/icons";
 import type { SecretsMap, Tool } from "../types";
@@ -11,6 +13,8 @@ import { LinearInsights } from "./LinearInsights";
 import { NotesSection } from "./NotesSection";
 import { ResendInsights } from "./ResendInsights";
 import { SentryInsights } from "./SentryInsights";
+import { SnippetsSection } from "./SnippetsSection";
+import { TagsEditor } from "./TagsEditor";
 import { TokenPrompt } from "./TokenPrompt";
 import { VercelInsights } from "./VercelInsights";
 import { ToolLogo } from "./ToolLogo";
@@ -43,6 +47,11 @@ export function ToolDrawer({
   // Hooks must run on every render — call before the early null return.
   const notes = useNotes();
   const toolNotes = tool ? notes.notesForTool(tool.id) : [];
+  const tags = useToolTags();
+  const toolTags = tool ? tags.tagsFor(tool.id) : [];
+  const tagSuggestions = tags.allTags.map((entry) => entry.tag);
+  const snippets = useSnippets();
+  const toolSnippets = tool ? snippets.snippetsFor(tool.id) : [];
 
   if (!tool) return null;
 
@@ -257,6 +266,36 @@ export function ToolDrawer({
             </ul>
           </div>
         )}
+
+        <div className="drawer-section">
+          <div className="drawer-section-title">
+            Tags
+            {toolTags.length > 0 && (
+              <span className="drawer-section-count">{toolTags.length}</span>
+            )}
+          </div>
+          <TagsEditor
+            tags={toolTags}
+            onAdd={(tag) => tags.addTag(tool.id, tag)}
+            onRemove={(tag) => tags.removeTag(tool.id, tag)}
+            suggestions={tagSuggestions}
+          />
+        </div>
+
+        <div className="drawer-section">
+          <div className="drawer-section-title">
+            Snippets
+            {toolSnippets.length > 0 && (
+              <span className="drawer-section-count">{toolSnippets.length}</span>
+            )}
+          </div>
+          <SnippetsSection
+            snippets={toolSnippets}
+            onAdd={(input) => snippets.addSnippet(tool.id, input)}
+            onUpdate={snippets.updateSnippet}
+            onRemove={snippets.removeSnippet}
+          />
+        </div>
 
         <div className="drawer-section">
           <div className="drawer-section-title">

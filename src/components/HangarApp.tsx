@@ -34,7 +34,9 @@ import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
 import { useHiddenCatalog } from "../hooks/useHiddenCatalog";
 import { useLinkboard } from "../hooks/useLinkboard";
+import { usePrivacyMode } from "../hooks/usePrivacyMode";
 import { useToolMeta } from "../hooks/useToolMeta";
+import { useToolTags } from "../hooks/useToolTags";
 import { recordToolLaunch } from "../lib/launchLog";
 
 const COMPARE_MAX = 3;
@@ -94,6 +96,16 @@ export function HangarApp() {
   // pin / sidebar / search — only filters the catalog grid + counts.
   const { hiddenIds, hide: hideTool, restoreAll: restoreHiddenCatalog } =
     useHiddenCatalog();
+  // Privacy / screensharing mode — blurs sensitive identifiers (keys,
+  // repo names, issue titles, workspace) so the user can demo Hangar
+  // or share their screen without leaking real data. Bound to ⌘⇧P.
+  const { privacyMode, setPrivacyMode, togglePrivacyMode } = usePrivacyMode();
+  // Per-tool user-defined tags + active filter. `activeTag = null` means
+  // no tag filter; otherwise narrows both the catalog grid and the
+  // sidebar's My Stack list. Underlying `stackTools` array stays the
+  // full pinned set so Pulse / Brew / DashStats counts don't react.
+  const tags = useToolTags();
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   // Resolve a stored GitHub token (if any) for use with gist sync.
   const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
@@ -130,6 +142,10 @@ export function HangarApp() {
     const q = query.trim().toLowerCase();
     return visibleCatalog.filter((t) => {
       if (activeCat !== "all" && t.category !== activeCat) return false;
+      // Tag filter — when set, narrow to tools carrying that tag.
+      // Combines AND-style with the category filter so the user can
+      // intersect ("all my marketing-tagged AUTH tools").
+      if (activeTag && !tags.tagsFor(t.id).includes(activeTag)) return false;
       if (!q) return true;
       return (
         t.name.toLowerCase().includes(q) ||
@@ -137,7 +153,18 @@ export function HangarApp() {
         t.category.toLowerCase().includes(q)
       );
     });
-  }, [query, activeCat, visibleCatalog]);
+  }, [query, activeCat, visibleCatalog, activeTag, tags]);
+
+  // Pinned-tools subset for the sidebar's My Stack list. Narrows by
+  // active tag when set so "show me my marketing stack" actually hides
+  // unrelated pinned tools. The underlying `stackTools` array stays the
+  // full set — Pulse / Brew / DashStats / cost rollups all use that
+  // unfiltered version so their numbers don't lie when a tag filter
+  // is active.
+  const stackToolsForDisplay = useMemo(() => {
+    if (!activeTag) return stackTools;
+    return stackTools.filter((t) => tags.tagsFor(t.id).includes(activeTag));
+  }, [stackTools, activeTag, tags]);
 
   // Category counts mirror the visible catalog so the sidebar / category
   // strip don't promise tools that were hidden out. "all" matches the
@@ -172,6 +199,7 @@ export function HangarApp() {
   // ⌘K / Ctrl+K opens the command palette from anywhere.
   // ⌘⇧F / Ctrl+Shift+F opens the stack-wide search from anywhere.
   // ⌘⇧A / Ctrl+Shift+A opens "Ask your stack" from anywhere.
+  // ⌘⇧P / Ctrl+Shift+P toggles privacy/screensharing mode.
   // Esc on mobile closes the sidebar drawer.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -192,13 +220,20 @@ export function HangarApp() {
       ) {
         e.preventDefault();
         setShowAsk((s) => !s);
+      } else if (
+        (e.key === "p" || e.key === "P") &&
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey
+      ) {
+        e.preventDefault();
+        togglePrivacyMode();
       } else if (e.key === "Escape" && mobileSidebarOpen) {
         setMobileSidebarOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mobileSidebarOpen]);
+  }, [mobileSidebarOpen, togglePrivacyMode]);
 
   // Body scroll lock while the mobile sidebar drawer is open — prevents the
   // background page from scrolling under the user's finger when scrolling
@@ -286,7 +321,7 @@ export function HangarApp() {
   };
 
   return (
-    <div className="app">
+    <div className={`app${privacyMode ? " is-privacy-mode" : ""}`}>
       <div className="bg-grid" />
       <div className="bg-glow" />
 
@@ -310,6 +345,8 @@ export function HangarApp() {
         onToggleMobileSidebar={() => setMobileSidebarOpen((s) => !s)}
         sidebarCollapsed={sidebarCollapsed}
         onExpandSidebar={() => setSidebarCollapsed(false)}
+        privacyMode={privacyMode}
+        onTogglePrivacyMode={togglePrivacyMode}
       />
 
       <div className={`layout${sidebarCollapsed ? " is-sidebar-collapsed" : ""}`}>
@@ -317,9 +354,12 @@ export function HangarApp() {
           active={activeCat}
           setActive={setActiveCat}
           counts={counts}
-          stackTools={stackTools}
+          stackTools={stackToolsForDisplay}
           customTools={customTools}
           toolMeta={toolMeta}
+          allTags={tags.allTags}
+          activeTag={activeTag}
+          onSelectTag={setActiveTag}
           onRemoveStack={removeFromStack}
           onOpenTool={setOpenTool}
           onOpenStarters={() => setShowStarters(true)}
@@ -348,6 +388,8 @@ export function HangarApp() {
           onCloseMobile={() => setMobileSidebarOpen(false)}
           collapsed={sidebarCollapsed}
           onCollapse={() => setSidebarCollapsed(true)}
+          privacyMode={privacyMode}
+          onSetPrivacyMode={setPrivacyMode}
         />
         {mobileSidebarOpen && (
           <div
