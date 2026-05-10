@@ -63,10 +63,11 @@ Field rules:
 - recommendation: ONE sentence with a concrete next action. Use "No action needed." when status is green and nothing's noteworthy.
 - Don't mention providers absent from the snapshot — write around gaps, never say "I can't see X."
 - Don't open the headline with "Today" or "Good morning". Open with the most important fact.
+- CRITICAL: the snapshot only shows what the user's connected providers are doing — it does NOT show how often the user is actually checking their dashboards. Many devs hit github.com / vercel.com directly in the browser. Never infer user disengagement, neglect, "drift", or "haven't checked in N days" from the data; you have no way to know that. Talk about what the TOOLS are doing, not the user's habits.
 - No preamble, no markdown fences, no trailing text. JSON object only.
 
 Example:
-{"status":"yellow","headline":"**GitHub** is running hot with 18 events while your inbox is clear.","observations":["**GitHub** logged 18 push/PR events in the last 24h, 4 days since you last opened the dashboard","**Vercel** shipped 5 production deploys yesterday, all READY","**Anthropic**, **Inngest**, **Neon** are quiet — no AI calls, no jobs queued, no DB load"],"recommendation":"Check the GitHub queue — likely PRs piling up while you've been heads-down."}`;
+{"status":"yellow","headline":"**GitHub** is the busy one today with 18 events while everything else is quiet.","observations":["**GitHub** logged 18 push/PR events in the last 24h — biggest signal in the stack","**Vercel** shipped 5 production deploys yesterday, all READY","**Anthropic**, **Inngest**, **Neon** are quiet — no AI calls, no jobs queued, no DB load"],"recommendation":"No action needed — green across the board."}`;
 
 // Mirrors parseBriefStructured in lib/brief.ts. Strips optional ```json
 // code fences (Claude sometimes emits them despite the prompt) before
@@ -178,16 +179,19 @@ function formatUserPrompt(input: BrewInput): string {
   for (const t of stackTools) {
     const m = toolMeta[t.id];
     const plan = m?.plan ?? t.plan ?? "—";
-    const ago = m?.lastOpenedAt ? formatAgo(m.lastOpenedAt) : null;
-    const lastOpenTail = ago ? `, last opened by user ${ago}` : "";
-    // 24h activity is the SOURCE OF TRUTH for "is this tool active". The
-    // last-opened timestamp is just when the human clicked through to the
-    // dashboard — Claude was confusing the two before this addition.
+    // 24h activity is the SOURCE OF TRUTH for "is this tool active".
+    // We deliberately do NOT pass lastOpenedAt anymore — that's only
+    // updated when the user clicks Open INSIDE Hangar, which misses
+    // people who hit the provider's URL directly in their browser.
+    // Claude was reading "last opened 4d ago" and inventing narratives
+    // about user disengagement even when the Pulse showed dozens of
+    // events of real provider activity. Drop the misleading signal;
+    // let the activity numbers speak.
     const events = activityByTool.get(t.id) ?? 0;
     const activityTail = events === 0
       ? ", 24h activity: none"
       : `, 24h activity: ${events} ${events === 1 ? "event" : "events"}`;
-    lines.push(`- ${t.name} (${t.category}, plan: ${plan}${activityTail}${lastOpenTail})`);
+    lines.push(`- ${t.name} (${t.category}, plan: ${plan}${activityTail})`);
   }
 
   // Quick "what was hot" summary so Claude can lead with the busiest
