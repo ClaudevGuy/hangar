@@ -91,20 +91,29 @@ export function KeysModal({
     );
   }
 
+  const toolsWithKeys = Object.keys(secrets).filter((id) => (secrets[id]?.length ?? 0) > 0).length;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="keys-modal" onClick={(e) => e.stopPropagation()}>
-        <header className="compare-head">
-          <h2>
-            API keys{" "}
-            <span className="muted">
-              ·{" "}
+        <header className="keys-head">
+          <div className="keys-head-title">
+            <Icon.key />
+            <h2>API keys</h2>
+            <span className="keys-head-meta">
               {totalKeys === 0
                 ? "vault empty"
-                : `${totalKeys} ${totalKeys === 1 ? "key" : "keys"} across ${Object.keys(secrets).length} ${Object.keys(secrets).length === 1 ? "tool" : "tools"}`}
+                : `${totalKeys} ${totalKeys === 1 ? "key" : "keys"} · ${toolsWithKeys} ${toolsWithKeys === 1 ? "tool" : "tools"}`}
             </span>
-          </h2>
-          <button type="button" className="drawer-x" onClick={onClose}>
+            <span
+              className="keys-head-security"
+              title="Keys live in your browser's localStorage. Anyone with access to this device can read them. Set a master passphrase in Settings → Security to encrypt at rest."
+            >
+              <span className="keys-head-security-dot" aria-hidden="true" />
+              local only
+            </span>
+          </div>
+          <button type="button" className="drawer-x keys-close" onClick={onClose} aria-label="Close">
             <Icon.close />
           </button>
         </header>
@@ -132,19 +141,12 @@ export function KeysModal({
           </div>
         </div>
 
-        <div className="keys-banner">
-          <span>
-            Stored locally in your browser only. Anyone with access to this device can read them —
-            keep production secrets elsewhere.
-          </span>
-        </div>
-
         <div className="keys-body">
           {visibleTools.length === 0 ? (
             <div className="keys-empty">
               <div className="empty-big">No tools yet.</div>
               <div className="muted">
-                Switch to “All tools” and click <em>Add a key</em> on the tool you need.
+                Switch to &ldquo;All tools&rdquo; and click <em>Add key</em> on the tool you need.
               </div>
             </div>
           ) : (
@@ -168,6 +170,24 @@ export function KeysModal({
   );
 }
 
+// Worst-case expiry tone across a tool's keys — drives the per-tool
+// status dot (green: all healthy or no expiry set, amber: any expiring
+// in <=14d, red: any expired). Empty entries → null (no dot rendered).
+function worstExpiryTone(entries: SecretEntry[]): "ok" | "warn" | "danger" | null {
+  if (entries.length === 0) return null;
+  // Start ok; promote to warn on any 8-14 day expiry; short-circuit
+  // return danger on any <=7d / expired (no need to check further).
+  let worst: "ok" | "warn" = "ok";
+  const now = Date.now();
+  for (const e of entries) {
+    if (typeof e.expiresAt !== "number") continue;
+    const days = Math.round((e.expiresAt - now) / ONE_DAY);
+    if (days < 0 || days <= 7) return "danger";
+    if (days <= 14) worst = "warn";
+  }
+  return worst;
+}
+
 interface BlockProps {
   tool: Tool;
   entries: SecretEntry[];
@@ -181,18 +201,48 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
   ref,
 ) {
   const [adding, setAdding] = useState(startAdding ?? false);
+  // Per-tool status dot at-a-glance: green when healthy, amber for any
+  // key expiring within 14 days, red for expired or expiring this week.
+  const tone = worstExpiryTone(entries);
+  const empty = entries.length === 0;
 
   return (
-    <li className="keys-tool" ref={ref}>
+    <li className={`keys-tool${empty ? " is-empty" : ""}`} ref={ref}>
       <div className="keys-tool-head">
-        <ToolLogo tool={tool} size={32} />
+        <ToolLogo tool={tool} size={26} />
         <div className="keys-tool-meta">
-          <div className="keys-tool-name">{tool.name}</div>
+          <div className="keys-tool-name">
+            {tool.name}
+            {tone && (
+              <span
+                className={`keys-tool-dot tone-${tone}`}
+                aria-hidden="true"
+                title={
+                  tone === "danger"
+                    ? "A key is expired or expires this week"
+                    : tone === "warn"
+                      ? "A key expires within 14 days"
+                      : "Keys healthy"
+                }
+              />
+            )}
+          </div>
           <div className="keys-tool-cat">{tool.category}</div>
         </div>
-        <span className="keys-tool-count">
-          {entries.length} {entries.length === 1 ? "key" : "keys"}
-        </span>
+        {entries.length > 1 && (
+          <span className="keys-tool-count">{entries.length} keys</span>
+        )}
+        {!adding && (
+          <button
+            type="button"
+            className="keys-add-chip"
+            onClick={() => setAdding(true)}
+            title={empty ? `Add a key for ${tool.name}` : "Add another key"}
+          >
+            <Icon.plus />
+            <span>{empty ? "Add key" : "Add"}</span>
+          </button>
+        )}
       </div>
 
       {entries.length > 0 && (
@@ -210,9 +260,9 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
         </ul>
       )}
 
-      {tool.id === "github" && entries.length === 0 && !adding && (
+      {tool.id === "github" && empty && !adding && (
         <div className="keys-tool-hint">
-          Add a Personal Access Token to surface your repos and recent activity in the sidebar.{" "}
+          Add a Personal Access Token to surface your repos and recent activity.{" "}
           <a
             href="https://github.com/settings/tokens"
             target="_blank"
@@ -223,7 +273,7 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
         </div>
       )}
 
-      {adding ? (
+      {adding && (
         <NewKeyRow
           onCancel={() => setAdding(false)}
           onSave={(label, value, expiresAt) => {
@@ -231,10 +281,6 @@ const KeyToolBlock = forwardRef<HTMLLIElement, BlockProps>(function KeyToolBlock
             setAdding(false);
           }}
         />
-      ) : (
-        <button type="button" className="keys-add-btn" onClick={() => setAdding(true)}>
-          <Icon.plus /> Add a key
-        </button>
       )}
     </li>
   );
@@ -316,7 +362,7 @@ function KeyEntryRow({ entry, onPatch, onRemove }: EntryRowProps) {
         <input
           type="text"
           className="keys-input keys-label"
-          placeholder="Label (e.g. Personal Access Token)"
+          placeholder="Label"
           value={entry.label}
           onChange={(e) => onPatch({ label: e.target.value })}
         />
@@ -329,11 +375,36 @@ function KeyEntryRow({ entry, onPatch, onRemove }: EntryRowProps) {
           autoComplete="off"
           spellCheck={false}
         />
+        {/* Inline expiry chip — compact when set, hidden by default
+            when not (only shows on hover / focus to keep the row clean). */}
+        {expiryInfo && !editingExpiry && (
+          <button
+            type="button"
+            className={`keys-expiry-chip tone-${expiryInfo.tone}`}
+            onClick={() => setEditingExpiry(true)}
+            title={`${expiryInfo.label} — click to edit`}
+          >
+            <span className="keys-expiry-chip-dot" aria-hidden="true" />
+            <span>{expiryInfo.label.split(" · ")[0]}</span>
+          </button>
+        )}
+        {!expiryInfo && !editingExpiry && (
+          <button
+            type="button"
+            className="keys-expiry-chip is-add"
+            onClick={() => setEditingExpiry(true)}
+            title="Set expiry date"
+          >
+            <Icon.plus />
+            <span>Expiry</span>
+          </button>
+        )}
         <button
           type="button"
           className="chip-btn"
           onClick={() => setReveal((s) => !s)}
           title={reveal ? "Hide" : "Reveal"}
+          aria-label={reveal ? "Hide value" : "Reveal value"}
         >
           {reveal ? <Icon.eyeOff /> : <Icon.eye />}
         </button>
@@ -343,56 +414,51 @@ function KeyEntryRow({ entry, onPatch, onRemove }: EntryRowProps) {
           onClick={onCopy}
           title={copied ? "Copied" : "Copy"}
           disabled={!entry.value}
+          aria-label="Copy value"
         >
           {copied ? <Icon.check /> : <Icon.copy />}
         </button>
-        <button type="button" className="chip-btn keys-trash" onClick={onRemove} title="Delete key">
+        <button
+          type="button"
+          className="chip-btn keys-trash"
+          onClick={onRemove}
+          title="Delete key"
+          aria-label="Delete key"
+        >
           <Icon.trash />
         </button>
       </div>
 
-      {/* Expiry sub-line — display + inline edit. Surfaces in Today as
-          a warning incident when within 14 days. */}
-      <div className="keys-expiry-row">
-        {editingExpiry ? (
-          <>
-            <input
-              type="date"
-              className="keys-input keys-expiry-input"
-              value={draftExpiry}
-              onChange={(e) => setDraftExpiry(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") saveExpiry();
-                if (e.key === "Escape") setEditingExpiry(false);
-              }}
-            />
-            <button type="button" className="primary-btn small" onClick={saveExpiry}>
-              Save
-            </button>
-            <button type="button" className="ghost-btn small" onClick={() => setEditingExpiry(false)}>
-              Cancel
-            </button>
-            {entry.expiresAt && (
-              <button type="button" className="keys-expiry-clear" onClick={clearExpiry} title="Remove expiry date">
-                Clear
-              </button>
-            )}
-          </>
-        ) : expiryInfo ? (
-          <>
-            <span className={`keys-expiry-badge tone-${expiryInfo.tone}`}>
-              {expiryInfo.label}
-            </span>
-            <button type="button" className="keys-expiry-edit" onClick={() => setEditingExpiry(true)}>
-              Edit
-            </button>
-          </>
-        ) : (
-          <button type="button" className="keys-expiry-add" onClick={() => setEditingExpiry(true)}>
-            + Set expiry
+      {/* Expiry editor — only renders when actively editing. Appears
+          below the row as a sub-control rather than always taking a
+          row of vertical space. */}
+      {editingExpiry && (
+        <div className="keys-expiry-edit-row">
+          <span className="keys-expiry-edit-label">Expires</span>
+          <input
+            type="date"
+            className="keys-input keys-expiry-input"
+            value={draftExpiry}
+            onChange={(e) => setDraftExpiry(e.target.value)}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveExpiry();
+              if (e.key === "Escape") setEditingExpiry(false);
+            }}
+          />
+          <button type="button" className="primary-btn small" onClick={saveExpiry}>
+            Save
           </button>
-        )}
-      </div>
+          <button type="button" className="ghost-btn small" onClick={() => setEditingExpiry(false)}>
+            Cancel
+          </button>
+          {entry.expiresAt && (
+            <button type="button" className="keys-expiry-clear" onClick={clearExpiry} title="Remove expiry date">
+              Clear
+            </button>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -421,13 +487,13 @@ function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
   };
 
   return (
-    <div className="keys-entry-wrap">
+    <div className="keys-entry-wrap is-new">
       <div className="keys-entry keys-entry-new">
         <input
           ref={labelRef}
           type="text"
           className="keys-input keys-label"
-          placeholder="Label (e.g. API key)"
+          placeholder="Label"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           onKeyDown={(e) => {
@@ -448,7 +514,13 @@ function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
           autoComplete="off"
           spellCheck={false}
         />
-        <button type="button" className="chip-btn" onClick={() => setReveal((s) => !s)} title={reveal ? "Hide" : "Reveal"}>
+        <button
+          type="button"
+          className="chip-btn"
+          onClick={() => setReveal((s) => !s)}
+          title={reveal ? "Hide" : "Reveal"}
+          aria-label={reveal ? "Hide value" : "Reveal value"}
+        >
           {reveal ? <Icon.eyeOff /> : <Icon.eye />}
         </button>
         <button type="button" className="primary-btn small" disabled={!canSave} onClick={submit}>
@@ -459,11 +531,11 @@ function NewKeyRow({ onSave, onCancel }: NewKeyRowProps) {
         </button>
       </div>
 
-      {/* Optional expiry date — Hangar warns in Today when within 14 days. */}
-      <div className="keys-expiry-row">
-        <label className="keys-expiry-label">
+      {/* Optional expiry — sub-control under the new-key row. */}
+      <div className="keys-expiry-edit-row">
+        <span className="keys-expiry-edit-label">
           Expires <span className="muted">(optional)</span>
-        </label>
+        </span>
         <input
           type="date"
           className="keys-input keys-expiry-input"
