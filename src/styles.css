@@ -1467,31 +1467,84 @@ input { font-family: inherit; }
   max-width: 1100px;
   flex-wrap: wrap;
 }
+/* Cell is a small grid: icon | (number / label / foot stacked).
+   Icon column is fixed-width so all five cells line up vertically
+   even when the numbers have different digit counts. */
 .ds-cell {
   flex: 1 1 0;
   min-width: 0;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 4px 14px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "icon num"
+    "icon lbl"
+    "icon foot";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 0;
+  padding: 6px 14px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--r-sm);
   color: var(--text-2);
   text-align: left;
   cursor: pointer;
-  transition: background .12s, color .12s;
+  transition: background .15s, color .15s, border-color .15s, transform .12s;
 }
-.ds-cell:not(.ds-cell-static):hover {
+.ds-cell:hover {
   background: color-mix(in oklab, var(--panel) 70%, var(--accent-bg));
   color: var(--text);
+  transform: translateY(-1px);
 }
-.ds-cell-static { cursor: default; }
-.ds-num {
+.ds-cell:focus-visible {
+  outline: none;
+  border-color: var(--accent-line);
+}
+/* Pressed-style for the catalog cell when the catalog is currently
+   open — gives the cell an "on" appearance so users can see the
+   click had effect without re-reading the label. */
+.ds-cell.is-active {
+  background: color-mix(in oklab, var(--panel) 60%, var(--accent-bg));
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+
+.ds-icon {
+  grid-area: icon;
   display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--bg) 70%, var(--panel) 30%);
+  color: var(--text-3);
+  transition: color .15s, background .15s;
+  align-self: center;
+}
+.ds-cell:hover .ds-icon {
+  color: var(--text);
+  background: color-mix(in oklab, var(--bg) 60%, var(--accent-bg));
+}
+.ds-icon.is-emphasized {
+  color: var(--accent);
+}
+.ds-icon svg { width: 12px; height: 12px; }
+/* The "$" cost glyph + the connected pulse dot don't have an SVG so
+   they render as inline characters/blocks centered in the icon tile. */
+.ds-glyph {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-2);
+}
+.ds-cell:hover .ds-glyph { color: var(--text); }
+
+.ds-num {
+  grid-area: num;
+  font-size: 19px;
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -1499,13 +1552,14 @@ input { font-family: inherit; }
 }
 .ds-pulse {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--ok, #2ecc71);
   box-shadow: 0 0 6px color-mix(in oklab, var(--ok, #2ecc71) 50%, transparent);
 }
 .ds-lbl {
+  grid-area: lbl;
   font-family: var(--font-mono);
   font-size: 9.5px;
   color: var(--text-3);
@@ -1514,6 +1568,7 @@ input { font-family: inherit; }
   margin-top: 1px;
 }
 .ds-foot {
+  grid-area: foot;
   font-size: 11px;
   color: var(--text-4);
   margin-top: 1px;
@@ -1530,7 +1585,13 @@ input { font-family: inherit; }
 }
 @media (max-width: 900px) {
   .dash-stats { margin: 14px 20px 0; padding: 10px 8px; }
-  .ds-cell { padding: 4px 8px; }
+  .ds-cell {
+    padding: 4px 8px;
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .ds-icon { width: 18px; height: 18px; }
+  .ds-icon svg { width: 10px; height: 10px; }
   .ds-num { font-size: 16px; }
   .ds-foot { display: none; }
 }

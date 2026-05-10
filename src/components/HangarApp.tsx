@@ -366,9 +366,11 @@ export function HangarApp() {
           />
 
           {/* Compact stack stats — keeps the data dense on one line so the
-              fold-line stays high. Click any cell to open its source modal.
-              "In catalog" reflects the visible tools (hidden subtracted)
-              so the count matches what the catalog grid will show. */}
+              fold-line stays high. Each cell now opens a distinct
+              destination: pinned/$mo → StackModal, connected/keys →
+              KeysModal, catalog cell → toggles the catalog open. "In
+              catalog" reflects the visible tools (hidden subtracted) so
+              the count matches what the catalog grid will show. */}
           <DashStats
             stackTools={stackTools}
             totalTools={visibleToolCount}
@@ -376,6 +378,8 @@ export function HangarApp() {
             toolMeta={toolMeta}
             onOpenStack={() => setShowStack(true)}
             onOpenKeys={() => setShowKeys(true)}
+            onToggleCatalog={() => setShowCatalog((s) => !s)}
+            catalogOpen={showCatalog}
           />
 
           {showCatalog && (
