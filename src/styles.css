@@ -623,6 +623,13 @@ input { font-family: inherit; }
   min-width: 0;
   background: var(--bg);
   border-left: 1px solid var(--line);
+  /* Flex column so children flow top-down AND so .foot can use
+     margin-top: auto to anchor to the bottom whenever the main
+     content is shorter than the viewport (e.g. catalog collapsed,
+     all-clear inbox chip). Without this the footer floats up under
+     the dash-stats panel and leaves dead space beneath it. */
+  display: flex;
+  flex-direction: column;
 }
 
 .deck {
@@ -3380,6 +3387,12 @@ input { font-family: inherit; }
   font-family: var(--font-mono); font-size: 11px;
   color: var(--text-3);
   border-top: 1px solid var(--line);
+  /* Anchor the footer to the bottom of the .main column so it stays at
+     the bottom edge of the viewport when the page content is shorter
+     than the viewport (catalog collapsed + clear inbox = lots of empty
+     space). The .main flex column above provides the auto-margin
+     reference. */
+  margin-top: auto;
 }
 .foot-actions {
   display: inline-flex; align-items: center; gap: 14px;
