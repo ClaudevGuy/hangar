@@ -1,6 +1,8 @@
+import { useGitHubData } from "./useGitHubData";
 import { useLinearData } from "./useLinearData";
 import { useSentryData } from "./useSentryData";
 import { useVercelData } from "./useVercelData";
+import type { GitHubRepo } from "../lib/github";
 import type { LinearIssue } from "../lib/linear";
 import type { SentryIssue } from "../lib/sentry";
 import type { VercelDeployment } from "../lib/vercel";
@@ -45,11 +47,16 @@ export interface IncidentFeed {
   loading: boolean;
   hasAnyToken: boolean;
   // Recent provider activity surfaced for cross-tool correlation in the
-  // Investigate flow. These are the same arrays the per-tool drawers see —
-  // shared cache, no extra fetch.
+  // Investigate flow + the Stack Pulse waveforms. These are the same
+  // arrays the per-tool drawers see — shared cache, no extra fetch.
   vercelDeployments: VercelDeployment[];
   sentryIssues: SentryIssue[];
   linearIssues: LinearIssue[];
+  // GitHub repos sorted by recent push — the Pulse hook reads each repo's
+  // pushed_at to bucket commit pushes into the 24h waveform. We don't
+  // emit GitHub incidents into the inbox (PRs/reviews would belong
+  // there but are out of scope here); the data only feeds the Pulse.
+  githubRepos: GitHubRepo[];
 }
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
@@ -68,10 +75,15 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
   const vercelToken = secrets["vercel"]?.find((k) => k.value)?.value || null;
   const linearToken = secrets["linear"]?.find((k) => k.value)?.value || null;
   const sentryToken = secrets["sentry"]?.find((k) => k.value)?.value || null;
+  // GitHub data is fetched here so Stack Pulse can include commit-push
+  // activity for the user's repos. Same per-token cache as the tool
+  // drawer's hook → calling both is free after first load.
+  const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
 
   const vercel = useVercelData(vercelToken);
   const linear = useLinearData(linearToken);
   const sentry = useSentryData(sentryToken);
+  const github = useGitHubData(githubToken);
 
   const incidents: Incident[] = [];
   const cutoff = Date.now() - SEVEN_DAYS_MS;
@@ -213,11 +225,15 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     return b.occurredAt - a.occurredAt;
   });
 
-  const hasAnyToken = !!(vercelToken || linearToken || sentryToken);
+  // GitHub counts toward "any token connected" so the Today panel will
+  // render (its empty state was previously hidden when only github was
+  // connected, even though Stack Pulse has GitHub data).
+  const hasAnyToken = !!(vercelToken || linearToken || sentryToken || githubToken);
   const loading =
     (!!vercelToken && vercel.loading) ||
     (!!linearToken && linear.loading) ||
-    (!!sentryToken && sentry.loading);
+    (!!sentryToken && sentry.loading) ||
+    (!!githubToken && github.loading);
 
   return {
     incidents,
@@ -226,6 +242,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     vercelDeployments: vercel.deployments,
     sentryIssues: sentry.issues,
     linearIssues: linear.issues,
+    githubRepos: github.repos,
   };
 }
 

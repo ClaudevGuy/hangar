@@ -58,6 +58,18 @@ export function useStackPulse(stackTools: Tool[], feed: IncidentFeed): PulseTrac
           const isErr = issue.priority === 1; // urgent
           bumpBucket(t, isErr);
         }
+      } else if (tool.id === "github") {
+        // GitHub's "activity" signal is a repo's most recent push timestamp.
+        // The /user/repos endpoint returns up to 30 repos sorted by pushed
+        // date, so each one represents at most one push within the window
+        // (a single repo pushed multiple times in 24h still bumps once —
+        // that's a known limitation; getting every commit would require an
+        // extra /events fetch per repo). No "isErr" semantic on GitHub
+        // here, so all bars render in the regular accent colour.
+        for (const repo of feed.githubRepos) {
+          const t = new Date(repo.pushed_at).getTime();
+          bumpBucket(t, false);
+        }
       }
       // Other tools have no live data plumbed through useIncidents — they
       // render a flat dotted "no signal" baseline below. Keeping them in the
