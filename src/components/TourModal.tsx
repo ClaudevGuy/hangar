@@ -225,8 +225,8 @@ function TodayVisual() {
     <div className="tour-vis tour-vis-today">
       <div className="tour-mock-today">
         <div className="tour-mock-today-head">
-          <span>Today</span>
-          <span className="muted">3 to look at</span>
+          <span>Inbox · 3 → 0</span>
+          <span className="muted">3 to triage</span>
         </div>
         {rows.map((row, i) => (
           <div key={i} className={`tour-mock-today-row sev-${row.sev}`}>
@@ -387,11 +387,13 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
     return (
       <>
         <div className="tour-eyebrow">Step 3 · Watch</div>
-        <h2 className="tour-title">Today, in one place.</h2>
+        <h2 className="tour-title">Your stack inbox.</h2>
         <p className="tour-desc">
-          Once tokens are connected, the <strong>Today</strong> panel surfaces what&apos;s broken
-          across your stack — failed Vercel deploys, unresolved Sentry issues, urgent Linear
-          tickets — ranked by severity. Resolve, ignore, or hide locally with one click.
+          Once tokens are connected, the <strong>Inbox</strong> surfaces what&apos;s broken across
+          your stack — failed Vercel deploys, unresolved Sentry issues, urgent Linear tickets —
+          ranked by severity, with a <strong>12 → 0</strong> counter you clear through. Above it
+          the <strong>Stack Pulse</strong> draws a 24-hour activity sparkline per pinned tool, all
+          auto-refreshing every 60 seconds.
         </p>
         <p className="tour-desc tour-desc-muted">
           Pin a <strong>note</strong> on any incident (📝 button on the row) to remember how you

@@ -37,13 +37,26 @@ It is *not* a SaaS. It is *not* an integration platform. It is a personal contro
 
 ## Features
 
-### Quick-launch your stack
-The top of the page is a horizontal row of tiles for every pinned tool. Click → opens that tool's dashboard in a new tab. Drag the rail (or just scroll) to see the rest. Hidden when your stack is empty so the page doesn't feel sparse.
+### The dashboard, at a glance
+Above the fold on a 14" laptop. Top to bottom:
 
-### Catalog with search & filter
-29 built-in tools across 11 categories. Search by name, tagline, or category. Filter via the sidebar nav, or the sticky chip-strip across the top. Switch grid ↔ list view; list view is the default.
+1. **Morning Brew** — an AI-generated one-paragraph briefing of your stack (cached daily, refreshes on click; ~1¢ per brew via your own Anthropic key) sitting beside the **Stack Pulse** strip — a small card per pinned tool with a 24-hour activity sparkline. GitHub commits, Vercel deploys, Sentry events, Linear updates each draw real bars.
+2. **Inbox** — incident queue with an `12 → 0` counter, a progress meter for what you've cleared today, and a celebratory "Inbox Zero" state when remaining hits zero. Collapses to a slim `✓ Inbox clear` chip when nothing's pressing.
+3. **Quick Actions** — six-card shelf: Search stack · Ask Hangar · Logs · Scan a repo · Browse catalog · Add tool. Replaces the legacy stack-launcher tiles + stat panel that used to take half the screen.
+4. **Compact stats strip** — pinned · connected · keys · monthly spend · in catalog. Click any cell to open its source modal.
 
-The catalog is **collapsed by default** when you have a stack pinned — returning users came here to launch a dashboard, not browse a directory. Click **Browse catalog** to expand. New users with an empty stack see it expanded by default.
+### Real-time sync
+The four live providers (GitHub, Vercel, Sentry, Linear) auto-refresh every 60 seconds while the tab is focused, and refetch immediately when you return after Cmd-Tabbing away. Stack Pulse waveforms, Inbox counts, and Logs feed all update without a page reload. Built on a refcount-aware pub-sub layer (`src/lib/realtimeSync.ts`) so multiple components using the same hook share a single fetch.
+
+### Logs — unified activity feed
+`Logs` Quick Action opens a chronological feed of every event across your connected tools (last 7 days): every Vercel deploy, GitHub push/PR/issue, Sentry issue, Linear update. Per-tool filter chips with counts, status dots, click-through to the source. Best-effort empty states with one-click "Connect X" buttons that drop you into the keys vault focused on the right tool.
+
+### Catalog with search, filter, and per-tool hide
+29 built-in tools across 10 categories. Search by name, tagline, or category. Filter via the sidebar nav, or the sticky chip-strip across the top. Switch grid ↔ list view; list view is the default.
+
+Each row has a subtle **hide** button — one click curates that tool out of your Browse catalog (and out of the category counts). Hidden tools are restored via a `· N hidden · restore` link at the top of the catalog. Hide doesn't touch pin / sidebar / Pulse — it only affects the Browse view.
+
+The catalog is **collapsed by default** when you have a stack pinned — returning users came here to launch a dashboard, not browse a directory. Click **Browse catalog** in the Quick Actions shelf to expand. New users with an empty stack see it expanded by default.
 
 ### Add your own tools
 Click **+ Add tool** at the top of the catalog. Fill in name, dashboard URL, pick a category, optionally tagline + brand color. The tool is saved to your local custom catalog (`hangar-custom-tools` in `localStorage`), auto-pinned to your stack, and from then on works exactly like a built-in entry — pin/unpin, compare, vault keys, the lot. Custom tools have a small `custom` tag in the list view and an X-to-delete on hover.
@@ -202,54 +215,105 @@ Vite 5 + React 18 + TypeScript, with `react-router-dom` switching between the ma
 src/
 ├── main.tsx                  # routes: / → LandingPage, /app/* → HangarApp
 ├── styles.css                # global, CSS-custom-property themed
-├── types.ts                  # Tool, Prefs, SecretsMap, etc.
+├── types.ts                  # Tool, Prefs, SecretsMap, SecretEntry, etc.
 ├── data/tools.ts             # 29-tool catalog with inline-SVG logos
-├── lib/
+│
+├── lib/                      # framework-agnostic helpers
 │   ├── icons.tsx             # inline SVG icon set
-│   ├── github.ts             # GitHub REST client
-│   └── customTool.ts         # buildCustomTool() + initials-monogram SVG
-├── hooks/
-│   ├── useStack.ts           # pinned tools (localStorage: hangar-stack)
-│   ├── usePrefs.ts           # theme/accent/density/cardstyle (hangar-prefs)
-│   ├── useSecrets.ts         # API key vault (hangar-keys)
-│   ├── useCustomTools.ts     # user-added catalog entries (hangar-custom-tools)
-│   ├── useDragScroll.ts      # mouse drag-to-scroll for rails
-│   └── useGitHubData.ts      # fetch + per-token in-memory cache
+│   ├── workspaces.ts         # workspace-id key suffixing for localStorage
+│   ├── crypto.ts             # PBKDF2 + AES-GCM via Web Crypto (vault encryption)
+│   ├── realtimeSync.ts       # refcount-aware polling + pub-sub (60s + tab focus)
+│   ├── activityLog.ts        # builds Logs feed from IncidentFeed
+│   ├── brew.ts               # Morning Brew Anthropic call + prompt builder
+│   ├── ask.ts, askTools.ts   # Ask multi-turn loop + 7 tool definitions
+│   ├── investigate.ts        # per-incident "✦ Investigate" Anthropic call
+│   ├── brief.ts              # one-shot stack synthesis (topbar Brief)
+│   ├── stackSearch.ts        # cross-tool search orchestrator
+│   ├── stackShare.ts         # encode/decode stack to URL hash fragment
+│   ├── statusRadar.ts        # StatusPage.io aggregator
+│   ├── repoScanner.ts        # File System Access API + package.json/.env mapping
+│   ├── cost.ts               # plan → monthly $ math
+│   ├── timeAgo.ts, gistSync.ts, mcpExport.ts, customTool.ts, ...
+│   └── github.ts, vercel.ts, sentry.ts, linear.ts, resend.ts  # REST clients
+│
+├── hooks/                    # all workspace-scoped via lib/workspaces
+│   ├── useVault.ts           # AES-GCM keys vault + idle auto-lock
+│   ├── useStack.ts           # pinned tool ids
+│   ├── usePrefs.ts           # theme/accent/density/cardstyle
+│   ├── useCustomTools.ts     # user-added catalog entries
+│   ├── useToolMeta.ts        # per-tool plan + lastOpenedAt
+│   ├── useNotes.ts           # per-tool / per-incident notes
+│   ├── useDismissedIncidents.ts  # Inbox dismiss/restore state
+│   ├── useHiddenCatalog.ts   # per-tool catalog hide
+│   ├── useLinkboard.ts       # sidebar linkboard
+│   ├── useFrecency.ts        # command-palette ranking
+│   ├── useGistSync.ts        # optional cross-device sync via private gist
+│   ├── useIncidents.ts       # aggregates the four data hooks → IncidentFeed
+│   ├── useStackPulse.ts      # 24h hourly buckets per pinned tool
+│   ├── useMorningBrew.ts     # daily-cached AI narrative state
+│   ├── useStatusRadar.ts     # StatusPage.io poller
+│   ├── useKeyboardShortcuts.ts, useDragScroll.ts
+│   └── useGitHubData.ts, useVercelData.ts, useSentryData.ts,    # all four wrap
+│       useLinearData.ts, useResendData.ts                        # createSyncLoop
+│
 ├── landing/                  # marketing page served at /
-│   ├── LandingPage.tsx       # nav + section composition
-│   ├── landing.css           # all `.lp-*` styles, themed via the app's CSS vars
-│   ├── parts/
-│   │   ├── ScrollToTop.tsx   # "Return to tower" floating button (>600px scroll)
-│   │   └── ThemeToggle.tsx   # landing-only dark/light toggle (own localStorage key)
+│   ├── LandingPage.tsx, landing.css
+│   ├── parts/                # ScrollToTop, ThemeToggle, RunLocalPrompt, …
 │   └── sections/             # Hero, Problem, Features, Catalog, HowItWorks,
-│                             # Install, FAQ, FinalCTA, Footer
+│                             # Install, Showcase, FAQ, FinalCTA, Footer
+│
 └── components/
     ├── HangarApp.tsx         # top-level state + composition
-    ├── TopBar.tsx            # logo, search, view toggle, theme, settings, vault, stack
-    ├── Sidebar.tsx           # categories nav, pinned stack, activity
-    ├── ControlDeck.tsx       # quick-launch row + stats panel + Discover rail
-    ├── CategoryStrip.tsx     # sticky chip filter
-    ├── ResultBar.tsx         # match count + compare tray
-    ├── ToolCard.tsx          # grid view card
-    ├── ToolRow.tsx           # list view row
-    ├── ToolLogo.tsx          # SVG-string logo tile
-    ├── ToolDrawer.tsx        # slide-in detail panel
-    ├── CompareModal.tsx      # side-by-side comparison grid
-    ├── StackModal.tsx        # full pinned-tool overview
-    ├── KeysModal.tsx         # API key vault
-    ├── AddToolModal.tsx      # form for adding custom tools
-    ├── GitHubInsights.tsx    # GitHub user + repos (drawer integration)
-    └── SettingsMenu.tsx      # accent/density/card-style popover
+    ├── TopBar.tsx            # logo, search, view toggle, Brief, Ask, Compare
+    ├── Sidebar.tsx           # categories nav, pinned stack, sticky tools rail
+    │
+    │ # Dashboard surfaces
+    ├── MorningBrew.tsx       # AI narrative + Stack Pulse strip (top of /app)
+    ├── StackPulse.tsx        # mini sparkline cards, one per pinned tool
+    ├── TodayPanel.tsx        # Inbox — counter, progress, dismiss, AI Investigate
+    ├── QuickActions.tsx      # six-card action shelf
+    ├── DashStats.tsx         # compact stats strip
+    │
+    │ # Modals / drawers
+    ├── ToolDrawer.tsx        # slide-in detail panel + per-tool insights
+    ├── KeysModal.tsx, StackModal.tsx, CompareModal.tsx, AddToolModal.tsx,
+    ├── AskModal.tsx          # ⌘⇧A — multi-turn chat over stack
+    ├── LogsModal.tsx         # Logs — unified activity feed
+    ├── StackSearchModal.tsx  # ⌘⇧F — cross-tool search
+    ├── RepoScanModal.tsx, StarterStacksModal.tsx, ShareModal.tsx,
+    ├── CommandPalette.tsx, TourModal.tsx, CheatSheet.tsx,
+    │
+    │ # Per-provider insight panels (rendered inside ToolDrawer)
+    ├── GitHubInsights.tsx, VercelInsights.tsx, LinearInsights.tsx,
+    ├── SentryInsights.tsx,  ResendInsights.tsx,
+    │
+    │ # Catalog + small bits
+    ├── ToolCard.tsx, ToolRow.tsx, ToolLogo.tsx, ResultBar.tsx,
+    ├── CategoryStrip.tsx, NotesSection.tsx, Linkboard.tsx,
+    ├── SettingsMenu.tsx, WorkspaceSwitcher.tsx, Brief.tsx, StatusRadar.tsx,
+    └── TokenPrompt.tsx
 ```
 
 ### Persistence keys
 
-| `localStorage` key | Shape | Set by |
+All workspace-scoped — the actual `localStorage` key is `<prefix>-<workspace-id>`. Default workspace id is `default`, so e.g. `hangar-stack-default`. See `src/lib/workspaces.ts` for the active-workspace mechanism.
+
+| Prefix | Shape | Set by |
 |---|---|---|
 | `hangar-stack` | `string[]` of tool ids | `useStack` |
 | `hangar-prefs` | `{ theme, accent, density, cardStyle }` | `usePrefs` |
-| `hangar-keys` | `{ [toolId]: { id, label, value }[] }` | `useSecrets` |
+| `hangar-keys` | `{ [toolId]: SecretEntry[] }` (plaintext or `EncryptedBlob`) | `useVault` |
 | `hangar-custom-tools` | `Tool[]` (your added tools) | `useCustomTools` |
+| `hangar-tool-meta` | `{ [toolId]: { plan?, lastOpenedAt? } }` | `useToolMeta` |
+| `hangar-linkboard` | `LinkItem[]` | `useLinkboard` |
+| `hangar-frecency` | `{ [toolId]: { count, lastUsed } }` | `useFrecency` |
+| `hangar-notes` | `Note[]` (per-tool + per-incident) | `useNotes` |
+| `hangar-today-dismissed` | `string[]` of incident ids | `useDismissedIncidents` |
+| `hangar-hidden-catalog` | `string[]` of tool ids hidden from Browse | `useHiddenCatalog` |
+| `hangar-ask-history` | `AskTurn[]` (capped 30 turns) | `AskModal` |
+| `hangar-brew` | `{ text, generatedAt, dayKey }` (today's Morning Brew) | `useMorningBrew` |
+
+Plus three non-scoped meta keys: `hangar-workspaces` (the workspace list), `hangar-active-workspace` (current id), `hangar-tour-completed` (one-shot first-run flag).
 
 To **reset Hangar** to a fresh state, clear those keys in DevTools → Application → Local Storage. Or run in the console:
 
@@ -271,6 +335,13 @@ localStorage.clear(); location.reload();
 
 ### Shipped recently — beyond the original roadmap
 
+- [x] **Real-time sync** — all four live providers (GitHub, Vercel, Sentry, Linear) auto-refresh every 60s while the tab is focused, and refetch immediately on tab regain. Refcount-aware pub-sub layer (`lib/realtimeSync.ts`) ensures one fetch per token regardless of how many components are subscribed; in-flight cancel prevents stale results from clobbering newer ones
+- [x] **Compact dashboard** — dropped the legacy ControlDeck (5 inert stat tiles + redundant launcher row) and replaced with a six-card Quick Actions shelf + a one-line stats strip. Whole dashboard fits above the fold on a 14" laptop
+- [x] **Morning Brew** — Anthropic-powered one-paragraph daily briefing of your stack at the top of `/app`. Cached daily, manually refreshable. Prompt grounds Claude in real per-tool 24h activity counts so it doesn't hallucinate "GitHub hasn't been touched" from a stale lastOpened
+- [x] **Stack Pulse** — 24h hourly activity sparkline per pinned tool (GitHub commits via `/users/:user/events`, Vercel deploys, Sentry events, Linear updates). "Quiet" baseline for pinned tools without a connected provider
+- [x] **Inbox Zero** — Today panel upgraded with a `12 → 0` counter, a progress meter for cleared items, and a celebration state when remaining hits zero. Empty state collapses to a slim chip
+- [x] **Logs** — new modal (Quick Action shelf) showing every event across connected tools (last 7 days), filterable per tool, with a "connect X" empty state that drops the user into the keys vault focused on the right tool
+- [x] **Catalog hide** — per-tool dismiss button on every catalog row/card. Hidden tools disappear from Browse + category counts but stay pinned/visible in sidebar/Pulse. Restorable via inline link
 - [x] **Ask your stack** — premium chat surface (⌘⇧A) where Claude calls into your stack via tool-use: read_stack, list_recent_deploys, list_unresolved_issues, list_assigned_issues, list_review_requests, list_recent_repos. Browser-direct using your own Anthropic key. Tool-call chips, citation cards, cumulative cost meter, history persisted in localStorage
 - [x] **Sidebar tools rail** — moved theme toggle, settings cog, and Keys vault from the topbar to a sticky bottom rail in the sidebar. Settings popover portal-rendered into `<body>` to escape overflow contexts. Frees significant topbar real estate for stack-action buttons
 - [x] **Stack-wide search** — single input fans the query out to GitHub, Vercel and Linear in parallel using your vault tokens. Results stream in per-provider with a debounced + AbortSignal-cancellable orchestrator. ⌘⇧F from anywhere; per-provider dot badges; ↑↓/enter navigation

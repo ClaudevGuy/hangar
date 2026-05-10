@@ -98,10 +98,11 @@ export function Features() {
           </article>
 
           <article className="lp-feature lp-span-2">
-            <div className="lp-feature-num">03 / Activity</div>
+            <div className="lp-feature-num">03 / Logs</div>
             <h3 className="lp-feature-title">Cross-tool feed.</h3>
             <p className="lp-feature-desc">
-              Deploys, errors, sign-ups, payments — pulled from every connected tool into one feed.
+              Deploys, errors, sign-ups, payments — pulled from every connected tool into one
+              chronological feed. Filter per tool, click through to the source.
             </p>
             <div className="lp-feature-visual">
               <div className="lp-demo-activity">
@@ -303,14 +304,14 @@ export function Features() {
           </article>
 
           <article className="lp-feature lp-span-3">
-            <div className="lp-feature-num">09 / Today</div>
+            <div className="lp-feature-num">09 / Inbox</div>
             <h3 className="lp-feature-title">
-              One feed for everything that's broken.
+              Inbox Zero for your stack.
             </h3>
             <p className="lp-feature-desc">
-              Failed deploys, unresolved Sentry issues, urgent Linear tickets — all aggregated into
-              one ranked list at the top of the dashboard. Public status pages get pulled in too, so
-              you know if it's <em>your</em> problem or your provider's.
+              Failed deploys, unresolved Sentry issues, urgent Linear tickets — aggregated into
+              one ranked list with a <strong>12 → 0</strong> counter you clear through. Auto-refreshes
+              every 60 seconds; hits zero, you get a quiet "Inbox clear" chip.
             </p>
             <div className="lp-feature-visual">
               <div className="lp-demo-today">
