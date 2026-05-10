@@ -359,10 +359,10 @@ export function AskModal({
               <h3>What do you want to know about your stack?</h3>
               <p>
                 Ask runs across your connected tools using the tokens in your vault.
-                {integrations.length > 1 && (
+                {integrations.length > 0 && (
                   <>
                     {" "}This session can reach{" "}
-                    <strong>{integrations.filter((i) => !i.startsWith("read_stack")).join(", ") || "no remote tools yet"}</strong>.
+                    <strong>{integrations.join(", ")}</strong>.
                   </>
                 )}
               </p>

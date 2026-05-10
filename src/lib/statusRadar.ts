@@ -38,7 +38,13 @@ export const STATUS_PAGES: Record<string, { api: string; page: string }> = {
   fly:         { api: "https://status.flyio.net/api/v2/status.json",        page: "https://status.flyio.net" },
   cloudflare:  { api: "https://www.cloudflarestatus.com/api/v2/status.json", page: "https://www.cloudflarestatus.com" },
   // Databases
-  neon:        { api: "https://neonstatus.com/api/v2/status.json",          page: "https://neonstatus.com" },
+  // NOTE: Neon is intentionally NOT in this map. neonstatus.com hosts a
+  // StatusPage.io page but blocks CORS for /api/v2/status.json from
+  // browser origins, and its underlying canonical statuspage.io URL is
+  // similarly blocked. There's no public endpoint we can hit from the
+  // browser today — adding Neon here would render a permanent "unknown"
+  // pill, which is worse than omitting it. Re-add if/when Neon ships a
+  // browser-accessible status feed.
   supabase:    { api: "https://status.supabase.com/api/v2/status.json",     page: "https://status.supabase.com" },
   planetscale: { api: "https://status.planetscale.com/api/v2/status.json",  page: "https://status.planetscale.com" },
   mongodb:     { api: "https://status.mongodb.com/api/v2/status.json",      page: "https://status.mongodb.com" },
@@ -64,7 +70,11 @@ export const STATUS_PAGES: Record<string, { api: string; page: string }> = {
   // Payments
   stripe:      { api: "https://status.stripe.com/api/v2/status.json",       page: "https://status.stripe.com" },
   // AI
-  anthropic:   { api: "https://status.anthropic.com/api/v2/status.json",    page: "https://status.anthropic.com" },
+  // Anthropic's custom domain (status.anthropic.com / status.claude.com)
+  // doesn't allow browser CORS on the StatusPage.io API endpoints, so
+  // we hit the canonical anthropic.statuspage.io URL which does. The
+  // public-facing page link still points users to the friendly host.
+  anthropic:   { api: "https://anthropic.statuspage.io/api/v2/status.json", page: "https://status.anthropic.com" },
   openai:      { api: "https://status.openai.com/api/v2/status.json",       page: "https://status.openai.com" },
   // Design
   figma:       { api: "https://www.figmastatus.com/api/v2/status.json",     page: "https://www.figmastatus.com" },

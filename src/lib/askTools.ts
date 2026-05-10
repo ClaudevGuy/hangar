@@ -449,10 +449,16 @@ export const ASK_TOOLS: ToolDefinition[] = [
   LIST_MY_NOTES,
 ];
 
-// Used by the system prompt: enumerate which integrations have tokens so
-// Claude knows what's actually queryable in this session.
+// Names of remote provider integrations whose tokens are available in
+// the user's vault. Used by the AskModal header ("3 sources") + body
+// ("This session can reach Vercel, GitHub.") AND by the system prompt.
+//
+// We deliberately do NOT include "read_stack" / always-available local
+// tools here — they aren't "sources" the user counts, and the modal
+// header / body would disagree about whether to include them. Claude
+// still sees read_stack in ASK_TOOLS regardless of what this returns.
 export function availableIntegrations(ctx: ToolContext): string[] {
-  const out: string[] = ["read_stack (always)"];
+  const out: string[] = [];
   if (token(ctx, "vercel")) out.push("Vercel");
   if (token(ctx, "sentry")) out.push("Sentry");
   if (token(ctx, "linear")) out.push("Linear");
