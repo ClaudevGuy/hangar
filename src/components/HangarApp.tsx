@@ -64,6 +64,23 @@ export function HangarApp() {
   // Mobile-only: the sidebar slides in from the left when this is true.
   // No effect on desktop (>800px), where the sidebar is always visible.
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  // Desktop: user can collapse the sidebar to free horizontal space.
+  // Persisted globally (not per-workspace) since it's a per-user
+  // ergonomic preference, not stack-scoped.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("hangar-sidebar-collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("hangar-sidebar-collapsed", sidebarCollapsed ? "1" : "0");
+    } catch {
+      // quota / disabled — preference just doesn't persist, no UX harm.
+    }
+  }, [sidebarCollapsed]);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const [keysFocusToolId, setKeysFocusToolId] = useState<string | null>(null);
   const vault = useVault();
@@ -291,9 +308,11 @@ export function HangarApp() {
         }}
         onOpenAsk={() => setShowAsk(true)}
         onToggleMobileSidebar={() => setMobileSidebarOpen((s) => !s)}
+        sidebarCollapsed={sidebarCollapsed}
+        onExpandSidebar={() => setSidebarCollapsed(false)}
       />
 
-      <div className="layout">
+      <div className={`layout${sidebarCollapsed ? " is-sidebar-collapsed" : ""}`}>
         <Sidebar
           active={activeCat}
           setActive={setActiveCat}
@@ -327,6 +346,8 @@ export function HangarApp() {
           onOpenRepoScan={() => setShowRepoScan(true)}
           isMobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
+          collapsed={sidebarCollapsed}
+          onCollapse={() => setSidebarCollapsed(true)}
         />
         {mobileSidebarOpen && (
           <div

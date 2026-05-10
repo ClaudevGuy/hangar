@@ -305,6 +305,15 @@ input { font-family: inherit; }
      the bottom of the row — the sticky sidebar element is shorter than
      the row when main is tall, which would otherwise expose --bg below it. */
   background: var(--bg-2);
+  transition: grid-template-columns .25s ease;
+}
+/* Collapsed: sidebar column shrinks to 0; main expands to fill. The
+   sidebar element itself transitions independently (width / padding /
+   border) so the slide-out feels coherent. To bring it back the user
+   clicks the topbar hamburger which becomes always-visible while in
+   this state. */
+.layout.is-sidebar-collapsed {
+  grid-template-columns: 0 1fr;
 }
 
 .sidebar {
@@ -318,6 +327,21 @@ input { font-family: inherit; }
   max-height: calc(100vh - 64px);
   overflow-y: auto;
   scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+  transition: max-width .25s ease, padding .25s ease, opacity .2s ease;
+  max-width: 268px;
+}
+/* Collapsed sidebar — the .layout grid track is already 0, but the
+   sidebar's intrinsic content would otherwise overflow and bleed into
+   main. Clamp width + zero out padding + hide overflow so it cleanly
+   disappears. opacity fades the contents during the slide for a softer
+   feel than a hard cut. */
+.sidebar.is-collapsed {
+  max-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .side-section { display: flex; flex-direction: column; gap: 6px; }
@@ -4280,8 +4304,31 @@ input { font-family: inherit; }
 }
 
 /* Hamburger button is hidden on desktop by default. The mobile rule
-   above shows it. */
+   above shows it. The .is-forced variant is added by HangarApp when
+   the user has collapsed the sidebar — at that point the hamburger
+   becomes the only way back to the sidebar so it must be visible
+   regardless of viewport size. */
 .topbar-mobile-toggle { display: none; }
+.topbar-mobile-toggle.is-forced {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.topbar-mobile-toggle.is-forced:hover {
+  color: var(--text);
+  border-color: var(--accent-line);
+  background: color-mix(in oklab, var(--bg) 70%, var(--accent-bg));
+}
 
 /* Below 500px (small phones) the deck-stats stop fitting in two columns. */
 @media (max-width: 500px) {

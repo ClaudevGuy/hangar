@@ -54,6 +54,11 @@ interface Props {
   // and any nav action (category click, tool click) closes it.
   isMobileOpen: boolean;
   onCloseMobile: () => void;
+  // Desktop collapse — when true, the sidebar slides to width 0 (CSS
+  // handles the animation). The expand affordance lives on the topbar
+  // hamburger, which becomes always-visible when collapsed=true.
+  collapsed: boolean;
+  onCollapse: () => void;
 }
 
 export function Sidebar({
@@ -64,6 +69,7 @@ export function Sidebar({
   sync, hasGitHubToken, onSyncSetUp, onSyncPushNow, onSyncPullNow, onSyncDisconnect,
   onOpenShare, onOpenRepoScan,
   isMobileOpen, onCloseMobile,
+  collapsed, onCollapse,
 }: Props) {
   const toggleTheme = () => setPref("theme", prefs.theme === "dark" ? "light" : "dark");
 
@@ -80,7 +86,10 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`sidebar${isMobileOpen ? " is-mobile-open" : ""}`}>
+    <aside
+      className={`sidebar${isMobileOpen ? " is-mobile-open" : ""}${collapsed ? " is-collapsed" : ""}`}
+      aria-hidden={collapsed ? true : undefined}
+    >
       <Linkboard
         links={links}
         builtInTools={TOOLS}
@@ -226,6 +235,18 @@ export function Sidebar({
           {keysCount > 0 && vaultState !== "locked" && (
             <span className="side-tool-count">{keysCount}</span>
           )}
+        </button>
+        {/* Collapse the sidebar — slides it to width 0. The topbar
+            hamburger becomes always-visible while collapsed so the
+            user has a way to bring it back. */}
+        <button
+          type="button"
+          className="side-tool-btn side-tool-collapse"
+          onClick={onCollapse}
+          title="Hide sidebar"
+          aria-label="Hide sidebar"
+        >
+          <Icon.sidebarCollapse />
         </button>
       </div>
     </aside>

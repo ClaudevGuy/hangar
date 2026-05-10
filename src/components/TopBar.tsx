@@ -23,6 +23,12 @@ interface Props {
   onOpenAsk: () => void;
   // Mobile-only — toggles the slide-out sidebar drawer. Hidden via CSS on desktop.
   onToggleMobileSidebar: () => void;
+  // Desktop sidebar collapse state. When true, the topbar hamburger
+  // becomes always-visible (not just mobile) and triggers onExpandSidebar
+  // instead of the mobile-drawer toggle. Lets the user un-hide a sidebar
+  // they previously collapsed via the side-tools rail button.
+  sidebarCollapsed: boolean;
+  onExpandSidebar: () => void;
 }
 
 export function TopBar({
@@ -31,6 +37,7 @@ export function TopBar({
   stackCount, compareCount,
   onOpenStack, onOpenCompare,
   stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenAsk, onToggleMobileSidebar,
+  sidebarCollapsed, onExpandSidebar,
 }: Props) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -42,11 +49,16 @@ export function TopBar({
   return (
     <header className="topbar">
       <div className="topbar-left">
+        {/* Hamburger doubles as: mobile drawer opener (always shown on
+            phone via CSS) AND desktop sidebar expander (forced visible
+            via .is-forced when the sidebar is collapsed). Click target
+            switches handler based on which state we're in. */}
         <button
           type="button"
-          className="topbar-mobile-toggle"
-          onClick={onToggleMobileSidebar}
-          aria-label="Open sidebar menu"
+          className={`topbar-mobile-toggle${sidebarCollapsed ? " is-forced" : ""}`}
+          onClick={sidebarCollapsed ? onExpandSidebar : onToggleMobileSidebar}
+          aria-label={sidebarCollapsed ? "Show sidebar" : "Open sidebar menu"}
+          title={sidebarCollapsed ? "Show sidebar" : "Open sidebar menu"}
         >
           <Icon.menu />
         </button>
