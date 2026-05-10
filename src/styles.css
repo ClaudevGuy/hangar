@@ -1693,13 +1693,24 @@ input { font-family: inherit; }
 }
 
 .brew-narrative { min-height: 80px; }
+/* Headline treatment matches the Brief popover (.brief-headline): display
+   font, slightly larger size, tight letter-spacing, accent color for bold
+   tool names. Reads like an editorial summary instead of a regular
+   paragraph — which is what Brew is. */
 .brew-text {
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--text-2);
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: var(--text);
+  font-weight: 500;
+  text-wrap: pretty;
 }
-.brew-text strong { color: var(--text); font-weight: 600; }
+.brew-text strong {
+  color: var(--accent);
+  font-weight: 600;
+}
 
 .brew-loading {
   display: flex;
