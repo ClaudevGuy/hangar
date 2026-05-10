@@ -3125,6 +3125,28 @@ input { font-family: inherit; }
 .result-count { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
 .muted { color: var(--text-3); }
 
+/* "X hidden · restore" link inside the result count — same monospace
+   row as the count itself. The leading "· N hidden ·" sits as muted
+   inline text inside the button so the whole phrase reads naturally. */
+.result-restore {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  transition: color .12s, text-decoration-color .12s;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+}
+.result-restore:hover {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
 .compare-tray {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
@@ -3279,6 +3301,25 @@ input { font-family: inherit; }
 }
 .card:hover .card-custom-x { opacity: 1; }
 .card-custom-x:hover { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 50%, transparent); }
+
+/* Hide-from-catalog button — subtle by default so the row reads cleanly,
+   brightens on hover/focus to invite the click. Lives next to the pin/
+   compare chips on each tool row + card. */
+.row-hide,
+.card-hide {
+  color: var(--text-4);
+  opacity: 0.55;
+  transition: opacity .15s, color .15s, border-color .15s, background .15s;
+}
+.row:hover .row-hide,
+.card:hover .card-hide { opacity: 1; }
+.row-hide:hover,
+.card-hide:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: color-mix(in oklab, var(--bg) 70%, var(--panel) 30%);
+  opacity: 1;
+}
 
 /* Catalog toggle divider */
 .catalog-divider {

@@ -31,6 +31,7 @@ import { AskModal } from "./AskModal";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
+import { useHiddenCatalog } from "../hooks/useHiddenCatalog";
 import { useLinkboard } from "../hooks/useLinkboard";
 import { useToolMeta } from "../hooks/useToolMeta";
 
@@ -69,6 +70,10 @@ export function HangarApp() {
   const { frecency, record: recordLaunch } = useFrecency();
   const sync = useGistSync();
   const { links, addLink, removeLink, clearAll: clearLinks } = useLinkboard();
+  // Tools the user has hidden from the Browse-catalog list. Doesn't affect
+  // pin / sidebar / search — only filters the catalog grid + counts.
+  const { hiddenIds, hide: hideTool, restoreAll: restoreHiddenCatalog } =
+    useHiddenCatalog();
 
   // Resolve a stored GitHub token (if any) for use with gist sync.
   const githubToken = secrets["github"]?.find((k) => k.value)?.value || null;
@@ -91,9 +96,19 @@ export function HangarApp() {
     [compare, allTools],
   );
 
+  // Hidden tools never enter the visible catalog set — that's the whole
+  // point of hide. Pinned tools that the user also hid stay pinned (and
+  // remain in the sidebar / Pulse / stack search), they just don't take a
+  // row in Browse. Computed as a derived list and reused below for both
+  // the filter and the category counts.
+  const visibleCatalog = useMemo(
+    () => allTools.filter((t) => !hiddenIds.has(t.id)),
+    [allTools, hiddenIds],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return allTools.filter((t) => {
+    return visibleCatalog.filter((t) => {
       if (activeCat !== "all" && t.category !== activeCat) return false;
       if (!q) return true;
       return (
@@ -102,13 +117,21 @@ export function HangarApp() {
         t.category.toLowerCase().includes(q)
       );
     });
-  }, [query, activeCat, allTools]);
+  }, [query, activeCat, visibleCatalog]);
 
+  // Category counts mirror the visible catalog so the sidebar / category
+  // strip don't promise tools that were hidden out. "all" matches the
+  // total visible-catalog size; per-category counts iterate it too.
   const counts = useMemo<Partial<Record<CategoryId, number>>>(() => {
-    const c: Partial<Record<CategoryId, number>> = { all: allTools.length };
-    for (const t of allTools) c[t.category] = (c[t.category] ?? 0) + 1;
+    const c: Partial<Record<CategoryId, number>> = { all: visibleCatalog.length };
+    for (const t of visibleCatalog) c[t.category] = (c[t.category] ?? 0) + 1;
     return c;
-  }, [allTools]);
+  }, [visibleCatalog]);
+
+  // The Browse-catalog count chip on the QuickActions card always shows
+  // the visible total — same number the catalog grid will render once
+  // expanded.
+  const visibleToolCount = visibleCatalog.length;
 
   const togglePin = useCallback(
     (tool: Tool) => {
@@ -330,14 +353,16 @@ export function HangarApp() {
             onOpenAddTool={() => setShowAddTool(true)}
             onToggleCatalog={() => setShowCatalog((s) => !s)}
             catalogOpen={showCatalog}
-            catalogCount={allTools.length}
+            catalogCount={visibleToolCount}
           />
 
           {/* Compact stack stats — keeps the data dense on one line so the
-              fold-line stays high. Click any cell to open its source modal. */}
+              fold-line stays high. Click any cell to open its source modal.
+              "In catalog" reflects the visible tools (hidden subtracted)
+              so the count matches what the catalog grid will show. */}
           <DashStats
             stackTools={stackTools}
-            totalTools={allTools.length}
+            totalTools={visibleToolCount}
             secrets={secrets}
             toolMeta={toolMeta}
             onOpenStack={() => setShowStack(true)}
@@ -353,6 +378,8 @@ export function HangarApp() {
                 query={query}
                 activeCat={activeCat}
                 compareTools={compareTools}
+                hiddenCount={hiddenIds.size}
+                onRestoreHidden={restoreHiddenCatalog}
                 onUncompare={toggleCompare}
                 onOpenCompare={() => setShowCompare(true)}
               />
@@ -369,6 +396,7 @@ export function HangarApp() {
                       onCompare={toggleCompare}
                       onOpen={setOpenTool}
                       onLaunch={launch}
+                      onHide={(tool) => hideTool(tool.id)}
                       onRemoveCustom={t.custom ? () => handleRemoveCustomTool(t.id) : undefined}
                     />
                   ))}
@@ -398,6 +426,7 @@ export function HangarApp() {
                       onCompare={toggleCompare}
                       onOpen={setOpenTool}
                       onLaunch={launch}
+                      onHide={(tool) => hideTool(tool.id)}
                       onRemoveCustom={t.custom ? () => handleRemoveCustomTool(t.id) : undefined}
                     />
                   ))}

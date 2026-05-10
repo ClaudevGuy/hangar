@@ -28,6 +28,8 @@ const WORKSPACE_KEYS = [
   "hangar-notes",
   // Cached Morning Brew narrative (one per day, per workspace).
   "hangar-brew",
+  // Catalog tools the user has hidden from the Browse list.
+  "hangar-hidden-catalog",
 ] as const;
 
 function readList(): Workspace[] {

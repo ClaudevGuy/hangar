@@ -10,11 +10,12 @@ interface Props {
   onCompare: (tool: Tool) => void;
   onOpen: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
+  onHide: (tool: Tool) => void;
   onRemoveCustom?: () => void;
 }
 
 export function ToolRow({
-  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onRemoveCustom,
+  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onHide, onRemoveCustom,
 }: Props) {
   return (
     <div className={`row ${pinned ? "is-pinned" : ""}`} onClick={() => onOpen(tool)}>
@@ -44,6 +45,18 @@ export function ToolRow({
         </button>
         <button type="button" className={`chip-btn ${pinned ? "on" : ""}`} onClick={() => onPin(tool)}>
           {pinned ? <Icon.check /> : <Icon.plus />}
+        </button>
+        {/* Hide from catalog — subtle by default, brightens on row hover.
+            Doesn't affect pin/stack state, just removes the row from the
+            Browse list (and from category counts) until restored. */}
+        <button
+          type="button"
+          className="chip-btn row-hide"
+          onClick={() => onHide(tool)}
+          title={`Hide ${tool.name} from the catalog`}
+          aria-label={`Hide ${tool.name} from the catalog`}
+        >
+          <Icon.eyeOff />
         </button>
         <button type="button" className="launch-btn" onClick={() => onLaunch(tool)}>
           Open <Icon.arrow />

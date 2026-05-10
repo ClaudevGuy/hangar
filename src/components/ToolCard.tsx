@@ -10,11 +10,12 @@ interface Props {
   onCompare: (tool: Tool) => void;
   onOpen: (tool: Tool) => void;
   onLaunch: (tool: Tool) => void;
+  onHide: (tool: Tool) => void;
   onRemoveCustom?: () => void;
 }
 
 export function ToolCard({
-  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onRemoveCustom,
+  tool, pinned, compared, onPin, onCompare, onOpen, onLaunch, onHide, onRemoveCustom,
 }: Props) {
   return (
     <article
@@ -39,6 +40,19 @@ export function ToolCard({
             title={pinned ? "Unpin" : "Pin to stack"}
           >
             {pinned ? <Icon.check /> : <Icon.plus />}
+          </button>
+          {/* Hide from catalog — same semantics as ToolRow's row-hide:
+              removes the card from the Browse view (and category counts)
+              without touching pin/stack state. Restored via the result-bar
+              "X hidden · restore" link. */}
+          <button
+            type="button"
+            className="chip-btn card-hide"
+            onClick={() => onHide(tool)}
+            title={`Hide ${tool.name} from the catalog`}
+            aria-label={`Hide ${tool.name} from the catalog`}
+          >
+            <Icon.eyeOff />
           </button>
         </div>
       </div>

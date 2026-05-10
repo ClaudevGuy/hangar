@@ -8,6 +8,11 @@ interface Props {
   query: string;
   activeCat: CategoryId;
   compareTools: Tool[];
+  // Number of tools the user has hidden from the catalog. When > 0 the
+  // bar surfaces a "· N hidden · restore" link so the dismissals aren't
+  // a one-way trap.
+  hiddenCount: number;
+  onRestoreHidden: () => void;
   onUncompare: (tool: Tool) => void;
   onOpenCompare: () => void;
 }
@@ -17,6 +22,8 @@ export function ResultBar({
   query,
   activeCat,
   compareTools,
+  hiddenCount,
+  onRestoreHidden,
   onUncompare,
   onOpenCompare,
 }: Props) {
@@ -27,6 +34,16 @@ export function ResultBar({
         {filteredCount} <span className="muted">{filteredCount === 1 ? "tool" : "tools"}</span>
         {query && <span className="muted"> · matching “{query}”</span>}
         {activeCat !== "all" && <span className="muted"> · {activeCategoryName}</span>}
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            className="result-restore"
+            onClick={onRestoreHidden}
+            title="Restore every tool you've hidden from the catalog"
+          >
+            <span className="muted"> · {hiddenCount} hidden · </span>restore
+          </button>
+        )}
       </div>
       {compareTools.length > 0 && (
         <div className="compare-tray">
