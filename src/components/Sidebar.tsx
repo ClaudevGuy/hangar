@@ -155,78 +155,78 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Bottom-anchored cluster: activity (when present) sits right above
-          the sticky tools rail. Wrapping both in `.side-bottom` keeps a
-          single `margin-top: auto` on the wrapper so they don't fight for
-          the auto-space. */}
-      <div className="side-bottom">
-        {ACTIVITY.length > 0 && (
-          <div className="side-section">
-            <div className="side-label">Activity</div>
-            <ul className="activity">
-              {ACTIVITY.slice(0, 5).map((a, i) => {
-                const tool = TOOLS.find((t) => t.id === a.tool);
-                return (
-                  <li key={i}>
-                    {tool && <ToolLogo tool={tool} size={18} />}
-                    <div className="act-text">
-                      <span className="act-line">{a.text}</span>
-                      {a.repo && <span className="act-repo">{a.repo}</span>}
-                    </div>
-                    <span className="act-time">{a.time}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
-        {/* Sticky tools rail — theme · settings · keys vault. Pinned to
-            the bottom of the sidebar's visible scroll viewport regardless
-            of how tall the content above is. */}
-        <div className="side-tools">
-          <button
-            type="button"
-            className="side-tool-btn"
-            onClick={toggleTheme}
-            title={prefs.theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            aria-label="Toggle theme"
-          >
-            {prefs.theme === "dark" ? <Icon.sun /> : <Icon.moon />}
-          </button>
-          <SettingsMenu
-            prefs={prefs}
-            setPref={setPref}
-            vaultState={vaultState}
-            onSetPassphrase={onSetPassphrase}
-            onChangePassphrase={onChangePassphrase}
-            onRemovePassphrase={onRemovePassphrase}
-            onLock={onLock}
-            sync={sync}
-            hasGitHubToken={hasGitHubToken}
-            onSyncSetUp={onSyncSetUp}
-            onSyncPushNow={onSyncPushNow}
-            onSyncPullNow={onSyncPullNow}
-            onSyncDisconnect={onSyncDisconnect}
-            stackTools={stackTools}
-            toolMeta={toolMeta}
-            onOpenShare={onOpenShare}
-            onOpenRepoScan={onOpenRepoScan}
-            placement="sidebar"
-          />
-          <button
-            type="button"
-            className={`side-tool-btn side-tool-keys ${vaultState === "locked" ? "is-locked" : ""}`}
-            onClick={onOpenKeys}
-            title={vaultState === "locked" ? "Vault locked — click to unlock" : "API keys vault"}
-            aria-label="Open keys vault"
-          >
-            <Icon.key />
-            {keysCount > 0 && vaultState !== "locked" && (
-              <span className="side-tool-count">{keysCount}</span>
-            )}
-          </button>
+      {/* Activity feed (when present) sits as a regular flex item — no
+          longer wrapped with the tools rail. Its old margin-top: auto is
+          dropped (see styles.css) since the tools rail now owns the
+          bottom anchor. */}
+      {ACTIVITY.length > 0 && (
+        <div className="side-section side-foot">
+          <div className="side-label">Activity</div>
+          <ul className="activity">
+            {ACTIVITY.slice(0, 5).map((a, i) => {
+              const tool = TOOLS.find((t) => t.id === a.tool);
+              return (
+                <li key={i}>
+                  {tool && <ToolLogo tool={tool} size={18} />}
+                  <div className="act-text">
+                    <span className="act-line">{a.text}</span>
+                    {a.repo && <span className="act-repo">{a.repo}</span>}
+                  </div>
+                  <span className="act-time">{a.time}</span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
+      )}
+
+      {/* Sticky tools rail — theme · settings · keys vault. Now a direct
+          child of the sidebar so its containing block IS the scroll
+          container; position: sticky bottom: 0 then engages all the way
+          up the scroll, not just when the wrapper itself happens to be
+          in view. */}
+      <div className="side-tools">
+        <button
+          type="button"
+          className="side-tool-btn"
+          onClick={toggleTheme}
+          title={prefs.theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle theme"
+        >
+          {prefs.theme === "dark" ? <Icon.sun /> : <Icon.moon />}
+        </button>
+        <SettingsMenu
+          prefs={prefs}
+          setPref={setPref}
+          vaultState={vaultState}
+          onSetPassphrase={onSetPassphrase}
+          onChangePassphrase={onChangePassphrase}
+          onRemovePassphrase={onRemovePassphrase}
+          onLock={onLock}
+          sync={sync}
+          hasGitHubToken={hasGitHubToken}
+          onSyncSetUp={onSyncSetUp}
+          onSyncPushNow={onSyncPushNow}
+          onSyncPullNow={onSyncPullNow}
+          onSyncDisconnect={onSyncDisconnect}
+          stackTools={stackTools}
+          toolMeta={toolMeta}
+          onOpenShare={onOpenShare}
+          onOpenRepoScan={onOpenRepoScan}
+          placement="sidebar"
+        />
+        <button
+          type="button"
+          className={`side-tool-btn side-tool-keys ${vaultState === "locked" ? "is-locked" : ""}`}
+          onClick={onOpenKeys}
+          title={vaultState === "locked" ? "Vault locked — click to unlock" : "API keys vault"}
+          aria-label="Open keys vault"
+        >
+          <Icon.key />
+          {keysCount > 0 && vaultState !== "locked" && (
+            <span className="side-tool-count">{keysCount}</span>
+          )}
+        </button>
       </div>
     </aside>
   );

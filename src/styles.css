@@ -317,26 +317,28 @@ input { font-family: inherit; }
 }
 
 .side-section { display: flex; flex-direction: column; gap: 6px; }
-.side-foot { margin-top: auto; }
-
-/* Bottom-anchored cluster (activity + tools rail). Single margin-top:auto
-   on the wrapper so its children don't fight for the same auto-space. */
-.side-bottom {
-  margin-top: auto;
-  display: flex; flex-direction: column;
-  gap: 28px;
-}
+/* Activity (when present) sits as a regular flex item right after the
+   stack. No `margin-top: auto` — that anchor now lives on .side-tools
+   below, so the two don't fight for the auto-space. */
 
 /* Sticky tools rail at the bottom of the sidebar — theme · settings · keys.
-   `position: sticky; bottom: 0` keeps it pinned to the bottom edge of the
-   sidebar's own scroll viewport regardless of how tall the content above
-   gets. Subtle border-top + bg-2 base so it reads as grounded, not floating.
-   Negative side margins extend the bar through the sidebar's 16px padding so
-   it spans edge-to-edge. */
+   Two things cooperate here:
+     1. `margin-top: auto` makes it float to the bottom of the sidebar's
+        intrinsic flex column when content fits the viewport (otherwise it
+        would just sit immediately after .side-section).
+     2. `position: sticky; bottom: 0` keeps it pinned to the bottom edge of
+        the sidebar's scroll viewport when content overflows and the user
+        scrolls. The containing block is now .sidebar itself (the scroll
+        container) — previously the rail was wrapped in .side-bottom which
+        made the containing block too short for sticky to engage at the top
+        of the scroll.
+   Subtle border-top + bg-2 base so it reads as grounded, not floating.
+   Negative side margins extend the bar through the sidebar's 16px padding
+   so it spans edge-to-edge. */
 .side-tools {
   position: sticky;
   bottom: 0;
-  margin: 0 -16px -16px;
+  margin: auto -16px -16px;
   padding: 12px 16px;
   display: flex;
   align-items: center;
