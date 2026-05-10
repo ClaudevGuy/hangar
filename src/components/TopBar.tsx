@@ -1,8 +1,6 @@
 import { useRef } from "react";
-import type { ToolMetaMap } from "../hooks/useToolMeta";
 import { Icon } from "../lib/icons";
-import type { SecretsMap, Tool } from "../types";
-import { Brief } from "./Brief";
+import type { Tool } from "../types";
 import { StatusRadar } from "./StatusRadar";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
@@ -15,11 +13,8 @@ interface Props {
   compareCount: number;
   onOpenStack: () => void;
   onOpenCompare: () => void;
-  // Brief + Ask both pull from secrets and stack data.
+  // Ask + StatusRadar both read from the live stack.
   stackTools: Tool[];
-  toolMeta: ToolMetaMap;
-  secrets: SecretsMap;
-  onOpenAnthropicKey: () => void;
   onOpenAsk: () => void;
   // Mobile-only — toggles the slide-out sidebar drawer. Hidden via CSS on desktop.
   onToggleMobileSidebar: () => void;
@@ -29,9 +24,10 @@ interface Props {
   // they previously collapsed via the side-tools rail button.
   sidebarCollapsed: boolean;
   onExpandSidebar: () => void;
-  // Privacy / screensharing mode — when true, render a small pill in
-  // the topbar so the user can SEE that real identifiers are blurred
-  // (and click to flip it back off). Easy to forget the mode is on.
+  // Privacy / screensharing mode. Always rendered as a pill in the
+  // topbar so the user can flip it on with one click before a screen
+  // share, and SEE at a glance whether it's currently active. The
+  // pill changes from neutral chrome (off) to amber + soft pulse (on).
   privacyMode: boolean;
   onTogglePrivacyMode: () => void;
 }
@@ -41,7 +37,7 @@ export function TopBar({
   view, setView,
   stackCount, compareCount,
   onOpenStack, onOpenCompare,
-  stackTools, toolMeta, secrets, onOpenAnthropicKey, onOpenAsk, onToggleMobileSidebar,
+  stackTools, onOpenAsk, onToggleMobileSidebar,
   sidebarCollapsed, onExpandSidebar,
   privacyMode, onTogglePrivacyMode,
 }: Props) {
@@ -93,30 +89,28 @@ export function TopBar({
       </div>
 
       <div className="topbar-right">
-        {/* Privacy mode indicator — only renders when active. Functions
-            as a one-click "turn off privacy mode" button so the user
-            can see at a glance that the mode is on (easy to forget after
-            a screen recording ends). Sits on the far left of topbar-right
-            so it's the first thing the user notices when scanning back
-            across the bar. */}
-        {privacyMode && (
-          <button
-            type="button"
-            className="privacy-pill"
-            onClick={onTogglePrivacyMode}
-            title="Privacy mode is on — click to turn off (⌘⇧P)"
-            aria-label="Turn off privacy mode"
-          >
-            <span className="privacy-pill-dot" aria-hidden="true" />
-            <span>Privacy</span>
-          </button>
-        )}
-        <Brief
-          stackTools={stackTools}
-          toolMeta={toolMeta}
-          secrets={secrets}
-          onAddAnthropicKey={onOpenAnthropicKey}
-        />
+        {/* Privacy / screensharing toggle — always visible so the user
+            can flip it on before a screen share with one click and SEE
+            whether it's currently active. Off state is muted (neutral
+            chrome). On state lights up amber with a soft pulse so the
+            mode is impossible to miss in peripheral vision (easy to
+            forget after the recording ends). Settings → Security has
+            a duplicate toggle for users who arrive there first. */}
+        <button
+          type="button"
+          className={`privacy-pill${privacyMode ? " is-active" : ""}`}
+          onClick={onTogglePrivacyMode}
+          title={
+            privacyMode
+              ? "Privacy mode is on — click to turn off (⌘⇧P)"
+              : "Blur sensitive info — turn on before screen-sharing (⌘⇧P)"
+          }
+          aria-label={privacyMode ? "Turn off privacy mode" : "Turn on privacy mode"}
+          aria-pressed={privacyMode}
+        >
+          <span className="privacy-pill-dot" aria-hidden="true" />
+          <span>Privacy</span>
+        </button>
         <button
           type="button"
           className="ask-trigger"

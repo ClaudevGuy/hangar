@@ -327,14 +327,15 @@ export function Features() {
           </article>
 
           <article className="lp-feature lp-span-3">
-            <div className="lp-feature-num">10 / Brief</div>
+            <div className="lp-feature-num">10 / Brew</div>
             <h3 className="lp-feature-title">
               A 9 a.m. briefing on your stack.
             </h3>
             <p className="lp-feature-desc">
-              One click in the topbar — Hangar pipes your live deploy/issue/ticket data through Claude
-              and returns a structured briefing: status, headline, three observations, and a
-              recommended action. Browser-direct using your own Anthropic key, never through us.
+              Open <code className="lp-code">/app</code> and a daily Morning Brew sits at the top —
+              Hangar pipes your live deploy/issue/ticket data through Claude and writes a structured
+              briefing: status, headline, three observations, and a recommended action. Cached for
+              the day, ~1¢ to refresh. Browser-direct using your own Anthropic key, never through us.
             </p>
             <div className="lp-feature-visual">
               <div className="lp-demo-brief">
@@ -469,7 +470,7 @@ export function Features() {
               reaches into your stack via tool-use over your own vault tokens — read the stack,
               list recent deploys, list unresolved errors, list assigned tickets, list PRs awaiting
               your review. Tool-call chips, citation cards under each turn, cumulative token + cost
-              meter. Brief is one-shot; Search is keyword-only; Ask is open-ended interrogation.
+              meter. Brew is one-shot daily; Search is keyword-only; Ask is open-ended interrogation.
             </p>
             <div className="lp-feature-visual">
               <div className="lp-demo-ask">

@@ -4655,17 +4655,21 @@ input { font-family: inherit; }
   pointer-events: none;
 }
 
-/* ── Privacy pill in the topbar (only renders when active) ──────── */
+/* ── Privacy pill in the topbar ─────────────────────────────────── */
+/* Always rendered. Default is muted (mode off) — looks like any other
+   neutral chrome chip in the topbar. .is-active flips it to amber with
+   a soft pulse so the user can SEE the mode is on from the corner of
+   their eye while recording. */
 .privacy-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   height: 32px;
   padding: 0 12px 0 10px;
-  background: color-mix(in oklab, var(--warn) 12%, transparent);
-  border: 1px solid color-mix(in oklab, var(--warn) 45%, transparent);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  color: var(--warn);
+  color: var(--text-2);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
@@ -4673,30 +4677,46 @@ input { font-family: inherit; }
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
-  transition: background .15s, border-color .15s, box-shadow .15s;
-  /* Subtle pulse so the user can see the mode is on even from the
-     corner of their eye during a screen recording. */
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+.privacy-pill:hover {
+  color: var(--text);
+  border-color: var(--line-2);
+  background: var(--panel);
+}
+.privacy-pill.is-active {
+  background: color-mix(in oklab, var(--warn) 12%, transparent);
+  border-color: color-mix(in oklab, var(--warn) 45%, transparent);
+  color: var(--warn);
   box-shadow: 0 0 12px -2px color-mix(in oklab, var(--warn) 40%, transparent);
   animation: privacy-pulse 2.6s ease-in-out infinite;
 }
-.privacy-pill:hover {
+.privacy-pill.is-active:hover {
   background: color-mix(in oklab, var(--warn) 20%, transparent);
   border-color: color-mix(in oklab, var(--warn) 65%, transparent);
 }
+/* Dot is monochrome by default (uses currentColor so it follows the
+   pill's text color), then lights up amber + glow once active. */
 .privacy-pill-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--warn);
-  box-shadow: 0 0 6px var(--warn);
+  background: currentColor;
   flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity .15s, box-shadow .15s;
+}
+.privacy-pill.is-active .privacy-pill-dot {
+  background: var(--warn);
+  opacity: 1;
+  box-shadow: 0 0 6px var(--warn);
 }
 @keyframes privacy-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.78; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .privacy-pill { animation: none; }
+  .privacy-pill.is-active { animation: none; }
 }
 
 /* Locked Keys top-bar button */

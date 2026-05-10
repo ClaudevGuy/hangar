@@ -85,7 +85,7 @@ export function TermsPage() {
       <ul>
         <li>The actions taken with your API tokens (deploys, payments, ticket changes, etc.)</li>
         <li>Compliance with each provider&apos;s rate limits, acceptable use policies, and pricing terms</li>
-        <li>Costs incurred via those services (e.g., Anthropic API calls when using the Brief / Investigate features)</li>
+        <li>Costs incurred via those services (e.g., Anthropic API calls when using the Brew / Ask / Investigate features)</li>
       </ul>
       <p>
         Hangar reads, displays, and forwards data from these providers when you ask it to.
@@ -96,16 +96,16 @@ export function TermsPage() {
 
       <h2>5. AI features and your Anthropic key</h2>
       <p>
-        The Brief and Investigate features call Anthropic&apos;s API directly from your browser
-        using your own Anthropic API key. We don&apos;t fund those calls — they bill against
-        your Anthropic account. We don&apos;t set rate limits or cost caps within Hangar; if you
-        want a hard ceiling, set it on your Anthropic account.
+        The Morning Brew, Ask, and Investigate features call Anthropic&apos;s API directly from
+        your browser using your own Anthropic API key. We don&apos;t fund those calls — they bill
+        against your Anthropic account. We don&apos;t set rate limits or cost caps within Hangar;
+        if you want a hard ceiling, set it on your Anthropic account.
       </p>
       <p>
-        AI-generated content (the Brief synthesis, the Investigate diagnoses, the suggested
-        actions) is provided as guidance, not as advice. You&apos;re responsible for verifying
-        anything the AI suggests before acting on it — especially anything destructive or
-        billable. We make no representations about the accuracy of AI output.
+        AI-generated content (the Brew synthesis, the Ask responses, the Investigate diagnoses,
+        the suggested actions) is provided as guidance, not as advice. You&apos;re responsible
+        for verifying anything the AI suggests before acting on it — especially anything
+        destructive or billable. We make no representations about the accuracy of AI output.
       </p>
 
       <h2>6. No warranty</h2>

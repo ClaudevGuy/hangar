@@ -335,12 +335,6 @@ export function HangarApp() {
         onOpenStack={() => setShowStack(true)}
         onOpenCompare={handleOpenCompare}
         stackTools={stackTools}
-        toolMeta={toolMeta}
-        secrets={secrets}
-        onOpenAnthropicKey={() => {
-          setKeysFocusToolId("anthropic");
-          setShowKeys(true);
-        }}
         onOpenAsk={() => setShowAsk(true)}
         onToggleMobileSidebar={() => setMobileSidebarOpen((s) => !s)}
         sidebarCollapsed={sidebarCollapsed}

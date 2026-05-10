@@ -227,7 +227,6 @@ src/
 │   ├── brew.ts               # Morning Brew Anthropic call + prompt builder
 │   ├── ask.ts, askTools.ts   # Ask multi-turn loop + 7 tool definitions
 │   ├── investigate.ts        # per-incident "✦ Investigate" Anthropic call
-│   ├── brief.ts              # one-shot stack synthesis (topbar Brief)
 │   ├── stackSearch.ts        # cross-tool search orchestrator
 │   ├── stackShare.ts         # encode/decode stack to URL hash fragment
 │   ├── statusRadar.ts        # StatusPage.io aggregator
@@ -264,7 +263,7 @@ src/
 │
 └── components/
     ├── HangarApp.tsx         # top-level state + composition
-    ├── TopBar.tsx            # logo, search, view toggle, Brief, Ask, Compare
+    ├── TopBar.tsx            # logo, search, view toggle, Privacy, Ask, Compare
     ├── Sidebar.tsx           # categories nav, pinned stack, sticky tools rail
     │
     │ # Dashboard surfaces
@@ -290,7 +289,7 @@ src/
     │ # Catalog + small bits
     ├── ToolCard.tsx, ToolRow.tsx, ToolLogo.tsx, ResultBar.tsx,
     ├── CategoryStrip.tsx, NotesSection.tsx, Linkboard.tsx,
-    ├── SettingsMenu.tsx, WorkspaceSwitcher.tsx, Brief.tsx, StatusRadar.tsx,
+    ├── SettingsMenu.tsx, WorkspaceSwitcher.tsx, StatusRadar.tsx,
     └── TokenPrompt.tsx
 ```
 
@@ -335,7 +334,7 @@ localStorage.clear(); location.reload();
 
 ### Shipped recently — beyond the original roadmap
 
-- [x] **Privacy / screensharing mode** — `⌘⇧P` (or Settings → Security → Privacy). Blurs API key values, repo + project names, issue titles, workspace name, and AI-generated headlines so you can demo Hangar or share your screen without leaking real identifiers. Brand colours, tool names, counts stay readable. A pulsing amber pill in the topbar makes the mode visible so it's hard to forget after a screen recording. Cross-tab synced
+- [x] **Privacy / screensharing mode** — `⌘⇧P`, the always-visible **Privacy** pill in the topbar, or Settings → Security. Blurs API key values, repo + project names, issue titles, workspace name, and AI-generated headlines so you can demo Hangar or share your screen without leaking real identifiers. Brand colours, tool names, counts stay readable. The topbar pill is muted when off and lights up amber with a soft pulse when on so it's hard to forget after a screen recording. Cross-tab synced
 - [x] **Per-tool tags** — user-defined labels ("api-stack", "marketing", "experimental") orthogonal to the built-in category. Editable in the tool drawer with a chip input + quick-add suggestion chips from the workspace's existing vocabulary. Sidebar "Tags" section appears once you have one; clicking a chip narrows both the catalog and the My Stack list (the underlying stack array stays full so Pulse / Brew / DashStats numbers don't lie)
 - [x] **Snippets vault per tool** — stash curl commands, deploy scripts, SQL fragments under each tool. Lives in the tool drawer above Notes. Title + optional language chip + preformatted code block, one-click copy with feedback, inline edit (`Cmd+Enter` saves, Esc cancels). Gives the drawer a coherent "your stuff" stack: Tags (how you group it), Snippets (what you run with it), Notes (what you remember about it)
 - [x] **Real-time sync** — all four live providers (GitHub, Vercel, Sentry, Linear) auto-refresh every 60s while the tab is focused, and refetch immediately on tab regain. Refcount-aware pub-sub layer (`lib/realtimeSync.ts`) ensures one fetch per token regardless of how many components are subscribed; in-flight cancel prevents stale results from clobbering newer ones
@@ -350,7 +349,6 @@ localStorage.clear(); location.reload();
 - [x] **Stack-wide search** — single input fans the query out to GitHub, Vercel and Linear in parallel using your vault tokens. Results stream in per-provider with a debounced + AbortSignal-cancellable orchestrator. ⌘⇧F from anywhere; per-provider dot badges; ↑↓/enter navigation
 - [x] **Repo Scanner** — File System Access API reads a project's `package.json` + `.env*` files at the root, infers which tools it uses (28 mapped via package imports + env-var patterns), and offers one-click pin + key import. Local-first, read-only, Chromium browsers only
 - [x] **Today panel** — unified incident feed across Vercel/Sentry/Linear, ranked by severity then recency
-- [x] **AI Brief** — Claude-powered stack summary in a topbar dropdown. Structured output (status badge, headline, observations, recommended action). Browser-direct, your own Anthropic key
 - [x] **AI Action / Investigate** — per-incident `✦` button on Today rows. Claude diagnoses with cross-tool correlation and offers concrete actions (open URL / copy drafted ticket)
 - [x] **Quick Actions** — per-incident write-back from the Today panel: resolve / ignore Sentry issues, snooze Linear tickets. Optimistic UI, browser-direct, your own tokens
 - [x] **Stack Share** — encode your stack into a URL hash and share publicly. Recipients adopt with one click. Zero-infra: data lives in the URL fragment, never sent to a server
@@ -382,7 +380,7 @@ localStorage.clear(); location.reload();
 
 - [ ] Stripe revenue in the web app (currently MCP only)
 - [ ] AI cost optimizer — recommend plan changes based on usage patterns
-- [ ] Daily Brief auto-generation + email digest via the user's Resend key
+- [ ] Daily Brew email digest via the user's Resend key (the on-screen Brew already auto-generates; this would just relay it to inbox)
 - [ ] **Inbound webhooks (deliberately deferred for v1)** — true real-time would mean pointing provider webhooks at a Hangar-hosted endpoint, which forces a server-side store (e.g. Vercel KV) for buffering events between page loads. That would break the README's "no Hangar server ever sees your data" promise: webhook payloads carry real commit messages / issue bodies / deploy details and they'd transit our infra to be useful. Polling (60s + tab-focus refetch) already catches the deploys, issues, PRs, and commits users actually act on. Rev plan when there's user demand for the long-tail events polling misses (PR comments, custom Stripe events, etc.) — the cleanest path is "user-bring-your-own-relay" (Pipedream / webhook.site), so Hangar generates the integration recipe but doesn't run the receiver
 
 ---

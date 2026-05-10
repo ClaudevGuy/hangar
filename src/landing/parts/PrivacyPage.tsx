@@ -77,7 +77,7 @@ export function PrivacyPage() {
         <li>GitHub (<code>api.github.com</code>) — when you add a GitHub PAT</li>
         <li>Vercel (<code>api.vercel.com</code>) — when you add a Vercel token</li>
         <li>Linear (<code>api.linear.app</code>) — when you add a Linear API key</li>
-        <li>Anthropic (<code>api.anthropic.com</code>) — when you use the Brief / Investigate AI features with your own Anthropic API key</li>
+        <li>Anthropic (<code>api.anthropic.com</code>) — when you use the Brew / Ask / Investigate AI features with your own Anthropic API key</li>
         <li>Various StatusPage.io endpoints — for the Stack Health Radar, fetched as anonymous public requests with no token</li>
         <li>GitHub Gists — when you opt in to cross-device sync, your encrypted blob is read/written from a private gist on your own GitHub account using your PAT</li>
       </ul>
@@ -107,9 +107,9 @@ export function PrivacyPage() {
 
       <h2>AI features (optional, your key)</h2>
       <p>
-        The Brief and Investigate features call Anthropic&apos;s API <em>directly from your
-        browser</em> using your own Anthropic API key from the vault. The data sent in those
-        requests is a structured snapshot of your stack state (recent deploys, unresolved
+        The Morning Brew, Ask, and Investigate features call Anthropic&apos;s API <em>directly
+        from your browser</em> using your own Anthropic API key from the vault. The data sent in
+        those requests is a structured snapshot of your stack state (recent deploys, unresolved
         issues, urgent tickets) — but it goes from your browser straight to Anthropic, never
         through us. Anthropic&apos;s privacy and data-handling policies apply: see{" "}
         <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noreferrer">

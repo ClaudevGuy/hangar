@@ -12,7 +12,7 @@ const TOTAL_STEPS = 7;
 
 // First-run guided tour. Two-column premium card layout: a styled mock visual
 // on the left, explainer copy on the right. Seven steps — Welcome, Pin,
-// Vault, Watch, AI (Brief + Ask), Search + Notes, then a Get Started action.
+// Vault, Watch, AI (Brew + Ask), Search + Notes, then a Get Started action.
 export function TourModal({ onClose, onOpenStarters }: Props) {
   const [step, setStep] = useState(0);
 
@@ -246,7 +246,7 @@ function AiVisual() {
       <div className="tour-mock-brief">
         <div className="tour-mock-brief-head">
           <span className="tour-mock-brief-spark">✦</span>
-          <span>BRIEF · GENERATED 2M AGO</span>
+          <span>BREW · TODAY 9:00 AM</span>
         </div>
         <div className="tour-mock-brief-status">
           <span className="tour-mock-brief-dot" />
@@ -409,11 +409,12 @@ function Content({ step, onOpenStarters, onClose }: ContentProps) {
         <div className="tour-eyebrow">Step 4 · AI</div>
         <h2 className="tour-title">Claude knows your stack.</h2>
         <p className="tour-desc">
-          Drop an Anthropic key into the vault. <strong>✦ Brief</strong> gives an instant
-          synthesis of what&apos;s happening with cross-tool correlations and a recommended
-          action. <strong>✦ Ask</strong> (<kbd>⌘⇧A</kbd>) opens a chat where Claude calls your
-          tools directly — *&ldquo;What&apos;s broken right now?&rdquo;* returns answers with
-          clickable citations.
+          Drop an Anthropic key into the vault. <strong>Morning Brew</strong> writes a daily
+          one-paragraph synthesis at the top of the dashboard — cross-tool correlations and a
+          recommended action, cached for the day so it&apos;s ~1¢ to refresh.
+          <strong>✦ Ask</strong> (<kbd>⌘⇧A</kbd>) opens a chat where Claude calls your tools
+          directly — *&ldquo;What&apos;s broken right now?&rdquo;* returns answers with clickable
+          citations.
         </p>
         <p className="tour-desc tour-desc-muted">
           Bonus: plug the bundled MCP server into Claude Desktop or Cursor so AI agents on your
