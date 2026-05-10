@@ -47,7 +47,7 @@ export function TopBar({
   void searchRef;
 
   return (
-    <header className="topbar">
+    <header className={`topbar${sidebarCollapsed ? " is-sidebar-collapsed" : ""}`}>
       <div className="topbar-left">
         {/* Hamburger doubles as: mobile drawer opener (always shown on
             phone via CSS) AND desktop sidebar expander (forced visible
