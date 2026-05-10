@@ -28,6 +28,7 @@ import { CommandPalette } from "./CommandPalette";
 import { RepoScanModal } from "./RepoScanModal";
 import { StackSearchModal } from "./StackSearchModal";
 import { AskModal } from "./AskModal";
+import { LogsModal } from "./LogsModal";
 import { useCustomTools } from "../hooks/useCustomTools";
 import { useFrecency } from "../hooks/useFrecency";
 import { useGistSync } from "../hooks/useGistSync";
@@ -58,6 +59,7 @@ export function HangarApp() {
   const [showRepoScan, setShowRepoScan] = useState(false);
   const [showStackSearch, setShowStackSearch] = useState(false);
   const [showAsk, setShowAsk] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
   // Mobile-only: the sidebar slides in from the left when this is true.
   // No effect on desktop (>800px), where the sidebar is always visible.
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -349,6 +351,7 @@ export function HangarApp() {
           <QuickActions
             onOpenAsk={() => setShowAsk(true)}
             onOpenSearch={() => setShowStackSearch(true)}
+            onOpenLogs={() => setShowLogs(true)}
             onOpenRepoScan={() => setShowRepoScan(true)}
             onOpenAddTool={() => setShowAddTool(true)}
             onToggleCatalog={() => setShowCatalog((s) => !s)}
@@ -636,6 +639,22 @@ export function HangarApp() {
             setKeysFocusToolId("anthropic");
             setShowKeys(true);
             setShowAsk(false);
+          }}
+        />
+      )}
+
+      {showLogs && (
+        <LogsModal
+          secrets={secrets}
+          onClose={() => setShowLogs(false)}
+          onOpenTool={(tool) => {
+            setOpenTool(tool);
+            setShowLogs(false);
+          }}
+          onAddKeyForTool={(tool) => {
+            setKeysFocusToolId(tool.id);
+            setShowKeys(true);
+            setShowLogs(false);
           }}
         />
       )}

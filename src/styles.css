@@ -1318,7 +1318,11 @@ input { font-family: inherit; }
 }
 .qa-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* 6 cards now (added Logs alongside Search/Ask/Scan/Catalog/Add).
+     Auto-fit with a min track width gives a clean 6-up at desktop and
+     graceful wrap to 3/2 cols on narrower viewports without needing
+     specific breakpoints to tune. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
 /* Cards are flat by default and lift on hover/focus. Smart cards (AI-
@@ -1423,8 +1427,9 @@ input { font-family: inherit; }
   white-space: nowrap;
 }
 
-/* Below 1100px the 5-card row gets cramped. Drop to 3 then 2 columns at
-   the same breakpoints the rest of the dashboard already uses. */
+/* The auto-fit grid above handles most widths gracefully, but at the
+   ~1100px breakpoint we explicitly clamp to 3 cols so the cards don't
+   shrink so far that the kbd hint wraps under the label. */
 @media (max-width: 1100px) {
   .qa-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -3571,7 +3576,8 @@ input { font-family: inherit; }
 .keys-modal,
 .repo-scan-modal,
 .stack-search-modal,
-.ask-modal {
+.ask-modal,
+.logs-modal {
   width: min(960px, 100%);
   max-height: 90vh;
   background: var(--bg);
@@ -3591,7 +3597,8 @@ input { font-family: inherit; }
 .keys-modal::before,
 .repo-scan-modal::before,
 .stack-search-modal::before,
-.ask-modal::before {
+.ask-modal::before,
+.logs-modal::before {
   content: "";
   position: absolute; top: 0; left: 24px; right: 24px;
   height: 1px;
@@ -3606,6 +3613,241 @@ input { font-family: inherit; }
 .repo-scan-modal    { width: min(720px, 100%); }
 .stack-search-modal { width: min(680px, 100%); }
 .ask-modal          { width: min(900px, 100%); height: min(820px, 84vh); }
+.logs-modal         { width: min(840px, 100%); height: min(800px, 84vh); }
+
+/* ----------------------------------------------------------- */
+/* LogsModal — unified activity feed across connected tools     */
+/* ----------------------------------------------------------- */
+.logs-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 28px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.logs-head-title h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.logs-head-title p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-3);
+  line-height: 1.45;
+}
+.logs-head-title strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Filter chip row — horizontal scroll on overflow so a stack with
+   many connected tools doesn't push the active chip off-screen. */
+.logs-filters {
+  display: flex;
+  gap: 6px;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+.logs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.logs-chip:hover {
+  border-color: var(--line-2);
+  color: var(--text);
+}
+.logs-chip.is-active {
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+.logs-chip-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding: 1px 6px;
+  background: var(--bg);
+  border-radius: 999px;
+}
+.logs-chip.is-active .logs-chip-count {
+  color: var(--accent);
+}
+
+/* Body fills the remaining height + scrolls. */
+.logs-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+  padding: 8px 0;
+}
+.logs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Individual log row — entire row is a button so anywhere is clickable.
+   Status dot on the left echoes the same severity language used by
+   feed-severity in the inbox panel. */
+.log-row { padding: 0; }
+.log-row-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 8px 22px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.log-row-btn:hover {
+  background: color-mix(in oklab, var(--panel) 80%, var(--accent-bg));
+  border-color: var(--line);
+}
+.log-row-btn:focus-visible {
+  outline: none;
+  border-color: var(--accent-line);
+}
+
+.log-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+.log-status-dot.status-ok    { background: var(--accent); }
+.log-status-dot.status-warn  { background: var(--warn); }
+.log-status-dot.status-err {
+  background: var(--danger);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--danger) 50%, transparent);
+}
+.log-status-dot.status-info  { background: var(--text-3); }
+
+.log-body { min-width: 0; }
+.log-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-context {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-kind {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-4);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.log-time {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Skeleton + empty states — match the inbox / brew loading patterns
+   so the modal feels consistent with the rest of the dashboard. */
+.logs-loading {
+  padding: 4px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.log-row-skeleton {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.logs-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+.logs-empty svg { color: var(--accent); }
+
+.logs-empty-connect {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.logs-empty-headline {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.logs-empty-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.logs-empty-tools .ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The shared .drawer-x close button is absolutely-positioned for drawers;
+   override to static so it sits in the modal header flex flow alongside
+   the title block (mirrors how .ask-close handles the same thing). */
+.logs-close { position: static; flex-shrink: 0; }
+
+@media (max-width: 700px) {
+  .logs-head { padding: 16px 18px 12px; }
+  .logs-filters { padding: 10px 18px; }
+  .logs-list { padding: 0 10px; }
+  .log-row-btn { grid-template-columns: 8px 22px minmax(0, 1fr) auto; gap: 10px; }
+  .log-kind { display: none; }
+}
 
 @keyframes modal-pop {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }

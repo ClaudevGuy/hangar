@@ -11,6 +11,7 @@ import { Icon } from "../lib/icons";
 interface Props {
   onOpenAsk: () => void;
   onOpenSearch: () => void;
+  onOpenLogs: () => void;
   onOpenRepoScan: () => void;
   onOpenAddTool: () => void;
   onToggleCatalog: () => void;
@@ -37,6 +38,7 @@ interface Action {
 export function QuickActions({
   onOpenAsk,
   onOpenSearch,
+  onOpenLogs,
   onOpenRepoScan,
   onOpenAddTool,
   onToggleCatalog,
@@ -60,6 +62,13 @@ export function QuickActions({
       kbd: "⌘⇧A",
       smart: true,
       onClick: onOpenAsk,
+    },
+    {
+      key: "logs",
+      label: "Logs",
+      desc: "every event across your stack",
+      glyph: <span className="qa-glyph-emoji" aria-hidden="true">≡</span>,
+      onClick: onOpenLogs,
     },
     {
       key: "scan",
