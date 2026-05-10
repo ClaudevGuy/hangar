@@ -3,7 +3,7 @@
 // to localStorage. Designed to be the institutional-memory layer that
 // only Hangar can pull off because it knows the surrounding stack.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
 
 // What this note is attached to. Discriminated union so we can render
@@ -52,12 +52,17 @@ function isNote(v: unknown): v is Note {
   return false;
 }
 
-function write(notes: Note[]): void {
-  try {
-    localStorage.setItem(storageKey(), JSON.stringify(notes));
-  } catch {
-    // Quota / serialization failures: don't block the UI.
+// Cheap structural compare — bails the cross-instance listener loop when
+// the freshly-read list matches what's already in state. We only check
+// length + (id, updatedAt) tuples since notes are append/update-only and
+// updatedAt is the canonical "did anything change?" signal.
+function sameNotes(a: Note[], b: Note[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id || a[i].updatedAt !== b[i].updatedAt) return false;
   }
+  return true;
 }
 
 // Custom event so multiple useNotes() instances in the tree stay in sync
@@ -84,17 +89,36 @@ export function useNotes(): UseNotesReturn {
   const [notes, setNotes] = useState<Note[]>(() => read());
 
   // Persist whenever the list changes + notify peer instances.
+  // Two safeguards against the dispatch→listener→setNotes feedback loop:
+  // (1) we skip the very first effect run (initial mount) so the persist
+  //     doesn't write back what we just read; (2) before dispatching we
+  //     compare the about-to-be-written serialization to what's already
+  //     in storage and bail when nothing actually changed.
+  const isFirstPersist = useRef(true);
   useEffect(() => {
-    write(notes);
+    if (isFirstPersist.current) {
+      isFirstPersist.current = false;
+      return;
+    }
+    const next = JSON.stringify(notes);
+    if (localStorage.getItem(storageKey()) === next) return;
+    localStorage.setItem(storageKey(), next);
     notifyChanged();
   }, [notes]);
 
   // Stay in sync with peer instances (within the same tab via the custom
-  // event; across tabs via the native storage event).
+  // event; across tabs via the native storage event). Bail in setNotes
+  // when the freshly-read list is structurally identical to current state
+  // — otherwise the persist effect above re-fires and we cycle forever.
   useEffect(() => {
-    const onChanged = () => setNotes(read());
+    const onChanged = () => {
+      const fresh = read();
+      setNotes((prev) => (sameNotes(prev, fresh) ? prev : fresh));
+    };
     const onStorage = (e: StorageEvent) => {
-      if (e.key === storageKey()) setNotes(read());
+      if (e.key !== storageKey()) return;
+      const fresh = read();
+      setNotes((prev) => (sameNotes(prev, fresh) ? prev : fresh));
     };
     window.addEventListener(CHANGE_EVENT, onChanged);
     window.addEventListener("storage", onStorage);
