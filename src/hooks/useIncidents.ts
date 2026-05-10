@@ -1,7 +1,9 @@
+import { useAnthropicLog } from "./useAnthropicLog";
 import { useGitHubData } from "./useGitHubData";
 import { useLinearData } from "./useLinearData";
 import { useSentryData } from "./useSentryData";
 import { useVercelData } from "./useVercelData";
+import type { AnthropicEvent } from "../lib/anthropicLog";
 import type { GitHubEvent, GitHubRepo } from "../lib/github";
 import type { LinearIssue } from "../lib/linear";
 import type { SentryIssue } from "../lib/sentry";
@@ -60,6 +62,12 @@ export interface IncidentFeed {
   // /user/repos collapses every push on a repo into a single pushed_at
   // and hides intra-day activity bursts.
   githubEvents: GitHubEvent[];
+  // Hangar's own Anthropic API call history (Brief / Brew / Ask /
+  // Investigate). Anthropic doesn't expose a "recent activity" endpoint
+  // for personal API keys, so we log calls locally and surface them as
+  // first-class events in Stack Pulse + Logs. Without this, Anthropic
+  // shows "QUIET" while it's secretly the busiest tool.
+  anthropicEvents: AnthropicEvent[];
 }
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
@@ -87,6 +95,9 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
   const linear = useLinearData(linearToken);
   const sentry = useSentryData(sentryToken);
   const github = useGitHubData(githubToken);
+  // Hangar's local Anthropic call log — no token gating, just reflects
+  // every Brief/Brew/Ask/Investigate the user has triggered.
+  const anthropicEvents = useAnthropicLog();
 
   const incidents: Incident[] = [];
   const cutoff = Date.now() - SEVEN_DAYS_MS;
@@ -247,6 +258,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     linearIssues: linear.issues,
     githubRepos: github.repos,
     githubEvents: github.events,
+    anthropicEvents,
   };
 }
 

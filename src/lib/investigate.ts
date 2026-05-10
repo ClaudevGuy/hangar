@@ -4,6 +4,7 @@
 // next actions. Tokens never leave the browser for any destination other
 // than api.anthropic.com.
 
+import { recordAnthropicCall } from "./anthropicLog";
 import type { Incident, IncidentRaw } from "../hooks/useIncidents";
 import type { SentryIssue } from "./sentry";
 import type { VercelDeployment } from "./vercel";
@@ -110,9 +111,19 @@ export async function generateInvestigation(
     throw new Error(`Anthropic: ${res.status} ${res.statusText}${detail}`);
   }
 
-  const data = (await res.json()) as { content: { type: string; text: string }[] };
+  const data = (await res.json()) as {
+    content: { type: string; text: string }[];
+    usage?: { input_tokens?: number; output_tokens?: number };
+  };
   const textBlock = data.content.find((c) => c.type === "text");
   if (!textBlock?.text) throw new Error("Anthropic: empty response");
+  // Log the call so the Logs feed reflects each per-incident investigation.
+  recordAnthropicCall({
+    kind: "investigate",
+    inputTokens: data.usage?.input_tokens,
+    outputTokens: data.usage?.output_tokens,
+    label: input.incident.title,
+  });
   return textBlock.text.trim();
 }
 

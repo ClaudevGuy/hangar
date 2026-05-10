@@ -4,6 +4,7 @@
 // blocks → appends tool_results → continues until Claude stops with
 // stop_reason "end_turn".
 
+import { recordAnthropicCall } from "./anthropicLog";
 import { ASK_TOOLS, availableIntegrations, type AskCitation, type ToolContext } from "./askTools";
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -215,6 +216,16 @@ export async function runAsk({
       if (response.stop_reason !== "tool_use") {
         // We have the final answer — break out.
         const text = joinText(response.content);
+        // Record one Anthropic event per Ask turn (regardless of how many
+        // sub-iterations the tool-use loop took). Tokens reflect the
+        // CUMULATIVE turn cost so the Logs row matches the user's mental
+        // model of "one question, one answer".
+        recordAnthropicCall({
+          kind: "ask",
+          inputTokens: totalInput,
+          outputTokens: totalOutput,
+          label: userInput.length > 80 ? `${userInput.slice(0, 77)}…` : userInput,
+        });
         callbacks.onAssistantTurn({
           role: "assistant",
           text: text || "(no response)",

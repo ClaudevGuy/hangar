@@ -13,7 +13,7 @@ export interface LogEntry {
   id: string;
   toolId: string;
   // One-word kind for filter chips and per-row badges.
-  kind: "deploy" | "push" | "pr" | "issue" | "error" | "ticket";
+  kind: "deploy" | "push" | "pr" | "issue" | "error" | "ticket" | "ai";
   // Headline shown on the row's first line.
   title: string;
   // Optional secondary line (branch, project, commit message excerpt).
@@ -79,6 +79,18 @@ function describeGitHubEvent(type: string, payload?: { action?: string }): strin
       return payload?.action === "published" ? "Released" : "Release activity";
     default:
       return null;
+  }
+}
+
+// Friendly headline per Anthropic call kind. Each is short enough to read
+// as a one-liner in the Logs row.
+function anthropicTitleOf(kind: string): string {
+  switch (kind) {
+    case "brief":       return "Brief generated";
+    case "brew":        return "Morning Brew refreshed";
+    case "ask":         return "Ask question answered";
+    case "investigate": return "Incident investigated";
+    default:            return "Claude call";
   }
 }
 
@@ -176,6 +188,27 @@ export function buildActivityLog(feed: IncidentFeed): LogEntry[] {
       timestamp: ts,
       url: issue.url,
       status: linearStatusOf(issue.priority),
+    });
+  }
+
+  // ── Anthropic API calls (Hangar's own) ──────────────────────────────
+  // Each Brief / Brew / Ask / Investigate gets a row so the user can
+  // see Anthropic activity (and approximate cost via tokens). No url —
+  // these calls don't have a public-facing landing page.
+  for (const ev of feed.anthropicEvents) {
+    if (ev.timestamp < cutoff) continue;
+    const tokens = (ev.inputTokens ?? 0) + (ev.outputTokens ?? 0);
+    const ctxParts: string[] = [];
+    if (ev.label) ctxParts.push(ev.label);
+    if (tokens > 0) ctxParts.push(`${tokens.toLocaleString()} tokens`);
+    entries.push({
+      id: `anthropic-${ev.id}`,
+      toolId: "anthropic",
+      kind: "ai",
+      title: anthropicTitleOf(ev.kind),
+      context: ctxParts.join(" · ") || undefined,
+      timestamp: ev.timestamp,
+      status: "info",
     });
   }
 

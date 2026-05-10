@@ -134,6 +134,28 @@ export function AskModal({
     return m;
   }, [allTools]);
 
+  // Tools that have a key in the vault but no Ask tool wired up yet.
+  // Surfaces in the empty-state copy so the user understands why "5
+  // connected" became "2 sources" — Anthropic is the LLM (not a
+  // queryable source), and providers like Inngest/Neon don't have
+  // ask tools yet. Display name comes from the tool catalog.
+  const askableLower = new Set(integrations.map((s) => s.toLowerCase()));
+  const connectedNonAskable = useMemo(() => {
+    const names: string[] = [];
+    for (const [toolId, list] of Object.entries(secrets)) {
+      if (!Array.isArray(list) || list.length === 0) continue;
+      // Anthropic powers this chat — call it out separately, not as
+      // a missing integration.
+      if (toolId === "anthropic") continue;
+      const tool = toolById.get(toolId);
+      if (!tool) continue;
+      if (askableLower.has(tool.name.toLowerCase())) continue;
+      names.push(tool.name);
+    }
+    return names;
+  }, [secrets, toolById, askableLower]);
+  const hasAnthropicKey = (secrets["anthropic"]?.length ?? 0) > 0;
+
   // Cumulative usage across the visible turn list.
   const totalUsage = useMemo(() => {
     let inT = 0, outT = 0;
@@ -358,11 +380,28 @@ export function AskModal({
               <div className="ask-empty-spark">✦</div>
               <h3>What do you want to know about your stack?</h3>
               <p>
-                Ask runs across your connected tools using the tokens in your vault.
-                {integrations.length > 0 && (
+                {hasAnthropicKey && (
                   <>
-                    {" "}This session can reach{" "}
-                    <strong>{integrations.join(", ")}</strong>.
+                    <strong>Anthropic</strong> powers this chat.{" "}
+                  </>
+                )}
+                {integrations.length > 0 ? (
+                  <>
+                    Ask can query{" "}
+                    <strong>{integrations.join(", ")}</strong> for live data using your
+                    vault tokens.
+                  </>
+                ) : (
+                  <>
+                    Ask doesn&apos;t have any data sources connected yet — add a
+                    Vercel, GitHub, Sentry, or Linear key to query live data.
+                  </>
+                )}
+                {connectedNonAskable.length > 0 && (
+                  <>
+                    {" "}Tokens for{" "}
+                    <strong>{connectedNonAskable.join(", ")}</strong> are present but
+                    Ask doesn&apos;t have tools for them yet.
                   </>
                 )}
               </p>

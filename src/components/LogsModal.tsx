@@ -25,8 +25,12 @@ interface Props {
 
 // All tool ids that the activity log can produce entries for. Used to
 // build the filter chip set even when a given tool has zero entries
-// (so the user sees "Sentry · 0" and knows it's connected).
-const ACTIVITY_TOOL_IDS = ["vercel", "github", "sentry", "linear"] as const;
+// (so the user sees "Sentry · 0" and knows it's connected). Anthropic
+// is included because Hangar logs its own Brief/Brew/Ask/Investigate
+// calls — see lib/anthropicLog.ts. Unlike the other entries it's
+// gated on having a vault key (the chip only renders when a key is
+// present), since events without a key would never have happened.
+const ACTIVITY_TOOL_IDS = ["vercel", "github", "sentry", "linear", "anthropic"] as const;
 
 export function LogsModal({ onClose, onOpenTool, onAddKeyForTool, secrets }: Props) {
   const feed = useIncidents(secrets);

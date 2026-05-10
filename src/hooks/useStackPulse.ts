@@ -58,6 +58,15 @@ export function useStackPulse(stackTools: Tool[], feed: IncidentFeed): PulseTrac
           const isErr = issue.priority === 1; // urgent
           bumpBucket(t, isErr);
         }
+      } else if (tool.id === "anthropic") {
+        // Hangar's own Brief / Brew / Ask / Investigate calls. Anthropic
+        // doesn't expose a public per-key activity feed, so we log calls
+        // locally (lib/anthropicLog.ts) and surface them here. Without
+        // this branch the Anthropic Pulse cell would always render
+        // "QUIET" even when it's secretly doing most of the work.
+        for (const ev of feed.anthropicEvents) {
+          bumpBucket(ev.timestamp, false);
+        }
       } else if (tool.id === "github") {
         // Prefer the per-event /users/:user/events feed (each push, PR,
         // issue, etc. has its own created_at second-level timestamp) over

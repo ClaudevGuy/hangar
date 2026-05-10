@@ -30,6 +30,11 @@ const WORKSPACE_KEYS = [
   "hangar-brew",
   // Catalog tools the user has hidden from the Browse list.
   "hangar-hidden-catalog",
+  // Rolling log of Anthropic API calls (Brief / Brew / Ask / Investigate),
+  // capped at 100 events. Surfaces in Stack Pulse + Logs so Anthropic
+  // doesn't appear "quiet" when it's secretly powering most of the
+  // dashboard's smarts.
+  "hangar-anthropic-log",
 ] as const;
 
 function readList(): Workspace[] {

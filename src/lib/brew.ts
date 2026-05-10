@@ -4,6 +4,7 @@
 //
 // Caller is responsible for caching. We just take the input and return text.
 
+import { recordAnthropicCall } from "./anthropicLog";
 import type { Incident, IncidentSeverity } from "../hooks/useIncidents";
 import type { PulseTrack } from "../hooks/useStackPulse";
 import type { ToolMetaMap } from "../hooks/useToolMeta";
@@ -72,7 +73,17 @@ export async function generateBrew(
   }
   const body = (await res.json()) as {
     content: Array<{ type: string; text?: string }>;
+    usage?: { input_tokens?: number; output_tokens?: number };
   };
+  // Record the call so Stack Pulse + Logs reflect it. Brews are once-a-
+  // day-ish so this barely contributes to the Pulse, but the Logs feed
+  // benefits from a row per refresh.
+  recordAnthropicCall({
+    kind: "brew",
+    inputTokens: body.usage?.input_tokens,
+    outputTokens: body.usage?.output_tokens,
+    label: `Morning Brew · ${input.stackTools.length} pinned tools`,
+  });
   return body.content
     .filter((b): b is { type: string; text: string } => b.type === "text" && typeof b.text === "string")
     .map((b) => b.text)
