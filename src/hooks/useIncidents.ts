@@ -1,10 +1,12 @@
 import { useAnthropicLog } from "./useAnthropicLog";
 import { useGitHubData } from "./useGitHubData";
+import { useLaunchLog } from "./useLaunchLog";
 import { useLinearData } from "./useLinearData";
 import { useSentryData } from "./useSentryData";
 import { useVercelData } from "./useVercelData";
 import type { AnthropicEvent } from "../lib/anthropicLog";
 import type { GitHubEvent, GitHubRepo } from "../lib/github";
+import type { LaunchEvent } from "../lib/launchLog";
 import type { LinearIssue } from "../lib/linear";
 import type { SentryIssue } from "../lib/sentry";
 import type { VercelDeployment } from "../lib/vercel";
@@ -68,6 +70,12 @@ export interface IncidentFeed {
   // first-class events in Stack Pulse + Logs. Without this, Anthropic
   // shows "QUIET" while it's secretly the busiest tool.
   anthropicEvents: AnthropicEvent[];
+  // Universal tool-launch log. Every "Open" click on any tool records
+  // an event here. Stack Pulse adds these on top of native API events
+  // (so e.g. GitHub's bar = pushes + your launches), and Logs surfaces
+  // them as "Opened X" rows. Crucial for tools without native API
+  // integrations (Inngest, Neon, Resend, …) so they show real activity.
+  launchEvents: LaunchEvent[];
 }
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
@@ -98,6 +106,9 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
   // Hangar's local Anthropic call log — no token gating, just reflects
   // every Brief/Brew/Ask/Investigate the user has triggered.
   const anthropicEvents = useAnthropicLog();
+  // Universal tool-launch log — every "Open" click on any tool. Powers
+  // Pulse + Logs for tools without native API integrations.
+  const launchEvents = useLaunchLog();
 
   const incidents: Incident[] = [];
   const cutoff = Date.now() - SEVEN_DAYS_MS;
@@ -259,6 +270,7 @@ export function useIncidents(secrets: SecretsMap): IncidentFeed {
     githubRepos: github.repos,
     githubEvents: github.events,
     anthropicEvents,
+    launchEvents,
   };
 }
 

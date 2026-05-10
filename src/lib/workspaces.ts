@@ -35,6 +35,12 @@ const WORKSPACE_KEYS = [
   // doesn't appear "quiet" when it's secretly powering most of the
   // dashboard's smarts.
   "hangar-anthropic-log",
+  // Universal tool-launch log — every time the user clicks "Open" on a
+  // tool tile/row/drawer, the launch is recorded here. Powers Stack
+  // Pulse + Logs for ANY tool, including ones we don't have native API
+  // integrations for yet (Inngest, Neon, Resend, …) so engagement
+  // shows up regardless of provider.
+  "hangar-launch-log",
 ] as const;
 
 function readList(): Workspace[] {

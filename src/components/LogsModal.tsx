@@ -23,14 +23,12 @@ interface Props {
   secrets: SecretsMap;
 }
 
-// All tool ids that the activity log can produce entries for. Used to
-// build the filter chip set even when a given tool has zero entries
-// (so the user sees "Sentry · 0" and knows it's connected). Anthropic
-// is included because Hangar logs its own Brief/Brew/Ask/Investigate
-// calls — see lib/anthropicLog.ts. Unlike the other entries it's
-// gated on having a vault key (the chip only renders when a key is
-// present), since events without a key would never have happened.
-const ACTIVITY_TOOL_IDS = ["vercel", "github", "sentry", "linear", "anthropic"] as const;
+// Providers that can produce events without ANY user interaction —
+// used purely for the empty-state copy ("connect one of these to see
+// logs"). The actual filter chip set is computed dynamically from the
+// entries below, so any tool that has launched / had a note / etc.
+// gets its own chip without needing to be listed here.
+const NATIVE_DATA_PROVIDER_IDS = ["vercel", "github", "sentry", "linear"] as const;
 
 export function LogsModal({ onClose, onOpenTool, onAddKeyForTool, secrets }: Props) {
   const feed = useIncidents(secrets);
@@ -38,25 +36,28 @@ export function LogsModal({ onClose, onOpenTool, onAddKeyForTool, secrets }: Pro
   const last24hCount = useMemo(() => countLast24h(entries), [entries]);
   const [filter, setFilter] = useState<string>("all");
 
-  // Per-tool counts power the filter chip badges. Computed once per
-  // entries change.
-  const countsByTool = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const e of entries) c[e.toolId] = (c[e.toolId] ?? 0) + 1;
-    return c;
+  // Per-tool counts + ordered tool-id list for filter chips. Built from
+  // the entry stream so EVERY tool that produced an event (native API
+  // events, Anthropic call log, universal launches, …) gets a chip
+  // without needing to be hardcoded. Order: by event count desc, so the
+  // busiest tool's chip sits first.
+  const { countsByTool, chipToolIds } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const e of entries) counts[e.toolId] = (counts[e.toolId] ?? 0) + 1;
+    const ids = Object.keys(counts).sort((a, b) => counts[b]! - counts[a]!);
+    return { countsByTool: counts, chipToolIds: ids };
   }, [entries]);
 
   const visible = filter === "all"
     ? entries
     : entries.filter((e) => e.toolId === filter);
 
-  // Connected providers — drives both the filter chip set (we only show
-  // chips for tools the user actually has a key for) and the empty-state
-  // copy ("connect Vercel/Sentry/Linear/GitHub to see logs").
-  const connectedToolIds = ACTIVITY_TOOL_IDS.filter(
+  // Drives the empty-state copy when nothing's connected. Launches
+  // alone count as "something connected" for showing the body.
+  const hasAnyNativeProvider = NATIVE_DATA_PROVIDER_IDS.some(
     (id) => (secrets[id]?.length ?? 0) > 0,
   );
-  const isAnythingConnected = connectedToolIds.length > 0;
+  const isAnythingConnected = hasAnyNativeProvider || entries.length > 0;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -98,7 +99,7 @@ export function LogsModal({ onClose, onOpenTool, onAddKeyForTool, secrets }: Pro
               active={filter === "all"}
               onClick={() => setFilter("all")}
             />
-            {connectedToolIds.map((id) => {
+            {chipToolIds.map((id) => {
               const tool = TOOLS.find((t) => t.id === id);
               if (!tool) return null;
               return (
@@ -220,10 +221,10 @@ function EmptyConnect({
 }: {
   onAddKeyForTool: (tool: Tool) => void;
 }) {
-  // Pull the four supported provider tools from the catalog so the empty
-  // state can render real logos + clickable "Connect X" buttons. Skips
-  // anything missing (defensive — TOOLS is unlikely to drop one).
-  const supported = ACTIVITY_TOOL_IDS
+  // Pull the four native-data provider tools from the catalog so the
+  // empty state can render real logos + clickable "Connect X" buttons.
+  // Skips anything missing (defensive — TOOLS is unlikely to drop one).
+  const supported = NATIVE_DATA_PROVIDER_IDS
     .map((id) => TOOLS.find((t) => t.id === id))
     .filter((t): t is Tool => Boolean(t));
   return (

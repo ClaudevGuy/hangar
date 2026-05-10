@@ -3,6 +3,7 @@
 // function; takes the IncidentFeed (which the per-tool data hooks already
 // populate) and returns a typed list. No fetches.
 
+import { TOOLS } from "../data/tools";
 import type { IncidentFeed } from "../hooks/useIncidents";
 
 export type LogStatus = "ok" | "warn" | "err" | "info";
@@ -13,7 +14,7 @@ export interface LogEntry {
   id: string;
   toolId: string;
   // One-word kind for filter chips and per-row badges.
-  kind: "deploy" | "push" | "pr" | "issue" | "error" | "ticket" | "ai";
+  kind: "deploy" | "push" | "pr" | "issue" | "error" | "ticket" | "ai" | "launch";
   // Headline shown on the row's first line.
   title: string;
   // Optional secondary line (branch, project, commit message excerpt).
@@ -188,6 +189,27 @@ export function buildActivityLog(feed: IncidentFeed): LogEntry[] {
       timestamp: ts,
       url: issue.url,
       status: linearStatusOf(issue.priority),
+    });
+  }
+
+  // ── Universal tool launches ─────────────────────────────────────────
+  // Every "Open" click on any tool. Surfaces engagement for tools we
+  // don't have native API integrations for, AND adds a real signal for
+  // tools that do (e.g. you opened Vercel 5 times today). Uses the tool
+  // catalog to look up display name + brand info. We don't emit URLs —
+  // clicking the row falls through to opening the tool drawer.
+  for (const ev of feed.launchEvents) {
+    if (ev.timestamp < cutoff) continue;
+    const tool = TOOLS.find((t) => t.id === ev.toolId);
+    const name = tool?.name ?? ev.toolId;
+    entries.push({
+      id: `launch-${ev.id}`,
+      toolId: ev.toolId,
+      kind: "launch",
+      title: `Opened ${name}`,
+      context: tool?.category,
+      timestamp: ev.timestamp,
+      status: "info",
     });
   }
 

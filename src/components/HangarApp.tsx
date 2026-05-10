@@ -35,6 +35,7 @@ import { useGistSync } from "../hooks/useGistSync";
 import { useHiddenCatalog } from "../hooks/useHiddenCatalog";
 import { useLinkboard } from "../hooks/useLinkboard";
 import { useToolMeta } from "../hooks/useToolMeta";
+import { recordToolLaunch } from "../lib/launchLog";
 
 const COMPARE_MAX = 3;
 
@@ -226,6 +227,11 @@ export function HangarApp() {
       window.open(tool.accountUrl, "_blank", "noopener,noreferrer");
       recordLaunch(tool.id);
       recordOpened(tool.id);
+      // Universal launch log — every "Open" makes the tool's Pulse cell
+      // light up + adds a row to the Logs feed. Crucial for tools we
+      // don't have native API integrations for (Inngest, Neon, Resend,
+      // …) so they don't always render "QUIET".
+      recordToolLaunch(tool.id);
     },
     [recordLaunch, recordOpened],
   );

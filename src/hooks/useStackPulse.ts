@@ -86,10 +86,17 @@ export function useStackPulse(stackTools: Tool[], feed: IncidentFeed): PulseTrac
           }
         }
       }
-      // Other tools have no live data plumbed through useIncidents — they
-      // render a flat dotted "no signal" baseline below. Keeping them in the
-      // tracks list is intentional: it shows the FULL pinned stack, not just
-      // the providers we happen to fetch.
+      // Universal launch overlay — every "Open" click on this tool adds
+      // a bucket bump on top of whatever native API events we have. This
+      // is the "no exceptions" guarantee: any tool the user actually
+      // engages with shows real activity, even ones without a native
+      // API integration (Inngest, Neon, Resend, …). For tools that DO
+      // have native data, launches stack on top so 5 deploys + 3 opens
+      // shows as 8 events of engagement.
+      for (const ev of feed.launchEvents) {
+        if (ev.toolId !== tool.id) continue;
+        bumpBucket(ev.timestamp, false);
+      }
 
       const totalActivity = buckets.reduce((a, b) => a + b, 0);
       const hasErrors = errorBuckets.some(Boolean);
