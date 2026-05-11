@@ -40,7 +40,16 @@ function AppRoute() {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* Opt into the v7 behaviors React Router v6 already warns about
+        every render. Both flags are no-ops in production (the warnings
+        only fire in dev) but silence the console spam and keep behavior
+        stable across the eventual major bump. */}
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/app/*" element={<AppRoute />} />
