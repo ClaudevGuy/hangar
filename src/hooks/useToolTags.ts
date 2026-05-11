@@ -10,7 +10,7 @@
 // Cross-instance React sync: custom event + native StorageEvent, same
 // pattern useNotes / useAnthropicLog use.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
 
 export type ToolTagsMap = Record<string, string[]>;
@@ -36,14 +36,23 @@ function read(): ToolTagsMap {
   }
 }
 
-function write(map: ToolTagsMap): void {
-  try {
-    localStorage.setItem(storageKey(), JSON.stringify(map));
-    window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
-  } catch {
-    // quota / serialization — silent. Worst case the change doesn't
-    // persist; the in-memory state still reflects the user's intent.
+// Cheap structural compare — bails the cross-instance listener loop
+// when the freshly-read map matches what's already in state. Mirrors
+// useNotes' sameNotes guard. Compares keys + per-tool array contents.
+function sameTags(a: ToolTagsMap, b: ToolTagsMap): boolean {
+  if (a === b) return true;
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    const av = a[key];
+    const bv = b[key];
+    if (!bv || av.length !== bv.length) return false;
+    for (let i = 0; i < av.length; i++) {
+      if (av[i] !== bv[i]) return false;
+    }
   }
+  return true;
 }
 
 // Tag normaliser — lowercase + trim + collapse internal whitespace +
@@ -74,16 +83,42 @@ export interface UseToolTagsReturn {
 export function useToolTags(): UseToolTagsReturn {
   const [tagsByTool, setMap] = useState<ToolTagsMap>(() => read());
 
-  // Persist on change; broadcast for sibling instances.
+  // Persist on change + notify peer instances. Two safeguards against the
+  // dispatch→listener→setMap feedback loop (same shape as useNotes):
+  // (1) skip the very first effect run so opening the app doesn't write
+  //     back what we just read; (2) compare the serialization to what's
+  //     already in storage and bail before dispatching when nothing
+  //     actually changed.
+  const isFirstPersist = useRef(true);
   useEffect(() => {
-    write(tagsByTool);
+    if (isFirstPersist.current) {
+      isFirstPersist.current = false;
+      return;
+    }
+    try {
+      const next = JSON.stringify(tagsByTool);
+      if (localStorage.getItem(storageKey()) === next) return;
+      localStorage.setItem(storageKey(), next);
+      window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+    } catch {
+      // quota / serialization — silent. Worst case the change doesn't
+      // persist; the in-memory state still reflects the user's intent.
+    }
   }, [tagsByTool]);
 
-  // Listen for sibling-instance updates (within tab) + cross-tab updates.
+  // Stay in sync with peer instances (same tab via custom event; across
+  // tabs via native storage event). Use the structural compare so an
+  // event that wouldn't actually change anything doesn't re-trigger
+  // the persist effect and spiral.
   useEffect(() => {
-    const onChanged = () => setMap(read());
+    const onChanged = () => {
+      const fresh = read();
+      setMap((prev) => (sameTags(prev, fresh) ? prev : fresh));
+    };
     const onStorage = (e: StorageEvent) => {
-      if (e.key && e.key.startsWith("hangar-tool-tags-")) setMap(read());
+      if (e.key !== storageKey()) return;
+      const fresh = read();
+      setMap((prev) => (sameTags(prev, fresh) ? prev : fresh));
     };
     window.addEventListener(CHANGE_EVENT, onChanged);
     window.addEventListener("storage", onStorage);

@@ -7,7 +7,7 @@
 // Cross-instance + cross-tab sync via the same custom-event +
 // StorageEvent pattern useNotes / useToolTags use.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { workspaceKey } from "../lib/workspaces";
 
 // Free-form language tag — used as a hint for the title chip and
@@ -64,13 +64,17 @@ function read(): Snippet[] {
   }
 }
 
-function write(snippets: Snippet[]): void {
-  try {
-    localStorage.setItem(storageKey(), JSON.stringify(snippets));
-    window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
-  } catch {
-    // quota / serialization — silent.
+// Cheap structural compare — bails the cross-instance listener loop when
+// the freshly-read list matches what's already in state. Mirrors useNotes'
+// sameNotes guard; updatedAt is the canonical "did anything change?"
+// signal since snippets are append/update-only.
+function sameSnippets(a: Snippet[], b: Snippet[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id || a[i].updatedAt !== b[i].updatedAt) return false;
   }
+  return true;
 }
 
 export interface UseSnippetsReturn {
@@ -84,14 +88,40 @@ export interface UseSnippetsReturn {
 export function useSnippets(): UseSnippetsReturn {
   const [snippets, setSnippets] = useState<Snippet[]>(() => read());
 
+  // Persist on change + notify peer instances. Two safeguards against the
+  // dispatch→listener→setSnippets feedback loop (same shape as useNotes):
+  // (1) skip the very first effect run so opening the app doesn't write
+  //     back what we just read; (2) compare the serialization to what's
+  //     already in storage and bail before dispatching when nothing
+  //     actually changed.
+  const isFirstPersist = useRef(true);
   useEffect(() => {
-    write(snippets);
+    if (isFirstPersist.current) {
+      isFirstPersist.current = false;
+      return;
+    }
+    try {
+      const next = JSON.stringify(snippets);
+      if (localStorage.getItem(storageKey()) === next) return;
+      localStorage.setItem(storageKey(), next);
+      window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+    } catch {
+      // quota / serialization — silent.
+    }
   }, [snippets]);
 
+  // Stay in sync with peer instances. Use the structural compare so an
+  // event that wouldn't actually change anything doesn't re-trigger
+  // the persist effect and spiral.
   useEffect(() => {
-    const onChanged = () => setSnippets(read());
+    const onChanged = () => {
+      const fresh = read();
+      setSnippets((prev) => (sameSnippets(prev, fresh) ? prev : fresh));
+    };
     const onStorage = (e: StorageEvent) => {
-      if (e.key && e.key.startsWith("hangar-snippets-")) setSnippets(read());
+      if (e.key !== storageKey()) return;
+      const fresh = read();
+      setSnippets((prev) => (sameSnippets(prev, fresh) ? prev : fresh));
     };
     window.addEventListener(CHANGE_EVENT, onChanged);
     window.addEventListener("storage", onStorage);
