@@ -1223,7 +1223,10 @@ html, body { overflow-x: clip; }
 
 .lp-footer-top {
   display: grid;
-  grid-template-columns: 2fr repeat(4, 1fr);
+  /* Brand + Product + Legal — was 2fr repeat(4, 1fr) back when we also
+     rendered placeholder Company + Resources columns. Dropped those
+     since 7 of 8 links were dead `#` anchors that read as broken. */
+  grid-template-columns: 2fr repeat(2, 1fr);
   gap: 40px;
   padding-bottom: 32px;
   border-bottom: 1px solid var(--line);

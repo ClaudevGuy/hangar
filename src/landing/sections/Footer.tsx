@@ -29,28 +29,6 @@ export function Footer() {
             </ul>
           </div>
           <div className="lp-footer-col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#">About</a></li>
-              <li><a href="#">Blog</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="#">Press</a></li>
-            </ul>
-          </div>
-          <div className="lp-footer-col">
-            <h4>Resources</h4>
-            <ul>
-              <li>
-                <a href="https://github.com/ClaudevGuy/hangar" target="_blank" rel="noreferrer">
-                  Docs
-                </a>
-              </li>
-              <li><a href="#">API</a></li>
-              <li><a href="#">Status</a></li>
-              <li><a href="#">Security</a></li>
-            </ul>
-          </div>
-          <div className="lp-footer-col">
             <h4>Legal</h4>
             <ul>
               <li><a href="/privacy">Privacy</a></li>
